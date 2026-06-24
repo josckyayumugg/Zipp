@@ -1,0 +1,663 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Image,
+  Dimensions,
+  Platform,
+} from "react-native";
+import { GlobalStyles } from "../Constants";
+import { supabase } from "../_lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
+import InputText from "../Components/TextInput";
+import Button from "../Components/Button";
+import { useNavigation } from "@react-navigation/native";
+import { useForm, Controller } from "react-hook-form";
+import { useCreateProduct } from "../_CustomHooks/ProductServices";
+import Toast from "react-native-toast-message";
+import {
+  launchCameraAsync,
+  useCameraPermissions,
+  PermissionStatus,
+} from "expo-image-picker";
+
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+
+
+export default function AddProduct() {
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      images: [],
+      title: "",
+      year: "",
+      modal: "",
+      details: "",
+      brand: "",
+      price: "",
+    },
+  });
+
+  // const currentUser = supabase.auth.user ? supabase.auth.user() : null;
+  // Note: If using newer Supabase V2 JS libraries, use:da
+  const {
+    data: user,
+    isPending: isLoadingUser,
+    isError: isErrorUser,
+  } = useGetCurrentUser();
+
+  const userId = user?.id;
+
+  // Pull out the active array state in real time
+  const capturedImages = watch("images") || [];
+  const Navigation = useNavigation();
+  const { mutate, isError, isPending, error } = useCreateProduct();
+
+  const [cameraPermissionInformation, requestPermission] =
+    useCameraPermissions();
+
+  async function verifyPermission() {
+    if (cameraPermissionInformation.status === PermissionStatus.UNDETERMINED) {
+      const PermissionResponse = await requestPermission();
+      return PermissionResponse.granted;
+    }
+
+    if (cameraPermissionInformation.status === PermissionStatus.DENIED) {
+      Alert.alert(
+        "Insufficient Permissions!",
+        "You need to grant camera Permissions to use this app",
+      );
+      return false;
+    }
+    return true;
+  }
+
+  async function takeImageHandler() {
+    const hasPermission = await verifyPermission();
+    if (!hasPermission) return;
+
+    const image = await launchCameraAsync({
+      allowsEditing: true,
+      quality: 0.5,
+      aspect: [16, 9],
+    });
+
+    if (image.canceled) {
+      return;
+    }
+
+    const newPhotoUri = image?.assets[0].uri;
+    const currentPhotos = watch("images") || [];
+
+    // Safety check to ensure we stop exactly at 4 photos
+    if (currentPhotos.length >= 4) {
+      Alert.alert(
+        "Limit Reached",
+        "You can only upload a maximum of 4 images.",
+      );
+      return;
+    }
+
+    setValue("images", [newPhotoUri, ...currentPhotos], {
+      shouldValidate: true,
+    });
+  }
+
+  function submitHandler(data) {
+    mutate(
+      { ...data, userId },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: "Success 👋",
+            text2: "Product added successfully!",
+            position: "top", // or "bottom"
+            visibilityTime: 3000,
+          });
+          reset();
+
+          // Alert.alert("Success", "Product added successfully", [
+          //   {
+          //     text: "OK",
+          //     onPress: () => {
+          //       reset(); // Clears all fields back to defaultValues
+          //     },
+          //   },
+          // ]);
+        },
+      },
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1, backgroundColor: "#fff" }}
+    >
+      <ScrollView
+        style={{ backgroundColor: "#fff" }}
+        contentContainerStyle={{
+          borderTopColor: GlobalStyles.Primary_Grey,
+          borderTopWidth: 1,
+          padding: 12,
+        }}
+      >
+        <Text style={styles.headerTitle}>Product images</Text>
+
+        {/* FIX 1: Safe wrapper View layout around typography icon blocks */}
+        <View style={[styles.row, styles.smallMVertical, { gap: 6 }]}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text
+            style={[styles.paragraph, { color: GlobalStyles.Primary_Green }]}
+          >
+            Please provide different angles (Max 4)
+          </Text>
+        </View>
+
+        {/* DYNAMIC VISUAL ELEMENT: Horizontal Captured Photo Gallery Row */}
+        {capturedImages.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginVertical: 10 }}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {capturedImages.map((uri, index) => (
+              <View
+                key={index}
+                style={[styles.bordeR, { position: "relative" }]}
+              >
+                <Image
+                  source={{ uri }}
+                  style={{ width: 120, height: 90, borderRadius: 6 }}
+                />
+                <View style={styles.badgeIndex}>
+                  <Text
+                    style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
+                  >
+                    {index + 1}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
+        {/* Camera Target Trigger Anchor Panel */}
+        <View
+          style={[
+            {
+              borderStyle: "dashed",
+              borderWidth: 1,
+              borderColor: GlobalStyles.Primary_Grey,
+              height: 140,
+              alignSelf: "center",
+              width: "100%",
+              flexDirection: "row",
+              backgroundColor: "#fafafa",
+
+              alignItems: "center",
+            },
+            styles.bordeR,
+            styles.smallMVertical,
+          ]}
+        >
+          <Controller
+            control={control}
+            name="images"
+            rules={{
+              required: "Images required",
+              validate: (value) => {
+                if (!value || value.length < 3) {
+                  return "At least 3 images are required";
+                }
+                if (value.length > 4) return "Maximum 4 images allowed";
+                return true;
+              },
+            }}
+            render={() => null}
+          />
+
+          <Button
+            content={
+              <View
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+
+                  gap: 8,
+                  alignSelf: "center",
+                }}
+              >
+                <Ionicons name="camera" size={24} color="black" />
+                <Text style={{ fontWeight: "600" }}>
+                  Snap Photo ({capturedImages.length}/4)
+                </Text>
+              </View>
+            }
+            onPress={takeImageHandler}
+          />
+        </View>
+
+        {errors.images && (
+          <Text style={{ color: "red", marginBottom: 10 }}>
+            {errors.images.message}
+          </Text>
+        )}
+
+        {/* Product Title Section */}
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.headerTitle}>Product Title</Text>
+          <Controller
+            control={control}
+            rules={{
+              maxLength: 50,
+              required: "Name is required",
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputText
+                placeholder={"eg: Toyota Hilux Front Bumper 2019"}
+                onBlur={onBlur}
+                placeholderTextColor={GlobalStyles.Primary_Grey}
+                value={value}
+                onChange={onChange}
+                styled={[
+                  { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
+                  styles.paddingLg,
+                ]}
+              />
+            )}
+            name="title"
+          />
+        </View>
+        {errors.title && (
+          <Text style={{ color: "red" }}>{errors.title.message}</Text>
+        )}
+
+        {/* Row Split Fields Grid */}
+        <View style={[styles.row, { marginTop: 12, gap: 0 }]}>
+          <View style={{ width: "34%" }}>
+            <Text style={styles.headerTitle}>Brand</Text>
+            <Controller
+              control={control}
+              rules={{ required: "Brand is Required" }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputText
+                  placeholder={"Toyota"}
+                  placeholderTextColor={GlobalStyles.Primary_Grey}
+                  onBlur={onBlur}
+                  onChange={onChange}
+                  value={value}
+                  styled={[
+                    { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
+                    styles.bordeR,
+                    styles.paddingLg,
+                  ]}
+                />
+              )}
+              name="brand"
+            />
+            {errors.brand && (
+              <Text style={{ color: "red", fontSize: 11 }}>
+                {errors.brand.message}
+              </Text>
+            )}
+          </View>
+
+          <View style={{ width: "32%" }}>
+            <Text style={styles.headerTitle}>Model</Text>
+            <Controller
+              control={control}
+              rules={{ required: "Model is required" }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputText
+                  placeholder={"Hilux"}
+                  onBlur={onBlur}
+                  placeholderTextColor={GlobalStyles.Primary_Grey}
+                  onChange={onChange}
+                  value={value}
+                  styled={[
+                    { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
+                    styles.bordeR,
+                    styles.paddingLg,
+                  ]}
+                />
+              )}
+              name="modal"
+            />
+            {errors.modal && (
+              <Text style={{ color: "red", fontSize: 11 }}>
+                {errors.modal.message}
+              </Text>
+            )}
+          </View>
+
+          <View style={{ width: "32%" }}>
+            <Text style={styles.headerTitle}>Year</Text>
+            <Controller
+              control={control}
+              rules={{ required: "Year is required" }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputText
+                  placeholder={"2019"}
+                  onBlur={onBlur}
+                  onChange={onChange}
+                  placeholderTextColor={GlobalStyles.Primary_Grey}
+                  value={value}
+                  styled={[
+                    { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
+                    styles.bordeR,
+                    styles.paddingLg,
+                  ]}
+                />
+              )}
+              name="year"
+            />
+            {errors.year && (
+              <Text style={{ color: "red", fontSize: 11 }}>
+                {errors.year.message}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Description details input window */}
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.headerTitle}>Details</Text>
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputText
+                placeholder={
+                  "Describe part condition, flaws, compatibility details..."
+                }
+                onBlur={onBlur}
+                placeholderTextColor={GlobalStyles.Primary_Grey}
+                onChange={onChange}
+                value={value}
+                styled={[
+                  {
+                    borderColor: GlobalStyles.Primary_Grey,
+                    borderWidth: 1,
+                    minHeight: 60,
+                  },
+                  styles.bordeR,
+                  styles.paddingLg,
+                ]}
+              />
+            )}
+            name="details"
+          />
+        </View>
+
+        {/* Pricing block */}
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.headerTitle}>Price (optional)</Text>
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputText
+                placeholder={"300,000 RWF"}
+                onBlur={onBlur}
+                placeholderTextColor={GlobalStyles.Primary_Grey}
+                onChange={onChange}
+                value={value}
+                styled={[
+                  { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
+                  styles.bordeR,
+                  styles.paddingLg,
+                ]}
+              />
+            )}
+            name="price"
+          />
+        </View>
+        {isError && (
+          <Text style={[styles.paragraph, { color: "red" }]}>
+            {error.message}
+          </Text>
+        )}
+        {/* Submission Actions Row */}
+        <View
+          style={[
+            styles.row,
+            {
+              justifyContent: "space-between",
+              marginTop: 30,
+              marginBottom: 20,
+            },
+          ]}
+        >
+          <Button
+            onPress={() => {
+              Navigation.navigate("Home");
+            }}
+            content="Cancel"
+            styles={[
+              styles.bordeR,
+              styles.paddingLg,
+              {
+                borderColor: GlobalStyles.Primary_Grey,
+                borderWidth: 1,
+                width: "90%",
+                alignItems: "center",
+              },
+            ]}
+          />
+          <Button
+            onPress={handleSubmit(submitHandler)}
+            content="Submit "
+            styles={[
+              {
+                backgroundColor: GlobalStyles.Primary_Yellow,
+                width: "90%",
+
+                alignItems: "center",
+              },
+              styles.bordeR,
+              styles.paddingLg,
+            ]}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: "column",
+    height: "100%",
+    minWidth: "100%",
+    fontFamily: "notoSans",
+  },
+
+  mainTitle: {
+    fontFamily: "Roboto-Extrabold",
+    fontSize: 35,
+    textAlign: "center",
+  },
+  PageHeaderTitle: {
+    fontFamily: "Roboto-Extrabold",
+    fontSize: 25,
+    textAlign: "center",
+  },
+  Views: {
+    marginVertical: 12,
+  },
+  icon: {
+    marginHorizontal: 8,
+  },
+  smallT: {
+    fontFamily: "Roboto-regular",
+    fontSize: 12,
+  },
+  smallMVertical: {
+    marginVertical: 8,
+  },
+  largeMTop: {
+    marginTop: 50,
+  },
+  smallMTop: {
+    marginTop: 8,
+  },
+  label: {
+    borderWidth: 2,
+  },
+  Roboto: {
+    fontFamily: "Roboto-Light",
+    fontSize: 16,
+  },
+  bold: {
+    fontFamily: "Roboto-semibold",
+    fontWeight: 700,
+  },
+  graph: {
+    alignSelf: "center",
+    marginTop: 50,
+    alignItems: "center",
+    flexDirection: "column",
+    paddingHorizontal: 8,
+    marginBottom: 10,
+  },
+  rowBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  column: {
+    flexDirection: "column",
+    justifyContent: "space-evenly",
+    gap: 8,
+  },
+  whiteT: {
+    color: "white",
+  },
+  greyT: {
+    color: GlobalStyles.Primary_Grey,
+  },
+  greenT: {
+    color: GlobalStyles.Primary_Green,
+  },
+  smallText: {
+    fontSize: 10,
+    fontFamily: "Roboto-Light",
+  },
+  whiteText: {
+    color: GlobalStyles.Primary_Grey,
+  },
+  yellowBg: {
+    backgroundColor: GlobalStyles.Primary_Yellow,
+  },
+  blackBg: {
+    backgroundColor: GlobalStyles.Black,
+  },
+  cards: {
+    alignSelf: "flex-end",
+    flexDirection: "row",
+    margin: 8,
+    paddingRight: 4,
+
+    width: "70%",
+  },
+  rowItem: {
+    flexDirection: "column",
+    width: "45%",
+    paddingHorizontal: 4,
+    alignItems: "flex-start",
+    padding: 4,
+  },
+  revealImage: {
+    height: 200,
+
+    marginBottom: 16,
+  },
+
+  rowView: {
+    flexDirection: "row",
+    width: "100%",
+    gap: 2,
+    justifyContent: "space-between",
+    paddingHorizontal: 4,
+  },
+
+  sectionImage: {
+    width: 110,
+    height: 80,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+
+  sectionText: {
+    flex: 1,
+    marginBottom: 4,
+  },
+  headerTitle: {
+    fontFamily: "Roboto-semibold",
+    fontSize: 18,
+    paddingBottom: 4,
+  },
+  sectionTitle: {
+    fontFamily: "Roboto-Extrabold",
+    fontSize: 22,
+
+    marginBottom: 8,
+  },
+
+  bigText: {
+    fontSize: 20,
+    fontFamily: "Roboto-Light",
+    marginRight: 20,
+  },
+  paragraph: {
+    fontFamily: "Roboto-Light",
+    fontSize: 16,
+  },
+  button: {
+    alignSelf: "start",
+    paddingHorizontal: 8,
+    marginVertical: 10,
+    borderRadius: 4,
+  },
+
+  bordeR: {
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  paddingSm: {
+    padding: 4,
+  },
+  paddingLg: {
+    padding: 8,
+  },
+  button: {
+    backgroundColor: GlobalStyles.Primary_Green,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
+  },
+});
