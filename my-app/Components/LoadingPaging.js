@@ -1,94 +1,23 @@
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import { ActivityIndicator } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { GlobalStyles } from "../Constants";
-import Button from "./Button";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import RowMenu from "./RowMenu";
 
-export default function ProductProfileRow({ onToggleStatus }) {
-  const navigation = useNavigation();
-  const Data = {
-    title: "Toyota carina volant",
-    id: 3,
-    price: 200000,
-    more: ["Toyota", "Suv"],
-    status: "not active",
-  };
+export default function LoadingPaging() {
   return (
     <View
-      style={[
-        styles.row,
-        styles.bordeR,
-        styles.paddingLg,
-        styles.smallMVertical,
-        { borderWidth: 1, borderColor: GlobalStyles.Primary_Grey2 },
-      ]}
+      style={{
+        height: "100%",
+        width: "100%",
+        flex: 1,
+        backgroundColor: "white",
+        alignItems:'center',
+        justifyContent:'center'
+      }}
     >
-      <View style={[styles.info]}>
-        <View
-          style={{
-            flexDirection: "column",
-            gap: 8,
-            alignItems: "flex-start",
-            flexWrap: "wrap",
-          }}
-        >
-          <Text style={styles.title}>{Data.title}</Text>
-          <View style={{ flexDirection: "row" }}>
-            {Data.more.map((item, i) => (
-              <Text
-                key={i}
-                style={[
-                  styles.smallT,
-                  styles.bordeR,
-
-                  {
-                    borderColor: GlobalStyles.Primary_Grey2,
-
-                    padding: 1,
-                  },
-                ]}
-              >
-                {item}
-              </Text>
-            ))}
-          </View>
-        </View>
-
-        <Text
-          style={{
-            color: Data.status === "active" ? "green" : "red",
-            fontWeight: "bold",
-          }}
-        >
-          {Data.status === "active" ? "Active" : "Inactive"}
-        </Text>
-        <Text style={styles.smallText}>Added on 12/24/2022 8:00Am</Text>
-      </View>
-      <View
-        style={{
-          flexDirection: "column",
-
-          marginLeft: 10,
-        }}
-      >
-        <Button
-          styles={[
-            {
-              backgroundColor: GlobalStyles.Primary_Yellow,
-              marginVertical: 8,
-            },
-            styles.bordeR,
-            styles.paddingSm,
-          ]}
-          content={<Text>Activate</Text>}
-        />
-        <RowMenu />
-      </View>
+      <ActivityIndicator style={{ width: 60 }} />
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",

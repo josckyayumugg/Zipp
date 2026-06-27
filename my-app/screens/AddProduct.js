@@ -17,38 +17,84 @@ import InputText from "../Components/TextInput";
 import Button from "../Components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
-import { useCreateProduct } from "../_CustomHooks/ProductServices";
+import LoadingPaging from "../Components/LoadingPaging";
+import {
+  useCreateProduct,
+  useGetSingleProduct,
+} from "../_CustomHooks/ProductServices";
 import Toast from "react-native-toast-message";
+import { useEffect } from "react";
+import { useState } from "react";
 import {
   launchCameraAsync,
   useCameraPermissions,
   PermissionStatus,
 } from "expo-image-picker";
+import { useEditProduct } from "../_CustomHooks/ProductServices";
 
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 
-
-export default function AddProduct() {
+export default function AddProduct({ route, navigation }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const productId = route.params?.productId;
   const {
     control,
     handleSubmit,
     setValue,
     reset,
     watch,
+
     formState: { errors },
   } = useForm({
     defaultValues: {
       images: [],
-      title: "",
+      name: "",
       year: "",
       modal: "",
       details: "",
       brand: "",
       price: "",
+      profileId: "",
     },
   });
+  // About Editing
+  useEffect(() => {
+    if (productId) {
+      console.log(4343, productId);
+      setIsEditing(true);
+      setValue("productId", productId);
+    }
+  }, [productId, setValue]);
 
-  // const currentUser = supabase.auth.user ? supabase.auth.user() : null;
+  const {
+    data: editProduct,
+    isLoading: editPending,
+    isError: editIsError,
+    error: editError,
+  } = useGetSingleProduct(productId);
+
+  useEffect(() => {
+    if (!editProduct || !isEditing) return;
+    console.log(34343, isEditing);
+    reset({
+      name: editProduct.name,
+      brand: editProduct.brand,
+      modal: editProduct.modal,
+      year: editProduct.year,
+      details: editProduct.details,
+      price: String(editProduct.price),
+    });
+  }, [editProduct, reset, isEditing]);
+
+  const {
+    mutate: mutationEditing,
+    isPending: isWaitingEditing,
+    isError: isErrorEditing,
+    error: EditingError,
+  } = useEditProduct(productId);
+
+  // About the  user
+  const currentUser = supabase.auth.user ? supabase.auth.user() : null;
   // Note: If using newer Supabase V2 JS libraries, use:da
   const {
     data: user,
@@ -114,6 +160,32 @@ export default function AddProduct() {
   }
 
   function submitHandler(data) {
+    if (isEditing) {
+      console.log("yes");
+      return mutationEditing(
+        { ...data, id: productId },
+        {
+          onSuccess: () => {
+            Toast.show({
+              type: "success",
+              text1: "Success 👋",
+              text2: "Edit was successful!",
+              position: "top", // or "bottom"
+              visibilityTime: 3000,
+            });
+            reset({
+              name: "",
+              brand: "",
+              modal: "",
+              year: "",
+              details: "",
+              price: "",
+            });
+            setIsEditing(false);
+          },
+        },
+      );
+    }
     mutate(
       { ...data, userId },
       {
@@ -126,20 +198,11 @@ export default function AddProduct() {
             visibilityTime: 3000,
           });
           reset();
-
-          // Alert.alert("Success", "Product added successfully", [
-          //   {
-          //     text: "OK",
-          //     onPress: () => {
-          //       reset(); // Clears all fields back to defaultValues
-          //     },
-          //   },
-          // ]);
         },
       },
     );
   }
-
+  if (editPending || isWaitingEditing) return <LoadingPaging />;
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -156,18 +219,20 @@ export default function AddProduct() {
         <Text style={styles.headerTitle}>Product images</Text>
 
         {/* FIX 1: Safe wrapper View layout around typography icon blocks */}
-        <View style={[styles.row, styles.smallMVertical, { gap: 6 }]}>
-          <Ionicons
-            name="alert-circle-outline"
-            size={20}
-            color={GlobalStyles.Primary_Green}
-          />
-          <Text
-            style={[styles.paragraph, { color: GlobalStyles.Primary_Green }]}
-          >
-            Please provide different angles (Max 4)
-          </Text>
-        </View>
+        {!isEditing && (
+          <View style={[styles.row, styles.smallMVertical, { gap: 6 }]}>
+            <Ionicons
+              name="alert-circle-outline"
+              size={20}
+              color={GlobalStyles.Primary_Green}
+            />
+            <Text
+              style={[styles.paragraph, { color: GlobalStyles.Primary_Green }]}
+            >
+              Please provide different angles (Max 4)
+            </Text>
+          </View>
+        )}
 
         {/* DYNAMIC VISUAL ELEMENT: Horizontal Captured Photo Gallery Row */}
         {capturedImages.length > 0 && (
@@ -199,60 +264,62 @@ export default function AddProduct() {
         )}
 
         {/* Camera Target Trigger Anchor Panel */}
-        <View
-          style={[
-            {
-              borderStyle: "dashed",
-              borderWidth: 1,
-              borderColor: GlobalStyles.Primary_Grey,
-              height: 140,
-              alignSelf: "center",
-              width: "100%",
-              flexDirection: "row",
-              backgroundColor: "#fafafa",
+        {!isEditing && (
+          <View
+            style={[
+              {
+                borderStyle: "dashed",
+                borderWidth: 1,
+                borderColor: GlobalStyles.Primary_Grey,
+                height: 140,
+                alignSelf: "center",
+                width: "100%",
+                flexDirection: "row",
+                backgroundColor: "#fafafa",
 
-              alignItems: "center",
-            },
-            styles.bordeR,
-            styles.smallMVertical,
-          ]}
-        >
-          <Controller
-            control={control}
-            name="images"
-            rules={{
-              required: "Images required",
-              validate: (value) => {
-                if (!value || value.length < 3) {
-                  return "At least 3 images are required";
-                }
-                if (value.length > 4) return "Maximum 4 images allowed";
-                return true;
+                alignItems: "center",
               },
-            }}
-            render={() => null}
-          />
+              styles.bordeR,
+              styles.smallMVertical,
+            ]}
+          >
+            <Controller
+              control={control}
+              name="images"
+              rules={{
+                required: "Images required",
+                validate: (value) => {
+                  if (!value || value.length < 3) {
+                    return "At least 3 images are required";
+                  }
+                  if (value.length > 4) return "Maximum 4 images allowed";
+                  return true;
+                },
+              }}
+              render={() => null}
+            />
 
-          <Button
-            content={
-              <View
-                style={{
-                  alignItems: "center",
-                  flexDirection: "row",
+            <Button
+              content={
+                <View
+                  style={{
+                    alignItems: "center",
+                    flexDirection: "row",
 
-                  gap: 8,
-                  alignSelf: "center",
-                }}
-              >
-                <Ionicons name="camera" size={24} color="black" />
-                <Text style={{ fontWeight: "600" }}>
-                  Snap Photo ({capturedImages.length}/4)
-                </Text>
-              </View>
-            }
-            onPress={takeImageHandler}
-          />
-        </View>
+                    gap: 8,
+                    alignSelf: "center",
+                  }}
+                >
+                  <Ionicons name="camera" size={24} color="black" />
+                  <Text style={{ fontWeight: "600" }}>
+                    Snap Photo ({capturedImages.length}/4)
+                  </Text>
+                </View>
+              }
+              onPress={takeImageHandler}
+            />
+          </View>
+        )}
 
         {errors.images && (
           <Text style={{ color: "red", marginBottom: 10 }}>
@@ -282,7 +349,7 @@ export default function AddProduct() {
                 ]}
               />
             )}
-            name="title"
+            name="name"
           />
         </View>
         {errors.title && (

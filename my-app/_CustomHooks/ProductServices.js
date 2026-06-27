@@ -23,14 +23,28 @@ export async function getAllProductsWithPagination() {
   });
 }
 
-export async function getSingleProduct(id) {
+export function useGetSingleProduct(id) {
   return useQuery({
-    queryKey: ["getProduct"],
+    // 💡 1. Put 'id' in the key so query refetches when ID changes
+    queryKey: ["getProduct", id],
     queryFn: async () => {
-      let { data: Products, error } = await supabase
+      console.log("kigali house", id);
+      // 💡 2. Use .eq() to filter by the product ID column
+      const { data, error } = await supabase
         .from("Products")
-        .select(id);
+        .select("*")
+        .eq("id", id)
+        .single(); // Grab just the single object instead of an array
+
+      if (error) {
+        console.error("Error fetching single product:", error.message);
+        throw error;
+      }
+
+      return data;
     },
+    // 💡 3. Only run this network request if an actual ID is passed in
+    enabled: !!id,
   });
 }
 
@@ -41,46 +55,84 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: async (data) => {
-      console.log(222,data);
-      const names = data?.images.map((item, i) =>
-        `${i}-${item}`.replaceAll("/", ""),
-      );
-      const imagePaths = names.map(
-        (el) =>
-          `${"https://xznllnvmbydybkpxcivo.supabase.co"}/storage/v1/object/sign/Images/${el}`,
-      );
+      console.log("Incoming data:", data);
 
-      const { spData, error } = await supabase
+      const imageUrls = [];
+
+      // 1. UPLOAD IMAGES FIRST
+      for (const [i, imageUri] of data.images.entries()) {
+        // convert blob URL -> real file
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+
+        // create unique file name
+        const fileName = `${data.userId}/${Date.now()}-${i}.jpg`;
+
+        // upload to Supabase Storage
+        const { data: uploadData, error: storageError } = await supabase.storage
+          .from("Images") // ⚠️ must match bucket name exactly
+          .upload(fileName, blob, {
+            contentType: "image/jpeg",
+          });
+
+        if (storageError) {
+          console.log("Upload error:", storageError);
+          throw storageError;
+        }
+
+        // 2. GET PUBLIC URL
+        const { data: publicUrlData } = supabase.storage
+          .from("Images")
+          .getPublicUrl(uploadData.path);
+
+        imageUrls.push(publicUrlData.publicUrl);
+      }
+
+      // 3. INSERT PRODUCT AFTER UPLOADS
+      const { data: spData, error } = await supabase
         .from("Products")
         .insert([
           {
-            name: data.title,
+            name: data.name,
             price: data.price,
             brand: data.brand,
             modal: data.modal,
             details: data.details,
             year: data.year,
-            images: imagePaths,
+            images: imageUrls, // ✅ final URLs
             profileId: data.userId,
           },
         ])
         .select();
+
       if (error) {
-        console.log(error);
+        console.log("DB error:", error);
         throw error;
       }
+
       return spData;
     },
   });
 }
-export async function editProduct({ data }) {
-  return useQuery({
-    queryKey: ["editProduct"],
-    queryFn: async () => {
+export function useEditProduct() {
+  return useMutation({
+    mutationFn: async (productData) => {
+      console.log("trying to edit");
+
+      const { id, ...updateFields } = productData;
+
       const { data, error } = await supabase
         .from("Products")
-        .insert([{ some_column: "someValue", other_column: "otherValue" }])
-        .select();
+        .update(updateFields)
+        .eq("id", id)
+        .select(); // optional but useful to return updated row
+
+      if (error) {
+        console.log("DB error:", error);
+        throw error;
+      }
+
+      return data;
     },
   });
 }
