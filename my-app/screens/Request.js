@@ -6,29 +6,67 @@ import InputText from "../Components/TextInput";
 import Span from "../Components/Span";
 import { useNavigation } from "@react-navigation/native";
 import ViewReplies from "./Replies";
-import { useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import NewRequestModal from "../Components/NewRequest";
 import ARequest from "../Components/ARequest";
+import { useEffect } from "react";
 import ConfirmDeleteRequest from "../Components/ConfirmDeleteRequest";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import {
+  useGetAllMyRequests,
+  useGetAllRequests,
+} from "../_CustomHooks/RequestServices";
+import LoadingPaging from "../Components/LoadingPaging";
 
 export default function Request() {
+  //getuser
+  const {
+    data: user,
+    isPending: isPendingUser,
+    error: errorUser,
+    isError: isErrorUser,
+  } = useGetCurrentUser();
+  //hooks
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const Navigation = useNavigation();
+  const [requestType, setRequestType] = useState("myRequest");
+  const [isVisible, setIsVisible] = useState(false);
+
+  ////
   const Data = {
     productName: "Suzuki right door",
     status: "active",
+    id: 2,
     date: "12/8/2023",
     specifications: ["Suzuki", "2012", "AN12", "SUV"],
     description:
       "We need a right door of the suzuki car(dukeneye urugi rwiburyo rwa suzuki)",
   };
-  const [requestType, setRequestType] = useState("myRequest");
-  const [isVisible, setIsVisible] = useState(false);
+
+  const profileId = user?.id;
+  const {
+    data: MyRequests,
+    isError,
+    error,
+    isPending,
+  } = useGetAllMyRequests(profileId);
+
+  useEffect(() => {
+    if (MyRequests) {
+      console.log(user);
+      console.log("Products loaded:", MyRequests);
+    }
+  }, [MyRequests]);
+
+  if (isPending || isPendingUser) {
+    return <LoadingPaging />;
+  }
   return (
     <ScrollView style={styles.paddingSm}>
       <ConfirmDeleteRequest
         item={Data.productName}
         isConfirmOpen={isConfirmOpen}
+        id={Data.id}
         setIsConfirmOpen={setIsConfirmOpen}
       />
       <View style={styles.rowBtn}>
@@ -106,8 +144,13 @@ export default function Request() {
         setIsVisible={setIsVisible}
         isConfirmOpen={isConfirmOpen}
         setIsConfirmOpen={setIsConfirmOpen}
+        id={Data.id}
       />
-      <NewRequestModal isVisible={isVisible} setIsVisible={setIsVisible} />
+      <NewRequestModal
+        isVisible={isVisible}
+        setIsVisible={setIsVisible}
+        setRequestType={setRequestType}
+      />
     </ScrollView>
   );
 }

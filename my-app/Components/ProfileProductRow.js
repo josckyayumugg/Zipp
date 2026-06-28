@@ -8,8 +8,8 @@ import RowMenu from "./RowMenu";
 export default function ProductProfileRow({ onToggleStatus }) {
   const navigation = useNavigation();
   const Data = {
-    title: "Toyota carina volant",
-    id: 3,
+    name: "Toyota carina volant",
+    id: 4,
     price: 200000,
     more: ["Toyota", "Suv"],
     status: "not active",
@@ -40,11 +40,12 @@ export default function ProductProfileRow({ onToggleStatus }) {
                 key={i}
                 style={[
                   styles.smallT,
+
                   styles.bordeR,
 
                   {
                     borderColor: GlobalStyles.Primary_Grey2,
-
+                    textDecorationLine: "underline",
                     padding: 1,
                   },
                 ]}
@@ -67,9 +68,8 @@ export default function ProductProfileRow({ onToggleStatus }) {
       </View>
       <View
         style={{
+          width: "35%",
           flexDirection: "column",
-
-          marginLeft: 10,
         }}
       >
         <Button
@@ -83,7 +83,7 @@ export default function ProductProfileRow({ onToggleStatus }) {
           ]}
           content={<Text>Activate</Text>}
         />
-        <RowMenu />
+        <RowMenu productId={Data.id} item={Data.name} />
       </View>
     </View>
   );
@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
 
   info: {
     flex: 1,
-    marginLeft: 10,
   },
 
   title: {

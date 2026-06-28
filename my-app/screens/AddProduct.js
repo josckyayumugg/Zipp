@@ -60,7 +60,8 @@ export default function AddProduct({ route, navigation }) {
   // About Editing
   useEffect(() => {
     if (productId) {
-      console.log(4343, productId);
+      
+
       setIsEditing(true);
       setValue("productId", productId);
     }
@@ -75,7 +76,7 @@ export default function AddProduct({ route, navigation }) {
 
   useEffect(() => {
     if (!editProduct || !isEditing) return;
-    console.log(34343, isEditing);
+  
     reset({
       name: editProduct.name,
       brand: editProduct.brand,

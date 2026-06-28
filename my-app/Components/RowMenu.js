@@ -1,21 +1,58 @@
-import React from "react";
+import React, { useState } from "react";
 import Button from "./Button";
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { View, Text } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import ConfirmDeleteProduct from "./confirmDeleteProduct";
+import { useDeleteProduct } from "../_CustomHooks/ProductServices";
+import Toast from "react-native-toast-message";
 
-export default function RowMenu({ styles }) {
+export default function RowMenu({ styles, productId, item }) {
+  const [isDeleteVisible, setIsDeleteVisible] = useState(false);
+  const navigation = useNavigation();
+
+  //deleting product
+  const { isError, error, isPending, mutate } = useDeleteProduct();
+  function onConfirm() {
+    mutate(productId, {
+      onSuccess: () => {
+        Toast.show({
+          type: "success",
+          text1: "Delete👋",
+          text2: "Your product was  deleted well ",
+          position: "top", // or "bottom"
+          visibilityTime: 3000,
+        });
+      },
+    });
+  }
   return (
     <View style={[{ flexDirection: "row", gap: 4, width: "100%" }]}>
       <Button
-        styles={[{ borderWidth: 1, width: "100%" }, styled.bordeR]}
-        content={<Text style={styled.smallT}>Edit</Text>}
+        onPress={() => {
+          navigation.navigate("Upload", { productId: productId });
+        }}
+        styles={[{ borderWidth: 1, height: 25 }, styled.bordeR]}
+        content={<Text style={styled.paragraph}>Edit</Text>}
       />
 
       <Button
-        styles={[{ borderWidth: 1, width: "100%" }, styled.bordeR]}
-        content={<Text style={styled.smallT}>delete</Text>}
+        onPress={() => {
+          setIsDeleteVisible((prev) => !prev);
+        }}
+        styles={[{ borderWidth: 1, height: 25 }, styled.bordeR]}
+        content={<Text style={styled.paragraph}>delete</Text>}
       />
+      {isDeleteVisible && (
+        <ConfirmDeleteProduct
+          id={productId}
+          item={item}
+          setIsDeleteVisible={setIsDeleteVisible}
+          isDeleteVisible={isDeleteVisible}
+          onConfirm={onConfirm}
+        />
+      )}
     </View>
   );
 }

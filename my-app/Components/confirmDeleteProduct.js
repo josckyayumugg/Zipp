@@ -3,37 +3,20 @@ import { Modal, View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
-import Toast from "react-native-toast-message";
-import { useDeleteRequest } from "../_CustomHooks/RequestServices";
+import { useDeleteProduct } from "../_CustomHooks/ProductServices";
 
-export default function ConfirmDeleteRequest({
-  isConfirmOpen,
-  setIsConfirmOpen,
-  productName,
+export default function ConfirmDeleteProduct({
+  setIsDeleteVisible,
+  isDeleteVisible,
   item,
-  id,
+  onConfirm,
+  productId,
 }) {
-  const { isError, error, mutate } = useDeleteRequest();
-  function confirmDelete() {
-    console.log(id,'starting to delete')
-    mutate(id, {
-      onSuccess: () => {
-        Toast.show({
-          type: "success",
-          text1: "Success 👋",
-          text2: "Request was deleted successfully!",
-          position: "top", // or "bottom"
-          visibilityTime: 3000,
-        });
-      },
-    });
-    setIsConfirmOpen(false);
-  }
-  const closeModal = () => setIsConfirmOpen(false);
+  const closeModal = () => setIsDeleteVisible(false);
 
   return (
     <Modal
-      visible={isConfirmOpen}
+      visible={isDeleteVisible}
       animationType="fade"
       transparent={true}
       onRequestClose={closeModal}
@@ -58,11 +41,11 @@ export default function ConfirmDeleteRequest({
 
           {/* Core Typography Block using your exact design patterns */}
           <Text style={[styles.mainTitle, { marginBottom: 8 }]}>
-            Delete Request
+            Delete Product
           </Text>
 
           <Text style={[styles.paragraph, styles.centerText]}>
-            Are you sure you want to delete your request for{" "}
+            Are you sure you want to delete your Product
             <Text style={styles.bold}>"{item}"</Text>? This action cannot be
             undone.
           </Text>
@@ -87,7 +70,10 @@ export default function ConfirmDeleteRequest({
 
             {/* Confirm Delete Button */}
             <Button
-              onPress={confirmDelete}
+              onPress={() => {
+                if (onConfirm) onConfirm();
+                closeModal();
+              }}
               styles={[
                 styles.bordeR,
                 styles.paddingLg,

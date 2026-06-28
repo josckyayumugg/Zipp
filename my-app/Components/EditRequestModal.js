@@ -14,26 +14,66 @@ import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import Span from "./Span";
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useGetSingleRequest } from "../_CustomHooks/RequestServices";
+import LoadingPaging from "./LoadingPaging";
 export default function EditRequestModal({
   setIsModalVisible,
   isModalVisible,
   id,
 }) {
+  //getProduct
+  console.log(id);
+  const { data: product, isError, error, isPending } = useGetSingleRequest(id);
+  if (isError) {
+    console.log(error.message);
+  }
+  console.log(product);
   // const item=request with the item Id the edit  and the data got will be the default value
   const {
     control,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
-    // defaultValues: {
-    // },
+    defaultValues: {
+      name: "",
+
+      details: "",
+      modal: "",
+      brand: "",
+      more: "",
+      year: "",
+      budget: "",
+    },
   });
+
+  //filling he form
+
+  useEffect(() => {
+    if (product) {
+      
+      reset({
+        name: product.name,
+
+        details: product.details,
+        modal: product.modal,
+        brand: product.modal,
+        more: product.more,
+        year: product.year,
+        budget: product.budget,
+      });
+    }
+  }, [product]);
 
   function submitHandler(data) {
     console.log("submitting Request", data);
+  }
+  if (isPending) {
+    return <LoadingPaging />;
   }
   return (
     <Modal
@@ -109,7 +149,7 @@ export default function EditRequestModal({
                       ]}
                     />
                   )}
-                  name="title"
+                  name="name"
                 />
                 {errors.title && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
@@ -147,7 +187,7 @@ export default function EditRequestModal({
                       ]}
                     />
                   )}
-                  name="description"
+                  name="details"
                 />
                 {errors.description && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
@@ -211,6 +251,7 @@ export default function EditRequestModal({
                           placeholder={"Rav4"}
                           onChange={onChange}
                           onBlur={onBlur}
+                          value={value}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,
@@ -239,6 +280,7 @@ export default function EditRequestModal({
                           placeholder={"2019"}
                           onChange={onChange}
                           onBlur={onBlur}
+                          value={value}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,
@@ -270,13 +312,15 @@ export default function EditRequestModal({
                         <InputText
                           placeholder={"hybrid"}
                           onChange={onChange}
+                          value={value}
+                          onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,
                           }}
                         />
                       )}
-                      name="specification"
+                      name="more"
                     />
                   </View>
                 </View>
@@ -293,6 +337,7 @@ export default function EditRequestModal({
                         placeholder={"300,0000RWF"}
                         onChange={onChange}
                         onBlur={onBlur}
+                        value={value}
                         styled={{
                           borderWidth: 1,
                           borderColor: GlobalStyles.Primary_Grey,

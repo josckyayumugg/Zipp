@@ -14,29 +14,78 @@ import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import Span from "./Span";
+import Toast from "react-native-toast-message";
+import { supabase } from "../_lib/supabase";
 import { useForm, Controller } from "react-hook-form";
-export default function NewRequestModal({ isVisible, setIsVisible }) {
+import { useCreateRequest } from "../_CustomHooks/RequestServices";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import LoadingPaging from "./LoadingPaging";
+export default function NewRequestModal({
+  isVisible,
+  setIsVisible,
+  setRequestType,
+}) {
+  //get User
+  const {
+    data: user,
+    isPending: isPendingUser,
+    isError: isErrorUser,
+    errror: userError,
+  } = useGetCurrentUser();
+  console.log(4343, user);
   const {
     control,
     handleSubmit,
     setValue,
+    reset,
     watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      title: "",
-      description: "",
-      category: "",
+      name: "",
+      details: "",
+
       brand: "",
       modal: "",
       year: "",
-      specification: "",
+      more: "",
       budget: "",
     },
   });
+
+  //About creating a request
+  const { isPending, isError, error, mutate } = useCreateRequest();
   function submitHandler(data) {
-    console.log("submitting Request", data);
+    mutate(
+      { ...data, createdBy: user.id },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: "Success 👋",
+            text2: "Request was created successfully!",
+            position: "top", // or "bottom"
+            visibilityTime: 3000,
+          });
+          reset({
+            name: "",
+            details: "",
+
+            brand: "",
+            modal: "",
+            year: "",
+            more: "",
+            budget: "",
+          });
+        },
+      },
+    );
+    setIsVisible(false);
+    setRequestType("myRequest");
   }
+  if (isPendingUser) return;
+  <LoadingPaging />;
+
   return (
     <Modal
       visible={isVisible}
@@ -54,7 +103,6 @@ export default function NewRequestModal({ isVisible, setIsVisible }) {
               style={{
                 flexDirection: "row",
                 justifyContent: "flex-end",
-
                 elevation: 999,
               }}
             >
@@ -111,7 +159,7 @@ export default function NewRequestModal({ isVisible, setIsVisible }) {
                       ]}
                     />
                   )}
-                  name="title"
+                  name="name"
                 />
                 {errors.title && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
@@ -149,7 +197,7 @@ export default function NewRequestModal({ isVisible, setIsVisible }) {
                       ]}
                     />
                   )}
-                  name="description"
+                  name="details"
                 />
                 {errors.description && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
@@ -278,7 +326,7 @@ export default function NewRequestModal({ isVisible, setIsVisible }) {
                           }}
                         />
                       )}
-                      name="specification"
+                      name="more"
                     />
                   </View>
                 </View>
@@ -305,9 +353,17 @@ export default function NewRequestModal({ isVisible, setIsVisible }) {
                   />
                 </View>
               </View>
+              <View>
+                {isError && (
+                  <Text style={[{ color: "red" }, styles.paragraph]}>
+                    {error.message}
+                  </Text>
+                )}
+              </View>
               <View style={{ height: 85 }}>
                 <Button
-                  content={"Post request"}
+                  disable={isPending}
+                  content={isPending ? "...creating request" : "Post request"}
                   onPress={handleSubmit(submitHandler)}
                   styles={[
                     {

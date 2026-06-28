@@ -1,29 +1,75 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import { supabase } from "../_lib/supabase";
 
-export async function createRequest({ data }) {
+export function useCreateRequest() {
   return useMutation({
-    queryKey: ["createRequest"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    mutationFn: async (data) => {
+      const { data: spData, error } = await supabase
         .from("Requests")
-        .insert([{ data }])
+        .insert([data])
         .select();
+      if (error) {
+        console.error("Error creating  product:", error.message);
+        throw error;
+      }
+      return spData;
     },
   });
 }
-export function deleteRequest({ data }) {
+export function useDeleteRequest() {
   return useMutation({
-    queryKey: ["deleteReques"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    mutationFn: async (id) => {
+      const { spData, error } = await supabase
         .from("Requests")
-        .insert([{ data }])
-        .select();
+        .delete()
+        .eq("id", id);
+      if (error) {
+        console.error("Error deleting  product:", error.message);
+        throw error;
+      }
+      return spData;
     },
   });
 }
-export function editRequest({ id }) {
+
+export function useGetSingleRequest(id) {
+  return useQuery({
+    queryKey: ["request", id],
+    queryFn: async () => {
+      let { data: spData, error } = await supabase
+        .from("Requests")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) {
+        throw error;
+      }
+      return spData;
+    },
+    enabled: !!id,
+  });
+}
+export function useGetAllMyRequests(id) {
+  return useQuery({
+    queryKey: ["AllRequests"],
+    queryFn: async () => {
+      let { data: spData, error } = await supabase
+        .from("Requests")
+        .select("*")
+        .eq("profileId", profileId);
+
+      if (error) {
+        console.error("Error fetching All Products:", error.message);
+        throw error;
+      }
+      return spData;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useEditRequest({ id }) {
   return useMutation({
     queryKey: ["editRequest"],
     queryFn: async () => {
@@ -35,6 +81,7 @@ export function editRequest({ id }) {
     },
   });
 }
+
 export function subscribeToRequests({ data }) {
   return useQuery({
     queryKey: ["subscribe"],
@@ -52,17 +99,22 @@ export function subscribeToRequests({ data }) {
     },
   });
 }
-export function createResponse({ id }) {
+export function useGetAllResponses({ id }) {
   return useQuery({
     queryKey: ["response"],
     queryFn: async () => {
-      let { data: Responses, error } = await supabase
+      let { data: spData, error } = await supabase
         .from("Responses")
         .select("*");
+      if (error) {
+        console.error("Error fetching single product:", error.message);
+        throw error;
+      }
+      return spData;
     },
   });
 }
-export function deleteResponse({ id }) {
+export function useDeleteResponse({ id }) {
   return useQuery({
     queryKey: ["response"],
     queryFn: async () => {
@@ -70,7 +122,7 @@ export function deleteResponse({ id }) {
     },
   });
 }
-export function responseSubscribe({ id }) {
+export function useSubscribeResponse({ id }) {
   return useQuery({
     queryKey: ["response"],
     queryFn: async () => {
@@ -87,7 +139,7 @@ export function responseSubscribe({ id }) {
     },
   });
 }
-export function editResponse({ id }) {
+export function useEditResponse({ id }) {
   return useQuery({
     queryKey: ["response"],
     queryFn: async () => {

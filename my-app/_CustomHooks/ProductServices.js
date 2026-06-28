@@ -136,11 +136,18 @@ export function useEditProduct() {
     },
   });
 }
-export async function deleteProduct(id) {
-  return useQuery({
-    queryKey: ["deleteProduct"],
-    queryFn: async () => {
-      const { error } = await supabase.from("Products").delete().eq("id", id);
+export function useDeleteProduct() {
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error, spData } = await supabase
+        .from("Products")
+        .delete()
+        .eq("id", id);
+      if (error) {
+        console.log("DB error:", error);
+        throw error;
+      }
+      return spData;
     },
   });
 }

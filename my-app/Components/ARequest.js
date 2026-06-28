@@ -17,6 +17,7 @@ export default function ARequest({
   isConfirmOpen,
   setIsConfirmOpen,
   setIsVisible,
+  id,
 }) {
   const Navigation = useNavigation();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
