@@ -9,7 +9,7 @@ import ViewReplies from "./Replies";
 import { useEffect, useReducer, useState } from "react";
 import NewRequestModal from "../Components/NewRequest";
 import ARequest from "../Components/ARequest";
-import { useEffect } from "react";
+
 import ConfirmDeleteRequest from "../Components/ConfirmDeleteRequest";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import {
@@ -17,6 +17,9 @@ import {
   useGetAllRequests,
 } from "../_CustomHooks/RequestServices";
 import LoadingPaging from "../Components/LoadingPaging";
+import { FlatList } from "react-native";
+import EditRequestModal from "../Components/EditRequestModal";
+
 
 export default function Request() {
   //getuser
@@ -27,21 +30,14 @@ export default function Request() {
     isError: isErrorUser,
   } = useGetCurrentUser();
   //hooks
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const Navigation = useNavigation();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [requestType, setRequestType] = useState("myRequest");
-  const [isVisible, setIsVisible] = useState(false);
-
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isSelectedRequest, setIsSelectedRequest] = useState(null);
+  console.log({ SElected: isSelectedRequest });
   ////
-  const Data = {
-    productName: "Suzuki right door",
-    status: "active",
-    id: 2,
-    date: "12/8/2023",
-    specifications: ["Suzuki", "2012", "AN12", "SUV"],
-    description:
-      "We need a right door of the suzuki car(dukeneye urugi rwiburyo rwa suzuki)",
-  };
 
   const profileId = user?.id;
   const {
@@ -63,17 +59,11 @@ export default function Request() {
   }
   return (
     <ScrollView style={styles.paddingSm}>
-      <ConfirmDeleteRequest
-        item={Data.productName}
-        isConfirmOpen={isConfirmOpen}
-        id={Data.id}
-        setIsConfirmOpen={setIsConfirmOpen}
-      />
       <View style={styles.rowBtn}>
         <Text style={styles.mainTitle}>Part Request</Text>
         <Button
           onPress={() => {
-            setIsVisible((prev) => !prev);
+            setIsCreateModalOpen((prev) => !prev);
           }}
           styles={[
             {
@@ -139,18 +129,45 @@ export default function Request() {
           }}
         />
       </View>
-      <ARequest
-        requestType={requestType}
-        setIsVisible={setIsVisible}
-        isConfirmOpen={isConfirmOpen}
-        setIsConfirmOpen={setIsConfirmOpen}
-        id={Data.id}
+      <FlatList
+        data={MyRequests}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <ARequest
+            Data={item}
+            requestType={requestType}
+            id={item.id}
+            onEdit={() => {
+              setIsSelectedRequest(item);
+              setIsEditModalVisible(true);
+            }}
+            onDelete={() => {
+              setIsSelectedRequest(item);
+              setIsConfirmDeleteOpen(true);
+            }}
+          />
+        )}
       />
-      <NewRequestModal
-        isVisible={isVisible}
-        setIsVisible={setIsVisible}
-        setRequestType={setRequestType}
-      />
+      {isCreateModalOpen && (
+        <NewRequestModal
+          setIsCreateModalOpen={setIsCreateModalOpen}
+          setRequestType={setRequestType}
+        />
+      )}
+      {isEditModalVisible && (
+        <EditRequestModal
+          isSelectedRequest={isSelectedRequest}
+          setIsEditModalVisible={setIsEditModalVisible}
+          isEditModalVisible={isEditModalVisible}
+          item={isSelectedRequest}
+        />
+      )}
+      {isConfirmDeleteOpen && (
+        <ConfirmDeleteRequest
+          item={isSelectedRequest}
+          setIsConfirmDeleteOpen={setIsConfirmDeleteOpen}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -229,6 +246,7 @@ const styles = StyleSheet.create({
   whiteT: {
     color: "white",
   },
+
   greyT: {
     color: GlobalStyles.Primary_Grey,
   },

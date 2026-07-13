@@ -50,7 +50,7 @@ import SignUp from "./screens/SignUpPage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 function Tabs() {
   const navigation = useNavigation();
   return (

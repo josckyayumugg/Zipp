@@ -55,6 +55,7 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: async (data) => {
+      
       console.log("Incoming data:", data);
 
       const imageUrls = [];

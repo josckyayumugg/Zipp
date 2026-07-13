@@ -9,4 +9,5 @@ export const GlobalStyles = {
   Primary_Grey: "#DADAE6",
   Primary_Grey2: "#1f1f22",
   Primary_Grey3: "#4e4e5216",
+  Primary_Grey4: "#1f1f22ed",
 };

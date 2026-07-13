@@ -10,26 +10,26 @@ import {
   useNavigationIndependentTree,
 } from "@react-navigation/native";
 import { useState } from "react";
-import EditRequestModal from "./EditRequestModal";
+
+import ConfirmDeleteRequest from "./ConfirmDeleteRequest";
+import { useGetSingleProduct } from "../_CustomHooks/ProductServices";
+import LoadingPaging from "./LoadingPaging";
 
 export default function ARequest({
   requestType,
   isConfirmOpen,
   setIsConfirmOpen,
-  setIsVisible,
+  onEdit,
+  onDelete,
   id,
+  Data,
 }) {
   const Navigation = useNavigation();
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const Data = {
-    id: 1,
-    productName: "Suzuki right door",
-    status: "active",
-    date: "12/8/2023",
-    specifications: ["Suzuki", "2012", "AN12", "SUV"],
-    description:
-      "We need a right door of the suzuki car(dukeneye urugi rwiburyo rwa suzuki)",
-  };
+
+  // if (isPending || isError || error) {
+  //   return <LoadingPaging />;
+  // }
+
   return (
     <View
       style={[
@@ -62,7 +62,7 @@ export default function ARequest({
             size={20}
             color={GlobalStyles.Primary_Grey3}
           />
-          {formatDateTime(Data.date)}
+          {formatDateTime(Data?.createdAt)}
         </Text>
         {requestType === "myRequest" && (
           <View
@@ -70,13 +70,11 @@ export default function ARequest({
               styles.smallT,
               styles.row,
 
-              { color: styles.Primary_Grey3, gap: 8, width: "50%" },
+              { color: styles.Primary_Grey3, gap: 8, width: "30%" },
             ]}
           >
             <Button
-              onPress={() => {
-                setIsEditModalVisible(true);
-              }}
+              onPress={onEdit}
               styles={[
                 styles.bordeR,
                 styles.paddingSm,
@@ -84,15 +82,13 @@ export default function ARequest({
               ]}
               content={
                 <View style={styles.row}>
-                  <Ionicons name="pencil-outline" size={20} color={"black"} />
-                  <Text style={styles.paragraph}>Edit</Text>
+                  <Ionicons name="pencil-outline" size={12} color={"black"} />
+                  <Text style={styles.smallT}>Edit</Text>
                 </View>
               }
             />
             <Button
-              onPress={() => {
-                setIsConfirmOpen(true);
-              }}
+              onPress={onDelete}
               styles={[
                 styles.bordeR,
                 styles.paddingSm,
@@ -102,17 +98,12 @@ export default function ARequest({
                 <View style={styles.row}>
                   <Ionicons
                     name="trash-bin-outline"
-                    size={20}
+                    size={12}
                     color={"black"}
                   />
-                  <Text style={styles.paragraph}>Delete</Text>
+                  <Text style={styles.smallT}>Delete</Text>
                 </View>
               }
-            />
-            <EditRequestModal
-              setIsModalVisible={setIsEditModalVisible}
-              isModalVisible={isEditModalVisible}
-              id={Data.id}
             />
           </View>
         )}
@@ -130,27 +121,54 @@ export default function ARequest({
           styles.paddingLg,
         ]}
       >
-        <Text style={[styles.bigText, styles.bold]}>{Data.productName}</Text>
-        <Text style={styles.paragraph}> {Data.description}</Text>
+        <Text style={[styles.bigText, styles.bold]}>{Data?.name}</Text>
+        <Text style={[styles.paragraph, styles.italic]}>
+          {`"${Data?.description}"`}
+        </Text>
         <View style={[styles.row, { gap: 8 }]}>
-          {Data.specifications.map((item, i) => (
-            <Span
-              key={i}
-              content={item}
-              styles={[
-                {
-                  borderWidth: 1,
-                  borderColor: GlobalStyles.Primary_Grey2,
-                },
-                styles.bordeR,
-                styles.smallText,
-                styles.paddingSm,
-              ]}
-            />
-          ))}
+          <Text
+            style={[
+              styles.bordeR,
+              { borderWidth: 1 },
+              styles.paddingSm,
+              styles.smallT,
+            ]}
+          >
+            {Data?.brand}
+          </Text>
+          <Text
+            style={[
+              styles.bordeR,
+              { borderWidth: 1 },
+              styles.paddingSm,
+              styles.smallT,
+            ]}
+          >
+            {Data?.modal}
+          </Text>
+          <Text
+            style={[
+              styles.bordeR,
+              { borderWidth: 1 },
+              styles.paddingSm,
+              styles.smallT,
+            ]}
+          >
+            {Data?.year}
+          </Text>
+          <Text
+            style={[
+              styles.bordeR,
+              { borderWidth: 1 },
+              styles.paddingSm,
+              styles.smallT,
+            ]}
+          >
+            {Data?.more}
+          </Text>
         </View>
-        <Text style={[styles.paragraph, styles.bold]}>
-          300,000Rwf-400,000Rwf
+        <Text style={[styles.paragraph, styles.bold, styles.greenT]}>
+          {Data?.budget}({Data.currency})
         </Text>
       </View>
       <View style={[styles.row, {}]}>
@@ -162,7 +180,7 @@ export default function ARequest({
               styles.paddingLg,
 
               {
-                backgroundColor: GlobalStyles.Primary_Grey3,
+                backgroundColor: GlobalStyles.Primary_Yellow,
                 borderColor: GlobalStyles.Primary_Yellow,
                 borderWidth: 1,
               },
@@ -183,7 +201,7 @@ export default function ARequest({
               styles.paddingLg,
 
               {
-                backgroundColor: GlobalStyles.Primary_Grey3,
+                backgroundColor: GlobalStyles.Primary_Yellow,
                 borderColor: GlobalStyles.Primary_Yellow,
                 borderWidth: 1,
               },
@@ -197,6 +215,8 @@ export default function ARequest({
           />
         )}
       </View>
+      {}
+      {}
     </View>
   );
 }
@@ -229,6 +249,7 @@ const styles = StyleSheet.create({
   smallT: {
     fontFamily: "Roboto-regular",
     fontSize: 12,
+    fontWeight: 500,
   },
   smallMVertical: {
     marginVertical: 8,
@@ -257,6 +278,9 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     paddingHorizontal: 8,
     marginBottom: 10,
+  },
+  italic: {
+    fontFamily: "Roboto-italic",
   },
   row: {
     flexDirection: "row",

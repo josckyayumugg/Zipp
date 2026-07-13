@@ -13,18 +13,22 @@ import Picked from "./Picker";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
+
 import Span from "./Span";
 import Toast from "react-native-toast-message";
 import { supabase } from "../_lib/supabase";
 import { useForm, Controller } from "react-hook-form";
 import { useCreateRequest } from "../_CustomHooks/RequestServices";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import LoadingPaging from "./LoadingPaging";
 export default function NewRequestModal({
-  isVisible,
-  setIsVisible,
+  
+  isCreateModalOpen,
+  setIsCreateModalOpen,
   setRequestType,
 }) {
+  console.log('kigali new request modal')
   //get User
   const {
     data: user,
@@ -32,7 +36,7 @@ export default function NewRequestModal({
     isError: isErrorUser,
     errror: userError,
   } = useGetCurrentUser();
-  console.log(4343, user);
+
   const {
     control,
     handleSubmit,
@@ -43,19 +47,22 @@ export default function NewRequestModal({
   } = useForm({
     defaultValues: {
       name: "",
-      details: "",
+      description: "",
 
       brand: "",
       modal: "",
       year: "",
       more: "",
       budget: "",
+      currency: "",
     },
   });
 
   //About creating a request
+  const queryClient = useQueryClient();
   const { isPending, isError, error, mutate } = useCreateRequest();
   function submitHandler(data) {
+    console.log({ Data1: data });
     mutate(
       { ...data, createdBy: user.id },
       {
@@ -69,29 +76,34 @@ export default function NewRequestModal({
           });
           reset({
             name: "",
-            details: "",
+            description: "",
 
             brand: "",
             modal: "",
             year: "",
             more: "",
             budget: "",
+            currency: "",
           });
+          queryClient.invalidateQueries({
+            queryKey: ["AllMyRequests"],
+          });
+          setIsCreateModalOpen(false);
+          setRequestType("myRequest");
         },
       },
     );
-    setIsVisible(false);
-    setRequestType("myRequest");
   }
-  if (isPendingUser) return;
-  <LoadingPaging />;
+  if (isPendingUser) {
+    return <LoadingPaging />;
+  }
 
   return (
     <Modal
-      visible={isVisible}
+      visible={isCreateModalOpen}
       transparent={true}
       animationType="fade"
-      onRequestClose={() => setIsVisible(false)}
+      onRequestClose={() => setIsCreateModalOpen(false)}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -141,11 +153,11 @@ export default function NewRequestModal({
                   control={control}
                   rules={{
                     maxLength: 50,
-                    required: "Title is required",
+                    required: "name is required",
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <InputText
-                      placeholder={"eg:Transmission"}
+                      placeholder={"Rav4 Transmission"}
                       onBlur={onBlur}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
                       value={value}
@@ -161,9 +173,9 @@ export default function NewRequestModal({
                   )}
                   name="name"
                 />
-                {errors.title && (
+                {errors.name && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
-                    {errors.title.message}
+                    {errors.name.message}
                   </Text>
                 )}
               </View>
@@ -181,7 +193,7 @@ export default function NewRequestModal({
                   render={({ field: { onChange, onBlur, value } }) => (
                     <InputText
                       placeholder={
-                        "Looking for a Toyota rav4  gear Transmission"
+                        "Dukeneye Transimission ya Rav4 ya okaziyo cyangwa shya"
                       }
                       onBlur={onBlur}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
@@ -197,7 +209,7 @@ export default function NewRequestModal({
                       ]}
                     />
                   )}
-                  name="details"
+                  name="description"
                 />
                 {errors.description && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
@@ -218,7 +230,7 @@ export default function NewRequestModal({
               >
                 <View style={[styles.rowBtn, { width: "100%" }]}>
                   <View style={{ width: "32%" }}>
-                    <Text style={[styles.smallT]}>Brand(optional)</Text>
+                    <Text style={[styles.smallT]}>Brand</Text>
 
                     <Controller
                       control={control}
@@ -248,7 +260,7 @@ export default function NewRequestModal({
                   </View>
 
                   <View style={{ width: "32%" }}>
-                    <Text style={[styles.smallT]}>Modal(optional)</Text>
+                    <Text style={[styles.smallT]}>Modal</Text>
 
                     <Controller
                       control={control}
@@ -260,6 +272,7 @@ export default function NewRequestModal({
                         <InputText
                           placeholder={"Rav4"}
                           onChange={onChange}
+                          value={value}
                           onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
@@ -276,7 +289,7 @@ export default function NewRequestModal({
                     )}
                   </View>
                   <View style={{ width: "48%" }}>
-                    <Text style={[styles.smallT]}>Year (Optional)</Text>
+                    <Text style={[styles.smallT]}>Year</Text>
 
                     <Controller
                       control={control}
@@ -288,6 +301,7 @@ export default function NewRequestModal({
                         <InputText
                           placeholder={"2019"}
                           onChange={onChange}
+                          value={value}
                           onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
@@ -320,6 +334,7 @@ export default function NewRequestModal({
                         <InputText
                           placeholder={"hybrid"}
                           onChange={onChange}
+                          value={value}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,
@@ -330,27 +345,53 @@ export default function NewRequestModal({
                     />
                   </View>
                 </View>
-                <View style={{ width: "100%" }}>
-                  <Text style={[styles.smallT]}>Budget (RWF) (Optional)</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                  }}
+                >
+                  <View style={{ width: "100%" }}>
+                    <Text style={[styles.smallT]}>Budget (RWF) (Optional)</Text>
 
-                  <Controller
-                    control={control}
-                    rules={{
-                      maxLength: 50,
-                    }}
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <InputText
-                        placeholder={"300,0000RWF"}
-                        onChange={onChange}
-                        onBlur={onBlur}
-                        styled={{
-                          borderWidth: 1,
-                          borderColor: GlobalStyles.Primary_Grey,
-                        }}
-                      />
-                    )}
-                    name="budget"
-                  />
+                    <Controller
+                      control={control}
+                      rules={{
+                        maxLength: 50,
+                      }}
+                      render={({ field: { onChange, onBlur, value } }) => (
+                        <InputText
+                          placeholder={"300,0000RWF"}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          value={value}
+                          styled={{
+                            borderWidth: 1,
+                            borderColor: GlobalStyles.Primary_Grey,
+                          }}
+                        />
+                      )}
+                      name="budget"
+                    />
+                  </View>
+                  <View style={{ alignSelf: "end" }}>
+                    <Controller
+                      control={control}
+                      name="currency"
+                      render={({ field: { onChange, value } }) => (
+                        <Picked
+                          selectedValue={value}
+                          width={80}
+                          options={[
+                            { label: "RWF 🇷🇼", value: "RWF" },
+                            { label: "USD 🇺🇸", value: "USD" },
+                            { label: "EUR 🇪🇺", value: "EUR" },
+                            { label: "GBP 🇬🇧", value: "GBP" },
+                          ]}
+                          onValueChange={onChange}
+                        />
+                      )}
+                    />
+                  </View>
                 </View>
               </View>
               <View>
@@ -389,7 +430,7 @@ export default function NewRequestModal({
                   ]}
                   content={<Text>close</Text>}
                   onPress={() => {
-                    setIsVisible(false);
+                    setIsCreateModalOpen(false);
                   }}
                 />
               </View>

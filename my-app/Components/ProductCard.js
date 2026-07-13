@@ -25,7 +25,7 @@ export default function ProductCard({
           borderColor: GlobalStyles.Primary_Grey,
           borderWidth: 1,
           padding: 4,
-          paddingBottom: 10,
+
           shadowColor: "#000",
           shadowOffset: {
             width: 0,
@@ -36,6 +36,7 @@ export default function ProductCard({
           position: "relative",
           // Android shadow
           elevation: 8,
+         
         },
         styles.bordeR,
         styles.smallMVertical,
@@ -54,7 +55,7 @@ export default function ProductCard({
           style={{
             width: "100%",
 
-            height: 100,
+            height: 80,
           }}
         />
         {Data.productStatus && (
@@ -83,39 +84,69 @@ export default function ProductCard({
         {Data.productImagesLength && (
           <Text
             style={[
-              styles.bordeR,
-              styles.paddingSm,
               {
                 position: "absolute",
-                top: 0,
-                right: 4,
-
-                backgroundColor: GlobalStyles.Primary_Grey2,
+                top: 65,
+                left: 0,
+                borderRadius: 2,
+              
+                backgroundColor: GlobalStyles.Primary_Grey4,
+                alignContent: "center",
                 color: "white",
+                paddingHorizontal:2,
               },
             ]}
           >
-            +{Data.productImagesLength}
+            <Ionicons name="images" size={10} color={"white"} />{" "}
+            {Data.productImagesLength}
           </Text>
         )}
         <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
           {Data.productName}
         </Text>
         <View style={[styles.row, { flexWrap: "wrap" }, styles.smallMVertical]}>
-          <Text style={styles.paragraph}>{Data.carBrand && Data.carBrand}</Text>
-          <Text style={styles.paragraph}>{Data.carModal && Data.carModal}</Text>
-          <Text style={styles.paragraph}>{Data.carYear && Data.carYear}</Text>
+          <Text
+            style={[
+              styles.smallT,
+              styles.bordeR,
+              styles.paddingSm,
+              { borderWidth: 1 },
+            ]}
+          >
+            {Data.carBrand && Data.carBrand}
+          </Text>
+          <Text
+            style={[
+              styles.smallT,
+              styles.bordeR,
+              styles.paddingSm,
+              { borderWidth: 1 },
+            ]}
+          >
+            {Data.carModal && Data.carModal}
+          </Text>
+          <Text
+            style={[
+              styles.smallT,
+              styles.bordeR,
+              styles.paddingSm,
+              { borderWidth: 1 },
+            ]}
+          >
+            {Data.carYear && Data.carYear}
+          </Text>
         </View>
         {Data.price && (
           <Text
             style={[
               styles.smallMVertical,
-              styles.bigText,
-              styles.yellow,
+              styles.headerTitle,
+              styles.greenT,
               styles.bold,
             ]}
           >
             {Data.price}
+            {Data?.currency}
           </Text>
         )}
         <Text

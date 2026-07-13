@@ -3,28 +3,34 @@ import { useState } from "react";
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
 
-export default function Picked({ options, onChange, width = "50%" }) {
-  const [selectedLanguage, setSelectedLanguage] = useState("html");
+export default function Picked({
+  options,
+  onValueChange,
+  selectedValue,
+
+  width,
+  style,
+}) {
   return (
     <Picker
-      selectedValue={selectedLanguage}
-      onValueChange={(itemValue, itemIndex) => setSelectedLanguage(itemValue)}
+      selectedValue={selectedValue}
+      onValueChange={onValueChange}
       style={[
-        styles.bordeR,
+        style,
         styles.paddingSm,
 
         styles.paragraph,
 
         {
           height: 25,
-          width: { width },
-          backgroundColor: GlobalStyles.Primary_Green2,
+          width: width,
+          borderRadius: 4,
           borderColor: GlobalStyles.Primary_Yellow,
         },
       ]}
     >
-      {options.map((item, i) => (
-        <Picker.Item label={item} value={item} key={i} />
+      {options?.map((item, i) => (
+        <Picker.Item label={item.label} value={item.value} key={i} />
       ))}
     </Picker>
   );

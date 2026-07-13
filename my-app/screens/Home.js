@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { GlobalStyles } from "../Constants";
+import AutoMarqueeList from "../Components/AutoMarqueeList";
 import Header from "../Components/Header";
 import InputText from "../Components/TextInput";
 import { Ionicons } from "@expo/vector-icons";
@@ -188,14 +189,20 @@ export default function Home() {
           </Text>
           <SeeAll isImageLoaded={isImageLoaded} searchQuery={"Recents"} />
         </View>
-        <FlatList
-          horizontal
+
+        <AutoMarqueeList
           data={Data}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+          itemWidth={150}
+          itemHeight={290}
+          renderItem={({ item, isActive }) => (
             <ProductCard
               Data={item}
-              Stylesy={{ height: 240, width: 170, marginHorizontal: 4 }}
+              Stylesy={{
+                height: 230,
+                width: 140,
+                marginHorizontal: 4,
+              }}
+              isActive={isActive}
               isImageLoaded={isImageLoaded}
               setIsImageLoaded={setIsImageLoaded}
             />
@@ -212,14 +219,19 @@ export default function Home() {
             />
           </View>
 
-          <FlatList
-            horizontal
+          <AutoMarqueeList
             data={Data}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            itemWidth={150}
+            itemHeight={290}
+            renderItem={({ item, isActive }) => (
               <ProductCard
                 Data={item}
-                Stylesy={{ height: 300, width: 120, marginHorizontal: 4 }}
+                Stylesy={{
+                  height: 230,
+                  width: 140,
+                  marginHorizontal: 4,
+                }}
+                isActive={isActive}
                 isImageLoaded={isImageLoaded}
                 setIsImageLoaded={setIsImageLoaded}
               />
@@ -234,14 +246,19 @@ export default function Home() {
             </Text>
             <SeeAll isImageLoaded={isImageLoaded} searchQuery={"brakes"} />
           </View>
-          <FlatList
-            horizontal
+          <AutoMarqueeList
             data={Data}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            itemWidth={150}
+            itemHeight={290}
+            renderItem={({ item, isActive }) => (
               <ProductCard
                 Data={item}
-                Stylesy={{ height: 300, width: 120, marginHorizontal: 4 }}
+                Stylesy={{
+                  height: 230,
+                  width: 140,
+                  marginHorizontal: 4,
+                }}
+                isActive={isActive}
                 isImageLoaded={isImageLoaded}
                 setIsImageLoaded={setIsImageLoaded}
               />
@@ -256,14 +273,46 @@ export default function Home() {
             </Text>
             <SeeAll isImageLoaded={isImageLoaded} searchQuery={"light"} />
           </View>
-          <FlatList
-            horizontal
+          <AutoMarqueeList
             data={Data}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            itemWidth={150}
+            itemHeight={290}
+            renderItem={({ item, isActive }) => (
               <ProductCard
                 Data={item}
-                Stylesy={{ height: 300, width: 120, marginHorizontal: 4 }}
+                Stylesy={{
+                  height: 230,
+                  width: 140,
+                  marginHorizontal: 4,
+                }}
+                isActive={isActive}
+                isImageLoaded={isImageLoaded}
+                setIsImageLoaded={setIsImageLoaded}
+              />
+            )}
+          />
+        </View>
+        <View>
+          <View style={[styles.row, styles.largeMTop]}>
+            <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
+              <Ionicons name="car" size={18} />
+              Toyota
+            </Text>
+            <SeeAll isImageLoaded={isImageLoaded} searchQuery={"light"} />
+          </View>
+          <AutoMarqueeList
+            data={Data}
+            itemWidth={150}
+            itemHeight={290}
+            renderItem={({ item, isActive }) => (
+              <ProductCard
+                Data={item}
+                Stylesy={{
+                  height: 230,
+                  width: 140,
+                  marginHorizontal: 4,
+                }}
+                isActive={isActive}
                 isImageLoaded={isImageLoaded}
                 setIsImageLoaded={setIsImageLoaded}
               />

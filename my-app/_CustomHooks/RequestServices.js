@@ -5,12 +5,13 @@ import { supabase } from "../_lib/supabase";
 export function useCreateRequest() {
   return useMutation({
     mutationFn: async (data) => {
+      console.log("mbaho se");
       const { data: spData, error } = await supabase
         .from("Requests")
         .insert([data])
         .select();
       if (error) {
-        console.error("Error creating  product:", error.message);
+        console.error("Error creating  request:", error.message);
         throw error;
       }
       return spData;
@@ -20,12 +21,14 @@ export function useCreateRequest() {
 export function useDeleteRequest() {
   return useMutation({
     mutationFn: async (id) => {
-      const { spData, error } = await supabase
+      console.log("here to delete", id);
+      const { data: spData, error } = await supabase
         .from("Requests")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .select();
       if (error) {
-        console.error("Error deleting  product:", error.message);
+       
         throw error;
       }
       return spData;
@@ -37,47 +40,72 @@ export function useGetSingleRequest(id) {
   return useQuery({
     queryKey: ["request", id],
     queryFn: async () => {
-      let { data: spData, error } = await supabase
-        .from("Requests")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error) {
-        throw error;
+      try {
+        const { data: spData, error } = await supabase
+          .from("Requests")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        return spData;
+      } catch (error) {
+        console.error("Error fetching request:", error);
+        throw error; // Let React Query know the query failed.
       }
-      return spData;
     },
     enabled: !!id,
   });
 }
 export function useGetAllMyRequests(id) {
   return useQuery({
-    queryKey: ["AllRequests"],
+    queryKey: ["AllMyRequests", id],
     queryFn: async () => {
-      let { data: spData, error } = await supabase
-        .from("Requests")
-        .select("*")
-        .eq("profileId", profileId);
+      try {
+        const { data: spData, error } = await supabase
+          .from("Requests")
+          .select("*")
+          .eq("createdBy", id)
+          .order("createdAt", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching All Products:", error.message);
-        throw error;
+        if (error) {
+          throw error;
+        }
+
+        return spData;
+      } catch (error) {
+        console.error("Error fetching all requests:", error);
+        throw error; // React Query needs this so it knows the query failed.
       }
-      return spData;
     },
     enabled: !!id,
   });
 }
 
-export function useEditRequest({ id }) {
+export function useEditRequest() {
   return useMutation({
-    queryKey: ["editRequest"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("Requests")
-        .update({ other_column: "otherValue" })
-        .eq("some_column", "someValue")
-        .select();
+    mutationFn: async (updatedData) => {
+      console.log("44", updatedData);
+      try {
+        const { data, error } = await supabase
+          .from("Requests")
+          .update(updatedData)
+          .eq("id", updatedData.id)
+          .select()
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        return data;
+      } catch (error) {
+        console.error("Error updating request:", error);
+        throw error;
+      }
     },
   });
 }

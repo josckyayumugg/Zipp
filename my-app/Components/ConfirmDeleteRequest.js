@@ -5,31 +5,67 @@ import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import Toast from "react-native-toast-message";
 import { useDeleteRequest } from "../_CustomHooks/RequestServices";
+import { queryClient } from "../App";
 
 export default function ConfirmDeleteRequest({
   isConfirmOpen,
-  setIsConfirmOpen,
+  setIsConfirmDeleteOpen,
   productName,
   item,
   id,
 }) {
-  const { isError, error, mutate } = useDeleteRequest();
+  const { isError, error, mutate } = useDeleteRequest(item.id);
   function confirmDelete() {
-    console.log(id,'starting to delete')
-    mutate(id, {
+    mutate(item.id, {
       onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["MyRequests"],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: ["AllRequests"],
+        });
+
         Toast.show({
           type: "success",
           text1: "Success 👋",
-          text2: "Request was deleted successfully!",
-          position: "top", // or "bottom"
+          text2: "Request deleted successfully.",
+          position: "top",
           visibilityTime: 3000,
+        });
+        setIsConfirmDeleteOpen(false);
+      },
+
+      onError: (error) => {
+        
+
+        if (error.message?.toLowerCase().includes("jwt")) {
+          Toast.show({
+            type: "error",
+            text1: "Session expired",
+            text2: "Please sign in again.",
+          });
+          return;
+        }
+
+        if (error.message?.toLowerCase().includes("network")) {
+          Toast.show({
+            type: "error",
+            text1: "No internet connection",
+            text2: "Check your internet and try again.",
+          });
+          return;
+        }
+
+        Toast.show({
+          type: "error",
+          text1: "Couldn't delete request",
+          text2: "Please try again later.",
         });
       },
     });
-    setIsConfirmOpen(false);
   }
-  const closeModal = () => setIsConfirmOpen(false);
+  const closeModal = () => setIsConfirmDeleteOpen(false);
 
   return (
     <Modal
@@ -63,8 +99,8 @@ export default function ConfirmDeleteRequest({
 
           <Text style={[styles.paragraph, styles.centerText]}>
             Are you sure you want to delete your request for{" "}
-            <Text style={styles.bold}>"{item}"</Text>? This action cannot be
-            undone.
+            <Text style={styles.bold}>"{item.name}"</Text>? This action cannot
+            be undone.
           </Text>
 
           {/* Action Row Grid utilizing your layout classes */}

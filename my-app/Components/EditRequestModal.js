@@ -15,21 +15,20 @@ import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import Span from "./Span";
 import { useEffect } from "react";
+import Toast from "react-native-toast-message";
 import { useForm, Controller } from "react-hook-form";
-import { useGetSingleRequest } from "../_CustomHooks/RequestServices";
-import LoadingPaging from "./LoadingPaging";
+import { useEditRequest } from "../_CustomHooks/RequestServices";
+import { queryClient } from "../App";
+
 export default function EditRequestModal({
-  setIsModalVisible,
-  isModalVisible,
-  id,
+  item: product,
+
+  isEditModalVisible,
+  setIsEditModalVisible,
 }) {
   //getProduct
-  console.log(id);
-  const { data: product, isError, error, isPending } = useGetSingleRequest(id);
-  if (isError) {
-    console.log(error.message);
-  }
-  console.log(product);
+
+  const { isPending, isError, error, mutate } = useEditRequest(product.id);
   // const item=request with the item Id the edit  and the data got will be the default value
   const {
     control,
@@ -40,47 +39,59 @@ export default function EditRequestModal({
     formState: { errors },
   } = useForm({
     defaultValues: {
-      name: "",
+      name: product.name,
 
-      details: "",
-      modal: "",
-      brand: "",
-      more: "",
-      year: "",
-      budget: "",
+      description: product.description,
+      modal: product.modal,
+      brand: product.modal,
+      more: product.more,
+      year: product.year,
+      budget: product.budget,
     },
   });
 
   //filling he form
 
-  useEffect(() => {
-    if (product) {
-      
-      reset({
-        name: product.name,
-
-        details: product.details,
-        modal: product.modal,
-        brand: product.modal,
-        more: product.more,
-        year: product.year,
-        budget: product.budget,
-      });
-    }
-  }, [product]);
 
   function submitHandler(data) {
-    console.log("submitting Request", data);
+    console.log({ DAta24: data });
+    mutate(
+      { id: product.id, ...data },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: "Success 👋",
+            text2: "Request Edit was successful!",
+            position: "top", // or "bottom"
+            visibilityTime: 3000,
+          });
+          reset({
+            name: "",
+            description: "",
+
+            brand: "",
+            modal: "",
+            year: "",
+            more: "",
+            budget: "",
+            currency: "",
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["AllMyRequests"],
+          });
+          setIsEditModalVisible(false);
+        },
+      },
+    );
   }
-  if (isPending) {
-    return <LoadingPaging />;
-  }
+
   return (
     <Modal
-      visible={isModalVisible}
+      visible={isEditModalVisible}
       transparent={true}
       animationType="fade"
-      onRequestClose={() => setIsModalVisible(false)}
+      onRequestClose={() => setIsEditModalVisible(false)}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -187,7 +198,7 @@ export default function EditRequestModal({
                       ]}
                     />
                   )}
-                  name="details"
+                  name="description"
                 />
                 {errors.description && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
@@ -350,7 +361,7 @@ export default function EditRequestModal({
               </View>
               <View style={{ height: 85 }}>
                 <Button
-                  content={"Post request"}
+                  content={isPending ? "...Editing Request" : "Edit request"}
                   onPress={handleSubmit(submitHandler)}
                   styles={[
                     {
@@ -376,7 +387,7 @@ export default function EditRequestModal({
                   ]}
                   content={<Text>close</Text>}
                   onPress={() => {
-                    setIsModalVisible(false);
+                    setIsEditModalVisible(false);
                   }}
                 />
               </View>
