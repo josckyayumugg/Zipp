@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useRoute } from "@react-navigation/native";
+import { useCreateResponse } from "../_CustomHooks/ResponseServices";
+import { queryClient } from "../App";
+import Toast from "react-native-toast-message";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   View,
@@ -13,10 +18,67 @@ import {
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import InputText from "../Components/TextInput";
+import AppDropdown from "../Components/Dropdown";
 import Button from "../Components/Button";
+// import Picked from "../Components/Picker";
 
-export default function RespondToRequest({ route, navigation }) {
-  const targetItem = route?.params?.productName || "Suzuki right door";
+export default function RespondToRequest() {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const containsContactInfo = (text) => {
+    const patterns = [
+      // Email addresses
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+
+      // URLs
+      /(https?:\/\/|www\.)\S+/i,
+
+      // Phone numbers (7-15 digits with optional separators)
+      /(\+?\d[\d\s\-().]{6,}\d)/,
+
+      // @username
+      /(^|\s)@[a-zA-Z0-9_.]+/,
+
+      // WhatsApp
+      /\bwhatsapp\b/i,
+
+      // Telegram
+      /\btelegram\b/i,
+
+      // Instagram
+      /\binstagram\b|\binsta\b/i,
+
+      // Facebook
+      /\bfacebook\b|\bfb\b/i,
+
+      // Snapchat
+      /\bsnap(chat)?\b/i,
+
+      // TikTok
+      /\btiktok\b/i,
+
+      // Twitter / X
+      /\btwitter\b|\bx\.com\b/i,
+
+      // Discord
+      /\bdiscord\b/i,
+
+      // LinkedIn
+      /\blinkedin\b/i,
+    ];
+
+    return patterns.some((pattern) => pattern.test(text));
+  };
+
+  const { request, user } = route?.params;
+
+  const [currencyItems, setCurrencyItems] = useState([
+    { label: "RWF 🇷🇼", value: "RWF" },
+    { label: "USD 🇺🇸", value: "USD" },
+    { label: "EUR 🇪🇺", value: "EUR" },
+    { label: "GBP 🇬🇧", value: "GBP" },
+  ]);
+
   const {
     control,
     handleSubmit,
@@ -28,28 +90,53 @@ export default function RespondToRequest({ route, navigation }) {
       price: "",
       condition: "",
       note: "",
+      currency: "RWF",
     },
   });
 
-  const Data = {
-    Item: "Suzuki right door",
-  };
+  const { mutate, isError, error, isPending } = useCreateResponse(request.id);
   function submitOfferHandler(data) {
-    console.log(data, kigali);
-    if (!data.price || !data.condition) {
-      Alert.alert(
-        "Missing Fields",
-        "Please specify price value fields and condition parameters.",
-      );
-      return;
-    }
+    mutate(
+      { ...data, createdBy: user?.id, request: request.id },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: "Success 👋",
+            text2: "Response was created successfully!",
+            position: "top",
+            visibilityTime: 3000,
+          });
 
-    Alert.alert(
-      "Success",
-      "Your price offer response was delivered directly to the client!",
+          reset({
+            price: "",
+            condition: "",
+            note: "",
+            currency: "RWF",
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: ["responses", user.id],
+          });
+
+          navigation.navigate("Request")
+          setIsCreateModalOpen(false);
+          setRequestType("myRequest");
+        },
+
+        onError: (error) => {
+          Toast.show({
+            type: "error",
+            text1: "Failed to create response",
+            text2: error?.message || "Something went wrong.",
+            position: "top",
+            visibilityTime: 4000,
+          });
+        },
+      },
     );
-    if (navigation) navigation.goBack();
   }
+  /////creaeting the response//
 
   return (
     <KeyboardAvoidingView
@@ -62,7 +149,7 @@ export default function RespondToRequest({ route, navigation }) {
           <Text style={styles.labelSubText}>
             You are providing an offer for:
           </Text>
-          <Text style={styles.targetItemName}>{Data.Item}</Text>
+          <Text style={styles.targetItemName}>{request?.name}</Text>
         </View>
 
         {/* Form Container Structure */}
@@ -70,36 +157,85 @@ export default function RespondToRequest({ route, navigation }) {
           {/* Form Row 1: Price Entry Input Field */}
           <View>
             <Text style={styles.fieldLabelTitle}>Your Price Offer (Rwf)</Text>
-
-            <Controller
-              control={control}
-              rules={{
-                maxLength: 50,
-                required: "Price is required",
+            <View
+              style={{
+                flexDirection: "column",
+                width: "100%",
+                alignItems: "flex-start",
+                justifyContent: "flex-start",
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <InputText
-                  placeholder={"eg:350 000 RWf"}
-                  onBlur={onBlur}
-                  placeholderTextColor={GlobalStyles.Primary_Grey}
-                  value={value}
-                  onChange={onChange}
-                  styled={[
-                    {
-                      borderColor: GlobalStyles.Primary_Grey,
-                      borderWidth: 1,
-                    },
-                    styles.paddingLg,
-                  ]}
+            >
+              <View style={{ width: "70%" }}>
+                <Controller
+                  control={control}
+                  rules={{
+                    maxLength: 50,
+                    required: "Price is required",
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <InputText
+                      placeholder={"350 000 RWf"}
+                      onBlur={onBlur}
+                      maxLength={50}
+                      placeholderTextColor={GlobalStyles.Primary_Grey}
+                      value={value}
+                      keyBoardType={"numeric"}
+                      onChange={onChange}
+                      styled={[
+                        {
+                          borderColor: GlobalStyles.Primary_Grey,
+                          borderWidth: 1,
+                        },
+                        styles.paddingLg,
+                      ]}
+                    />
+                  )}
+                  name="price"
                 />
-              )}
-              name="price"
-            />
-            {errors.price && (
-              <Text style={{ color: "red", marginBottom: 10 }}>
-                {errors.price.message}
-              </Text>
-            )}
+                {errors.price && (
+                  <Text style={{ color: "red", marginBottom: 10 }}>
+                    {errors.price.message}
+                  </Text>
+                )}
+              </View>
+              <View
+                style={{
+                  height: 80,
+                  width: 100,
+                  marginTop: 8,
+                  alignSelf: "flex-start",
+                }}
+              >
+                <Controller
+                  control={control}
+                  name="currency"
+                  render={({ field: { onChange, value } }) => (
+                    // <Picked
+                    //   selectedValue={value}
+                    //   options={[
+                    //     { label: "RWF 🇷🇼", value: "RWF" },
+                    //     { label: "USD 🇺🇸", value: "USD" },
+                    //     { label: "EUR 🇪🇺", value: "EUR" },
+                    //     { label: "GBP 🇬🇧", value: "GBP" },
+                    //   ]}
+                    // />
+                    <AppDropdown
+                      value={value}
+                      items={currencyItems}
+                      setItems={setCurrencyItems}
+                      setValue={(callback) => {
+                        const newValue =
+                          typeof callback === "function"
+                            ? callback(value)
+                            : callback;
+
+                        onChange(newValue);
+                      }}
+                    />
+                  )}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Form Row 2: Condition Parameter Tag Box */}
@@ -109,16 +245,20 @@ export default function RespondToRequest({ route, navigation }) {
             <Controller
               control={control}
               rules={{
-                maxLength: 50,
-                required: "Condition is Required",
+                maxLength: 100,
+                required: "Condition is required or Short ",
+                validate: (value) =>
+                  !containsContactInfo(value) ||
+                  "Do not include phone numbers, email addresses, social media accounts, or links.",
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <InputText
-                  placeholder={"Used OEM / Brand New / Aftermarket"}
+                  placeholder={"Ubushyashya,Igihugu,uruganda,icyuma ikozwemo"}
                   onBlur={onBlur}
                   placeholderTextColor={GlobalStyles.Primary_Grey}
                   value={value}
                   onChange={onChange}
+                  maxLength={100}
                   styled={[
                     {
                       borderColor: GlobalStyles.Primary_Grey,
@@ -146,17 +286,19 @@ export default function RespondToRequest({ route, navigation }) {
             <Controller
               control={control}
               rules={{
-                maxLength: 50,
+                maxLength: 100,
+                validate: (value) =>
+                  !containsContactInfo(value) ||
+                  "Do not include phone numbers, email addresses, social media accounts, or links.",
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <InputText
-                  placeholder={
-                    "Tell the buyer about delivery terms, items availability, or color matching traits..."
-                  }
+                  placeholder={"Delivery,stock,ibara,garanti"}
                   onBlur={onBlur}
                   placeholderTextColor={GlobalStyles.Primary_Grey}
                   value={value}
                   onChange={onChange}
+                  maxLength={100}
                   styled={[
                     {
                       borderColor: GlobalStyles.Primary_Grey,
@@ -169,6 +311,11 @@ export default function RespondToRequest({ route, navigation }) {
               )}
               name="note"
             />
+            {errors.note && (
+              <Text style={{ color: "red", marginBottom: 10 }}>
+                {errors.note.message}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -238,7 +385,7 @@ const styles = StyleSheet.create({
   },
   fieldLabelTitle: {
     fontFamily: "Roboto-semibold",
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: "600",
     color: "#333",
     marginBottom: 6,

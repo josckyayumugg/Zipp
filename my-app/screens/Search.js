@@ -103,7 +103,7 @@ export default function Search() {
 
         <InputText
           placeholder={"Search parts,brands,models"}
-          styles={[styles.bordeR, styles.paddingSm, { width: "100%" }]}
+          styles={[styles.bordeR, styles.paddingSm, { width: "80%" }]}
         />
 
         <Button content={"Search"} />

@@ -3,7 +3,7 @@ import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 
-export default function NoProductsProfile({ message, ButtonContent }) {
+export default function NoProductsProfile({ message, ButtonContent, onPress }) {
   return (
     <View
       style={[
@@ -22,6 +22,7 @@ export default function NoProductsProfile({ message, ButtonContent }) {
       <Text>{message}</Text>
       <Button
         content={ButtonContent}
+        onPress={onPress}
         styles={[
           { backgroundColor: GlobalStyles.Primary_Yellow },
           styles.paddingLg,

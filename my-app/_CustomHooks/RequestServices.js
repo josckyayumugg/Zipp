@@ -5,7 +5,7 @@ import { supabase } from "../_lib/supabase";
 export function useCreateRequest() {
   return useMutation({
     mutationFn: async (data) => {
-      console.log("mbaho se");
+      console.log("mbaho se", data);
       const { data: spData, error } = await supabase
         .from("Requests")
         .insert([data])
@@ -28,7 +28,6 @@ export function useDeleteRequest() {
         .eq("id", id)
         .select();
       if (error) {
-       
         throw error;
       }
       return spData;
@@ -60,31 +59,66 @@ export function useGetSingleRequest(id) {
     enabled: !!id,
   });
 }
-export function useGetAllMyRequests(id) {
+export function useGetAllMyRequests(id, query) {
   return useQuery({
-    queryKey: ["AllMyRequests", id],
+    queryKey: ["AllMyRequests", id, query],
+
     queryFn: async () => {
       try {
-        const { data: spData, error } = await supabase
-          .from("Requests")
-          .select("*")
-          .eq("createdBy", id)
-          .order("createdAt", { ascending: false });
+        let request = supabase.from("Requests").select("*").eq("createdBy", id);
 
-        if (error) {
-          throw error;
+        if (query) {
+          request = request.or(
+            `name.ilike.%${query}%,brand.ilike.%${query}%,description.ilike.%${query}%`,
+          );
         }
 
-        return spData;
+        request = request.order("createdAt", {
+          ascending: false,
+        });
+
+        const { data, error } = await request;
+
+        if (error) throw error;
+
+        return data;
       } catch (error) {
         console.error("Error fetching all requests:", error);
-        throw error; // React Query needs this so it knows the query failed.
+        throw error;
       }
     },
+
     enabled: !!id,
   });
 }
+export function useGetAllRequests(filter, bool, search) {
+  return useQuery({
+    queryKey: ["AllRequests", filter, bool, search],
 
+    queryFn: async () => {
+      let query = supabase.from("Requests").select("*");
+
+      if (search) {
+        query = query.or(
+          `name.ilike.%${search}%,brand.ilike.%${search}%,description.ilike.%${search}%`,
+        );
+      }
+
+      query = query.order(`${filter}`, {
+        ascending: bool,
+      });
+
+      const { data: spData, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      return spData;
+    },
+    staleTime: 1000 * 60 * 5, // cache is fresh for 5 minutes
+  });
+}
 export function useEditRequest() {
   return useMutation({
     mutationFn: async (updatedData) => {

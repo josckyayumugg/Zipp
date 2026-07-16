@@ -54,7 +54,7 @@ export default function EditRequestModal({
 
 
   function submitHandler(data) {
-    console.log({ DAta24: data });
+   ;
     mutate(
       { id: product.id, ...data },
       {

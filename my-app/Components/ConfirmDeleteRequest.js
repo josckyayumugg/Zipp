@@ -23,7 +23,7 @@ export default function ConfirmDeleteRequest({
         });
 
         queryClient.invalidateQueries({
-          queryKey: ["AllRequests"],
+          queryKey: ["AllMyRequests"],
         });
 
         Toast.show({

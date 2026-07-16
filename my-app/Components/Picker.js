@@ -7,8 +7,7 @@ export default function Picked({
   options,
   onValueChange,
   selectedValue,
-
-  width,
+  height,
   style,
 }) {
   return (
@@ -17,14 +16,13 @@ export default function Picked({
       onValueChange={onValueChange}
       style={[
         style,
-        styles.paddingSm,
+       
 
         styles.paragraph,
 
         {
-          height: 25,
-          width: width,
           borderRadius: 4,
+          
           borderColor: GlobalStyles.Primary_Yellow,
         },
       ]}
@@ -201,8 +199,8 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 16,
-    lineHeight: 16,
+    fontSize: 4,
+    
   },
   button: {
     alignSelf: "start",

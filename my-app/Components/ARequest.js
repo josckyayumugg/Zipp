@@ -17,11 +17,10 @@ import LoadingPaging from "./LoadingPaging";
 
 export default function ARequest({
   requestType,
-  isConfirmOpen,
-  setIsConfirmOpen,
+  user,
   onEdit,
   onDelete,
-  id,
+
   Data,
 }) {
   const Navigation = useNavigation();
@@ -56,21 +55,31 @@ export default function ARequest({
       ]}
     >
       <View style={styles.rowBtn}>
-        <Text style={[styles.smallT, { color: styles.Primary_Grey3 }]}>
+        <View
+          style={[
+            styles.smallText,
+            {
+              color: styles.Primary_Grey3,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 2,
+            },
+          ]}
+        >
           <Ionicons
             name="calendar"
-            size={20}
-            color={GlobalStyles.Primary_Grey3}
+            size={13}
+            color={GlobalStyles.Primary_Grey2}
           />
-          {formatDateTime(Data?.createdAt)}
-        </Text>
+          <Text style={styles.smallT}>{formatDateTime(Data?.createdAt)}</Text>
+        </View>
         {requestType === "myRequest" && (
           <View
             style={[
               styles.smallT,
               styles.row,
 
-              { color: styles.Primary_Grey3, gap: 8, width: "30%" },
+              { color: styles.Primary_Grey3, gap: 8, width: "40%" },
             ]}
           >
             <Button
@@ -122,10 +131,10 @@ export default function ARequest({
         ]}
       >
         <Text style={[styles.bigText, styles.bold]}>{Data?.name}</Text>
-        <Text style={[styles.paragraph, styles.italic]}>
+        <Text style={[styles.paragraph, styles.italic, styles.greyT]}>
           {`"${Data?.description}"`}
         </Text>
-        <View style={[styles.row, { gap: 8 }]}>
+        <View style={[styles.row, { flexWrap: "wrap", gap: 8 }]}>
           <Text
             style={[
               styles.bordeR,
@@ -174,7 +183,12 @@ export default function ARequest({
       <View style={[styles.row, {}]}>
         {requestType === "allRequests" && (
           <Button
-            onPress={() => Navigation.navigate("Respond")}
+            onPress={() =>
+              Navigation.navigate("Respond", {
+                user,
+                request: Data,
+              })
+            }
             styles={[
               styles.bordeR,
               styles.paddingLg,
@@ -186,7 +200,7 @@ export default function ARequest({
               },
             ]}
             content={
-              <Text style={[{}]}>
+              <Text style={[{}, styles.bold]}>
                 <Ionicons name="chatbox-outline" size={18} />
                 Respond
               </Text>
@@ -207,7 +221,7 @@ export default function ARequest({
               },
             ]}
             content={
-              <Text style={[{}]}>
+              <Text style={[{}, styles.bold]}>
                 <Ionicons name="chatbubble-outline" size={18} />
                 View Replies
               </Text>
@@ -300,7 +314,7 @@ const styles = StyleSheet.create({
     color: "white",
   },
   greyT: {
-    color: GlobalStyles.Primary_Grey,
+    color: GlobalStyles.Primary_Grey5,
   },
   greenT: {
     color: GlobalStyles.Primary_Green,
@@ -377,13 +391,13 @@ const styles = StyleSheet.create({
   },
 
   bigText: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Roboto-Light",
     marginRight: 20,
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 20,
+    fontSize: 16,
   },
   button: {
     alignSelf: "start",

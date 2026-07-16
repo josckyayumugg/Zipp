@@ -9,6 +9,8 @@ export default function InputText({
   onBlur,
   onChange,
   value,
+  maxLength,
+  keyBoardType,
 }) {
   return (
     <TextInput
@@ -21,9 +23,11 @@ export default function InputText({
         styles.paddingLg,
       ]}
       placeholder={placeholder}
+      keyboardType={keyBoardType}
       onBlur={onBlur}
       onChangeText={onChange}
       value={value}
+      maxLength={maxLength}
       placeholderTextColor={GlobalStyles.Primary_Grey}
     />
   );

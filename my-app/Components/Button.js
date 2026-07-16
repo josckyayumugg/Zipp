@@ -19,7 +19,7 @@ export default function Button({ styles, content, onPress, disable = false }) {
           },
         ]}
       >
-        <Text style={styless.paragraph}>{content}</Text>
+        <Text style={[styless.paragraph, styless.bold]}>{content}</Text>
       </View>
     </Pressable>
   );
@@ -180,7 +180,8 @@ const styless = StyleSheet.create({
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 20,
+    fontSize: 16,
+    fontWeight: 700,
   },
   button: {
     alignSelf: "start",

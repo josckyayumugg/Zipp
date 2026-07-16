@@ -20,22 +20,17 @@ import { supabase } from "../_lib/supabase";
 import { useForm, Controller } from "react-hook-form";
 import { useCreateRequest } from "../_CustomHooks/RequestServices";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import LoadingPaging from "./LoadingPaging";
+import { queryClient } from "../App";
 export default function NewRequestModal({
-  
   isCreateModalOpen,
   setIsCreateModalOpen,
   setRequestType,
+  user,
 }) {
-  console.log('kigali new request modal')
+  console.log("kigali new request modal");
   //get User
-  const {
-    data: user,
-    isPending: isPendingUser,
-    isError: isErrorUser,
-    errror: userError,
-  } = useGetCurrentUser();
 
   const {
     control,
@@ -54,17 +49,17 @@ export default function NewRequestModal({
       year: "",
       more: "",
       budget: "",
-      currency: "",
+      currency: "RWF",
     },
   });
 
   //About creating a request
-  const queryClient = useQueryClient();
+
   const { isPending, isError, error, mutate } = useCreateRequest();
   function submitHandler(data) {
     console.log({ Data1: data });
     mutate(
-      { ...data, createdBy: user.id },
+      { ...data, createdBy: user?.id },
       {
         onSuccess: () => {
           Toast.show({
@@ -83,7 +78,7 @@ export default function NewRequestModal({
             year: "",
             more: "",
             budget: "",
-            currency: "",
+            currency: "RWF",
           });
           queryClient.invalidateQueries({
             queryKey: ["AllMyRequests"],
@@ -93,9 +88,6 @@ export default function NewRequestModal({
         },
       },
     );
-  }
-  if (isPendingUser) {
-    return <LoadingPaging />;
   }
 
   return (
@@ -146,7 +138,7 @@ export default function NewRequestModal({
               </Text>
               <View style={styles.smallMTop}>
                 <Text style={[styles.paragraph, styles.smallMVertical]}>
-                  What are you looking for ?
+                  Title (what are you looking for)?
                 </Text>
 
                 <Controller
@@ -161,6 +153,7 @@ export default function NewRequestModal({
                       onBlur={onBlur}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
                       value={value}
+                      maxLength={30}
                       onChange={onChange}
                       styled={[
                         {
@@ -187,17 +180,18 @@ export default function NewRequestModal({
                 <Controller
                   control={control}
                   rules={{
-                    maxLength: 50,
+                    maxLength: 300,
                     required: "Description is required",
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <InputText
                       placeholder={
-                        "Dukeneye Transimission ya Rav4 ya okaziyo cyangwa shya"
+                        "Dukeneye Transimission ya Rav4 ya okaziyo cyangwa nshyashya"
                       }
                       onBlur={onBlur}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
                       value={value}
+                      maxLength={200}
                       onChange={onChange}
                       styled={[
                         {
@@ -235,7 +229,7 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 50,
+                        maxLength: 25,
                         required: "Brand  is required",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
@@ -243,6 +237,7 @@ export default function NewRequestModal({
                           placeholder={"Toyota"}
                           onChange={onChange}
                           onBlur={onBlur}
+                          maxLength={20}
                           value={value}
                           styled={{
                             borderWidth: 1,
@@ -265,7 +260,7 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 50,
+                        maxLength: 25,
                         required: "modal is required",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
@@ -273,6 +268,7 @@ export default function NewRequestModal({
                           placeholder={"Rav4"}
                           onChange={onChange}
                           value={value}
+                          maxLength={25}
                           onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
@@ -294,7 +290,7 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 50,
+                        maxLength: 25,
                         required: "Year is required",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
@@ -302,6 +298,7 @@ export default function NewRequestModal({
                           placeholder={"2019"}
                           onChange={onChange}
                           value={value}
+                          maxLength={15}
                           onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
@@ -328,13 +325,14 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 50,
+                        maxLength: 30,
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
                         <InputText
                           placeholder={"hybrid"}
                           onChange={onChange}
                           value={value}
+                          maxLength={30}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,
@@ -351,7 +349,7 @@ export default function NewRequestModal({
                   }}
                 >
                   <View style={{ width: "100%" }}>
-                    <Text style={[styles.smallT]}>Budget (RWF) (Optional)</Text>
+                    <Text style={[styles.smallT]}>Budget(optional) </Text>
 
                     <Controller
                       control={control}
@@ -360,10 +358,13 @@ export default function NewRequestModal({
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
                         <InputText
-                          placeholder={"300,0000RWF"}
+                          placeholder={"300,0000"}
                           onChange={onChange}
                           onBlur={onBlur}
                           value={value}
+                          keyBoardType={"numeric"}
+                          keyBoard
+                          maxLength={30}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,

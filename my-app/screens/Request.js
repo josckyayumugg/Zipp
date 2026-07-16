@@ -12,14 +12,13 @@ import ARequest from "../Components/ARequest";
 
 import ConfirmDeleteRequest from "../Components/ConfirmDeleteRequest";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
-import {
-  useGetAllMyRequests,
-  useGetAllRequests,
-} from "../_CustomHooks/RequestServices";
+import { useGetAllMyRequests } from "../_CustomHooks/RequestServices";
 import LoadingPaging from "../Components/LoadingPaging";
 import { FlatList } from "react-native";
 import EditRequestModal from "../Components/EditRequestModal";
-
+import { useGetAllRequests } from "../_CustomHooks/RequestServices";
+import { ActivityIndicator } from "react-native";
+import NoProductsProfile from "../Components/NoProductsProfile";
 
 export default function Request() {
   //getuser
@@ -36,7 +35,12 @@ export default function Request() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isSelectedRequest, setIsSelectedRequest] = useState(null);
-  console.log({ SElected: isSelectedRequest });
+  const [isFilterType, setIsFilterType] = useState("createdAt");
+  const [isSortBoolean, setIsBoolean] = useState(true);
+  const [isSearchQuery, setIsSearchQuery] = useState(null);
+  const [isMySearchQuery, setIsMySearchQuery] = useState(null);
+  const [isSearchInput, setIsSearchInput] = useState(null);
+
   ////
 
   const profileId = user?.id;
@@ -45,59 +49,168 @@ export default function Request() {
     isError,
     error,
     isPending,
-  } = useGetAllMyRequests(profileId);
+  } = useGetAllMyRequests(profileId, isMySearchQuery);
 
-  useEffect(() => {
-    if (MyRequests) {
-      console.log(user);
-      console.log("Products loaded:", MyRequests);
-    }
-  }, [MyRequests]);
+  /////Getttin all requests
 
-  if (isPending || isPendingUser) {
+  const {
+    isPending: isPendingAll,
+    error: errorAll,
+
+    data: dataAll,
+    isError: isErrorAll,
+  } = useGetAllRequests(isFilterType, isSortBoolean, isSearchQuery);
+
+  if (isPendingUser) {
     return <LoadingPaging />;
   }
   return (
-    <ScrollView style={styles.paddingSm}>
-      <View style={styles.rowBtn}>
-        <Text style={styles.mainTitle}>Part Request</Text>
-        <Button
-          onPress={() => {
-            setIsCreateModalOpen((prev) => !prev);
-          }}
-          styles={[
-            {
-              width: "50%",
-              backgroundColor: GlobalStyles.Primary_Yellow,
-              alignSelf: "flex-end",
-            },
-            styles.paddingLg,
+    <View style={[styles.paddingSm, { flex: 1 }]}>
+      {requestType === "myRequest" && (
+        <View style={styles.rowBtn}>
+          <Text style={styles.mainTitle}>Part Request</Text>
+          <Button
+            onPress={() => {
+              setIsCreateModalOpen((prev) => !prev);
+            }}
+            styles={[
+              {
+                width: "75%",
+                backgroundColor: GlobalStyles.Primary_Yellow,
+                alignSelf: "flex-end",
+              },
+              styles.paddingLg,
+              styles.bordeR,
+            ]}
+            content={
+              <View style={[styles.paragraph, styles.row]}>
+                <Ionicons name="add-outline" color={"black"} size={13} />
+                <Text style={[styles.paragraph, styles.bold]}>Request</Text>
+              </View>
+            }
+          />
+        </View>
+      )}
+      <View style={[styles.column]}>
+        <View
+          style={[
+            styles.row,
             styles.bordeR,
+
+            {
+              borderColor: GlobalStyles.Primary_Grey,
+              borderWidth: 1,
+              marginVertical: 3,
+            },
           ]}
-          content={
-            <Text style={[styles.paragraph, styles.row]}>
-              <Ionicons name="add-outline" color={"black"} size={13} />
-              New request
-            </Text>
-          }
-        />
-      </View>
-      <View
-        style={[
-          styles.row,
-          styles.bordeR,
-          styles.smallMVertical,
-          { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
-        ]}
-      >
-        <Ionicons name="search" size={20} />
+        >
+          <Ionicons name="search" size={20} />
 
-        <InputText
-          placeholder={"Search parts,brands,models"}
-          styles={[styles.bordeR, styles.paddingSm, { width: "100%" }]}
-        />
+          <InputText
+            placeholder="Search Request"
+            onChange={(value) => {
+              if (value === "" && requestType === "allRequests") {
+                setIsSearchQuery("");
+              }
+              if (value === "" && requestType === "myRequest")
+                setIsMySearchQuery("");
 
-        <Button content={"Search"} />
+              setIsSearchInput(value);
+            }}
+            styles={[styles.bordeR, styles.paddingSm, { width: "70%" }]}
+          />
+
+          <Button
+            onPress={() => {
+              if (requestType === "allRequests") {
+                setIsSearchQuery(isSearchInput);
+              }
+              if (requestType === "myRequest") {
+                setIsMySearchQuery(isSearchInput);
+              }
+            }}
+            content={<Text style={styles.smallT}>search</Text>}
+          />
+        </View>
+        {requestType === "allRequests" && (
+          <View
+            style={[
+              {
+                justifyContent: "space-between",
+                flexDirection: "row",
+                marginBottom: 6,
+              },
+            ]}
+          >
+            <View
+              style={{ flexDirection: "row", width: "30%", gap: 4, height: 30 }}
+            >
+              <Button
+                styles={[
+                  styles.bordeR,
+                  {
+                    borderWidth: 1,
+                    paddingVertical: 2,
+                    borderColor: GlobalStyles.Primary_Green,
+
+                    color: GlobalStyles.Primary_Grey5,
+                  },
+
+                  styles.smallT,
+                  styles.bold,
+                  isFilterType === "createdAt" && styles.greenBg,
+                ]}
+                onPress={() => {
+                  setIsFilterType("createdAt");
+                }}
+                content={<Text style={styles.smallT}>Time</Text>}
+              />
+              <Button
+                styles={[
+                  styles.bordeR,
+                  {
+                    borderWidth: 1,
+                    padding: 2,
+                    borderColor: GlobalStyles.Primary_Green,
+
+                    color: GlobalStyles.Primary_Grey5,
+                  },
+
+                  styles.smallT,
+                  styles.bold,
+                  isFilterType === "budget" && styles.greenBg,
+                ]}
+                onPress={() => {
+                  setIsFilterType("budget");
+                }}
+                content={<Text style={styles.smallT}>Price</Text>}
+              />
+            </View>
+            <Button
+              styles={[
+                {
+                  alignSelf: "flex-end",
+                  paddingHorizontal: 4,
+                  marginRight: 8,
+                  backgroundColor: GlobalStyles.Primary_Yellow,
+                },
+                styles.bordeR,
+              ]}
+              onPress={() => {
+                setIsBoolean((prev) => !prev);
+              }}
+              content={
+                <Text>
+                  <Ionicons
+                    name="swap-vertical-outline"
+                    size={25}
+                    color={"black"}
+                  />
+                </Text>
+              }
+            />
+          </View>
+        )}
       </View>
       <View
         style={[
@@ -112,7 +225,9 @@ export default function Request() {
             { height: 35 },
             styles.bordeR,
           ]}
-          content="All Requests"
+          content={
+            <Text style={[styles.paragraph, styles.bold]}>All Requests</Text>
+          }
           onPress={() => {
             setRequestType("allRequests");
           }}
@@ -123,35 +238,75 @@ export default function Request() {
             { height: 35 },
             styles.bordeR,
           ]}
-          content="My Requests"
+          content={
+            <Text style={[styles.paragraph, styles.bold]}>My requests</Text>
+          }
           onPress={() => {
             setRequestType("myRequest");
           }}
         />
       </View>
-      <FlatList
-        data={MyRequests}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <ARequest
-            Data={item}
-            requestType={requestType}
-            id={item.id}
-            onEdit={() => {
-              setIsSelectedRequest(item);
-              setIsEditModalVisible(true);
-            }}
-            onDelete={() => {
-              setIsSelectedRequest(item);
-              setIsConfirmDeleteOpen(true);
-            }}
+      {requestType === "myRequest" && (
+        <View style={{ flex: 1 }}>
+          {isPending && <ActivityIndicator style={{ marginTop: 150 }} />}
+          <FlatList
+            data={MyRequests}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <ARequest
+                Data={item}
+                requestType={requestType}
+                id={item.id}
+                onEdit={() => {
+                  setIsSelectedRequest(item);
+                  setIsEditModalVisible(true);
+                }}
+                onDelete={() => {
+                  setIsSelectedRequest(item);
+                  setIsConfirmDeleteOpen(true);
+                }}
+              />
+            )}
           />
-        )}
-      />
+        </View>
+      )}
+      {requestType === "allRequests" && (
+        <View style={{ flex: 1 }}>
+          {isPendingAll && <ActivityIndicator style={{ marginTop: 150 }} />}
+          {dataAll?.length <= 0 && (
+            <NoProductsProfile
+              message={"No Requests  were found"}
+              ButtonContent={"Reload"}
+              onPress={() => setIsSearchQuery("")}
+            />
+          )}
+          <FlatList
+            data={dataAll}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <ARequest
+                Data={item}
+                user={user}
+                requestType={requestType}
+                id={item.id}
+                onEdit={() => {
+                  setIsSelectedRequest(item);
+                  setIsEditModalVisible(true);
+                }}
+                onDelete={() => {
+                  setIsSelectedRequest(item);
+                  setIsConfirmDeleteOpen(true);
+                }}
+              />
+            )}
+          />
+        </View>
+      )}
       {isCreateModalOpen && (
         <NewRequestModal
           setIsCreateModalOpen={setIsCreateModalOpen}
           setRequestType={setRequestType}
+          user={user}
         />
       )}
       {isEditModalVisible && (
@@ -168,7 +323,7 @@ export default function Request() {
           setIsConfirmDeleteOpen={setIsConfirmDeleteOpen}
         />
       )}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -196,6 +351,9 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginHorizontal: 8,
+  },
+  greenBg: {
+    backgroundColor: GlobalStyles.Primary_Green2,
   },
   smallT: {
     fontFamily: "Roboto-regular",
@@ -331,7 +489,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 20,
+    fontSize: 16,
   },
   button: {
     alignSelf: "start",
@@ -345,7 +503,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   paddingSm: {
-    padding: 4,
+    padding: 8,
   },
   paddingLg: {
     padding: 8,
