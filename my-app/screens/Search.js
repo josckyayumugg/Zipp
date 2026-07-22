@@ -1,330 +1,324 @@
-import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import { GlobalStyles } from "../Constants";
 import InputText from "../Components/TextInput";
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView } from "react-native";
-import Picked from "../Components/Picker";
+import { useGetAllProducts } from "../_CustomHooks/ProductServices";
 import Button from "../Components/Button";
 import ProductCard from "../Components/ProductCard";
-import { useState } from "react";
 import { useRoute } from "@react-navigation/native";
+import NoProductsProfile from "../Components/NoProductsProfile";
+import LargeSpinner from "../Components/LargSpinner";
+import {
+  useGetCurrentUser,
+  useGetCurrentProfile,
+} from "../_CustomHooks/Authentication";
+import ProductFilterModal from "../Components/FilterModal";
+import LoadingPaging from "../Components/LoadingPaging";
 
 export default function Search() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
   const route = useRoute();
-  const source = route.params?.source;
-  const query = route.params?.query;
-  const Data = [
-    {
-      productStatus: "used",
-      productImage: "",
-      productImagesLength: "",
-      productName: "Toyota Hilux front Bumper",
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSearchQuery, setIsSearchQuery] = useState("");
+  const [isInputQuery, setIsInputQuery] = useState("");
+  const [shouldSearch, setShouldSearch] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const [products, setProducts] = useState([]);
 
-      Brand: "Toyota",
-      modal: "Hilux",
-      Year: "2019",
-      location: "kigali Rwanda",
-      productPrice: "400 000",
-    },
-    {
-      productStatus: "refubrshed",
-      productImage: "",
-      productImagesLength: "",
-      productName: "Toyota lights",
+  const [isTempFilter, setIsTempFilter] = useState({
+    brand: "",
+    model: "",
+    year: "",
+    condition: "",
+    category: "",
+  });
+  const [appliedFilter, setAppliedFilter] = useState({});
 
-      carBrand: "Toyota",
-      carModal: "Hilux",
-      carYear: "2019",
-      location: "kigali Rwanda",
-      productPrice: "400 000",
-    },
+  // Fetch hook
+  const { data, isPending, isFetching } = useGetAllProducts(
     {
-      productStatus: "used",
-      productImage: "",
-      productImagesLength: "",
-      productName: "Toyota Hilux",
-
-      carBrand: "Toyota",
-      carModal: "Hilux",
-      carYear: "2019",
-      location: "kigali Rwanda",
-      productPrice: "400 000",
+      ...appliedFilter,
+      shouldSearch,
+      search: isSearchQuery,
     },
-    {
-      productStatus: "used",
-      productImage: "",
-      productImagesLength: "",
-      productName: "Toyota Hilux",
+    page,
+  );
 
-      carBrand: "Toyota",
-      carModal: "Hilux",
-      carYear: "2019",
-      location: "kigali Rwanda",
-      productPrice: "400 000",
-    },
-    {
-      productStatus: "used",
-      productImage: "",
-      productImagesLength: "",
-      productName: "Toyota Hilux",
+  const { data: user, isPending: pendingUser } = useGetCurrentUser();
+  const { data: currentProfile, isPending: isPendingProfile } =
+    useGetCurrentProfile(user?.id);
 
-      carBrand: "Toyota",
-      carModal: "Hilux",
-      carYear: "2019",
-      location: "kigali Rwanda",
-      productPrice: "400 000",
-    },
-    {
-      productStatus: "used",
-      productImage: "",
-      productImagesLength: "",
-      productName: "Toyota Hilux",
+  // ✅ FIX 1: Handle fresh search / filter updates safely
+  const triggerNewSearch = () => {
+    setProducts([]); // Clear existing items
+    setPage(1); // Reset back to Page 1
+    setIsSearchQuery(isInputQuery);
+    setAppliedFilter(isTempFilter);
+    setShouldSearch(true);
+    setHasSearched(true);
+  };
 
-      carBrand: "Toyota",
-      carModal: "Hilux",
-      carYear: "2019",
-      location: "kigali Rwanda",
-      productPrice: "400 000",
-    },
-  ];
+  // ✅ FIX 2: Append incoming page data or reset array when back at page 1
+  useEffect(() => {
+    if (data && data.length > 0) {
+      if (page === 1) {
+        setProducts(data);
+      } else {
+        setProducts((prev) => {
+          // Avoid duplicate key warnings by checking existing IDs
+          const existingIds = new Set(prev.map((item) => item.id));
+          const newUniqueProducts = data.filter(
+            (item) => !existingIds.has(item.id),
+          );
+          return [...prev, ...newUniqueProducts];
+        });
+      }
+    }
+  }, [data, page]);
+
+  if (pendingUser || isPendingProfile) {
+    return <LoadingPaging />;
+  }
+
   return (
-    <ScrollView style={{ padding: 4 }}>
-      <View
-        style={[
-          styles.row,
-          styles.bordeR,
-          styles.smallMVertical,
-          { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
-        ]}
-      >
-        <Ionicons name="search" size={20} />
+    <View style={{ paddingHorizontal: 8, paddingVertical: 4, flex: 1 }}>
+      {/* Search Header Bar */}
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View
+          style={[
+            styles.row,
+            styles.bordeR,
+            styles.smallMVertical,
+            {
+              borderColor: GlobalStyles.Primary_Grey,
+              borderWidth: 1,
+              width: "85%",
+              justifyContent: "flex-end",
+            },
+          ]}
+        >
+          
 
-        <InputText
-          placeholder={"Search parts,brands,models"}
-          styles={[styles.bordeR, styles.paddingSm, { width: "80%" }]}
+          <InputText
+            placeholder={"Search parts, brands, models"}
+            value={isInputQuery}
+            onChange={(value) => {
+              setShouldSearch(false);
+              if (value === "") {
+                setIsSearchQuery("");
+              }
+              setIsInputQuery(value);
+            }}
+            styles={[styles.bordeR, styles.paddingSm, { width: "70%" }]}
+          />
+
+          <Button
+            onPress={triggerNewSearch}
+            
+            content={<Text style={styles.smallT}>Search</Text>}
+          />
+        </View>
+
+        <View
+          style={[
+            {
+              alignSelf: "center",
+              justifyContent: "center",
+              height: 35,
+              width: 50,
+              marginHorizontal: "auto",
+              backgroundColor: GlobalStyles.Primary_Yellow,
+            },
+            styles.bordeR,
+          ]}
+        >
+          <Button
+            onPress={() => setIsFilterOpen(true)}
+            content={<Ionicons name="options" size={32} color="black" />}
+            styles={{ alignSelf: "center" }}
+          />
+        </View>
+      </View>
+
+      {/* Filter Modal */}
+      {isFilterOpen && (
+        <ProductFilterModal
+          setIsFilterOpen={setIsFilterOpen}
+          setIsTempFilter={setIsTempFilter}
+          isTempFilter={isTempFilter}
+          setAppliedFilter={setAppliedFilter}
+          setHasSearched={setHasSearched}
+          setShouldSearch={setShouldSearch}
         />
+      )}
 
-        <Button content={"Search"} />
+      {/* Applied Filters Badges */}
+      <View style={styles.column}>
+        <Text style={[styles.smallT, styles.italic]}>Applied Filters</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            marginVertical: 4,
+            gap: 4,
+            flexWrap: "wrap",
+          }}
+        >
+          {Object.entries(appliedFilter).map(([key, val]) => {
+            if (!val) return null;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => {
+                  setAppliedFilter((prev) => ({ ...prev, [key]: "" }));
+                  setIsTempFilter((prev) => ({ ...prev, [key]: "" }));
+                  setProducts([]);
+                  setPage(1);
+                }}
+              >
+                <View
+                  style={[
+                    styles.bordeR,
+                    styles.smallT,
+                    styles.italic,
+                    {
+                      borderWidth: 1,
+                      padding: 4,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 2,
+                      borderColor: GlobalStyles.Primary_Green,
+                      borderStyle: "dashed",
+                    },
+                  ]}
+                >
+                  <Text>{val}</Text>
+                  <Ionicons name="close" color="red" size={12} />
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
-      <View style={styles.row}>
-        <Text style={styles.paragraph}>
-          {Array.isArray(query) ? query[0] : query}
-        </Text>
 
-        <Picked options={["Oldest", "New"]} />
-      </View>
-      <View style={styles.smallMVertical}>
-        <View style={[{ flexWrap: "wrap" }, styles.row]}>
-          {Data.map((item, i) => (
+      {/* Initial State - Has Not Searched Yet */}
+      {!hasSearched && (
+        <View
+          style={{
+            marginTop: 150,
+            paddingHorizontal: 20,
+            alignItems: "center",
+          }}
+        >
+          <Text style={[styles.smallText]}>No search yet!!</Text>
+          <Text style={[styles.smallText]}>
+            Your search results will appear here
+          </Text>
+          <Button
+            content={"Start to Filter"}
+            styles={[
+              { backgroundColor: GlobalStyles.Primary_Yellow },
+              styles.padding,
+              styles.bordeR,
+              styles.smallMTop,
+            ]}
+            onPress={() => setIsFilterOpen(true)}
+          />
+        </View>
+      )}
+
+      {/* Loading State - Page 1 Initial Search */}
+      {(isPending || isFetching) && page === 1 && shouldSearch && (
+        <View style={{ alignSelf: "center", marginTop: 150 }}>
+          <LargeSpinner />
+        </View>
+      )}
+
+      {/* ✅ FIX 3: Empty State - Only show when NOT fetching AND products list is genuinely empty */}
+      {!isFetching &&
+        !isPending &&
+        products.length === 0 &&
+        shouldSearch &&
+        hasSearched && (
+          <NoProductsProfile
+            message={"No products were found"}
+            ButtonContent={"Try again"}
+            style={{ marginTop: 150 }}
+            onPress={() => {
+              setShouldSearch(false);
+              setIsSearchQuery("");
+              setIsInputQuery("");
+              setProducts([]);
+              setPage(1);
+            }}
+          />
+        )}
+
+      {/* ✅ FIX 4: FlatList with Pagination Lock and Footer Loader */}
+      {products.length > 0 && (
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={3}
+          columnWrapperStyle={{ gap: 8, marginBottom: 10 }}
+          contentContainerStyle={{ padding: 8 }}
+          renderItem={({ item }) => (
             <ProductCard
-              Data={item}
-              key={i}
+              product={item}
               Stylesy={{ width: "32%" }}
               isImageLoaded={isImageLoaded}
               setIsImageLoaded={setIsImageLoaded}
+              imageHeight={"10%"}
+              data={item}
+              profile={currentProfile}
             />
-          ))}
-        </View>
-      </View>
-    </ScrollView>
+          )}
+          // Lock pagination: only increment page if not currently fetching & last batch had a full page of 15
+          onEndReached={() => {
+            if (!isFetching && data?.length === 15) {
+              setPage((prev) => prev + 1);
+            }
+          }}
+          onEndReachedThreshold={0.4}
+          // Small activity spinner at the bottom when fetching page 2, 3, 4...
+          ListFooterComponent={
+            isFetching && page > 1 ? (
+              <ActivityIndicator
+                size="small"
+                color={GlobalStyles.Primary_Green}
+                style={{ marginVertical: 16 }}
+              />
+            ) : null
+          }
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "column",
-    height: "100%",
-    minWidth: "100%",
-    fontFamily: "notoSans",
-  },
-
-  mainTitle: {
-    fontFamily: "Roboto-Extrabold",
-    fontSize: 35,
-    textAlign: "center",
-  },
-  PageHeaderTitle: {
-    fontFamily: "Roboto-Extrabold",
-    fontSize: 25,
-    textAlign: "center",
-  },
-  Views: {
-    marginVertical: 12,
-  },
-  icon: {
-    marginHorizontal: 8,
-  },
-  smallT: {
-    fontFamily: "Roboto-regular",
-    fontSize: 12,
-  },
-  smallMVertical: {
-    marginVertical: 8,
-  },
-  largeMTop: {
-    marginTop: 50,
-  },
-  smallMTop: {
-    marginTop: 8,
-  },
-  label: {
-    borderWidth: 2,
-  },
-  Roboto: {
-    fontFamily: "Roboto-Light",
-    fontSize: 16,
-  },
-  bold: {
-    fontFamily: "Roboto-semibold",
-    fontWeight: 700,
-  },
-  graph: {
-    alignSelf: "center",
-    marginTop: 50,
-    alignItems: "center",
-    flexDirection: "column",
-    paddingHorizontal: 8,
-    marginBottom: 10,
-  },
-  padding: {
-    padding: 8,
-  },
-  paddingSm: {
-    padding: 2,
-  },
+  smallT: { fontFamily: "Roboto-regular", fontSize: 12 },
+  smallMVertical: { marginVertical: 8 },
+  smallMTop: { marginTop: 8 },
+  padding: { padding: 8 },
+  paddingSm: { padding: 2 },
   row: {
     flexDirection: "row",
     alignItems: "center",
-
     justifyContent: "space-between",
     paddingHorizontal: 4,
   },
-  rowBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-  },
-  column: {
-    flexDirection: "column",
-  },
-  whiteT: {
-    color: "white",
-  },
-  greyT: {
-    color: GlobalStyles.Primary_Grey,
-  },
-  greenT: {
-    color: GlobalStyles.Primary_Green,
-  },
-  smallText: {
-    fontSize: 10,
-    fontFamily: "Roboto-Light",
-  },
-  whiteText: {
-    color: GlobalStyles.Primary_Grey,
-  },
-  yellow: {
-    color: GlobalStyles.Primary_Yellow,
-  },
-  yellowBg: {
-    backgroundColor: GlobalStyles.Primary_Yellow,
-  },
-  blackBg: {
-    backgroundColor: GlobalStyles.Black,
-  },
-  cards: {
-    alignSelf: "flex-end",
-    flexDirection: "row",
-    margin: 8,
-    paddingRight: 4,
-
-    width: "70%",
-  },
-  rowItem: {
-    flexDirection: "column",
-    width: "45%",
-    paddingHorizontal: 4,
-    alignItems: "flex-start",
-    padding: 4,
-  },
-  revealImage: {
-    height: 200,
-
-    marginBottom: 16,
-  },
-
-  headerCard: {
-    backgroundColor: GlobalStyles.Primary_Grey,
-
-    margin: 6,
-    borderWidth: 1,
-
-    backgroundColor: GlobalStyles.Primary_Grey,
-  },
-  rowView: {
-    flexDirection: "row",
-    width: "100%",
-    gap: 2,
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-  },
-
-  sectionImage: {
-    width: 110,
-    height: 80,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-
-  sectionText: {
-    flex: 1,
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontFamily: "Roboto-semibold",
-    fontSize: 18,
-    paddingBottom: 4,
-  },
-  sectionTitle: {
-    fontFamily: "Roboto-Extrabold",
-    fontSize: 22,
-
-    marginBottom: 8,
-  },
-
-  bigText: {
-    fontSize: 20,
-    fontFamily: "Roboto-Light",
-    marginRight: 20,
-  },
-  paragraph: {
-    fontFamily: "Roboto-Light",
-    fontSize: 20,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
-  },
-
-  bordeR: {
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  button: {
-    backgroundColor: GlobalStyles.Primary_Green,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
-  pressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.97 }],
-  },
+  column: { flexDirection: "column" },
+  smallText: { fontSize: 16, fontFamily: "Roboto-Light" },
+  italic: { fontFamily: "Roboto-italic" },
+  bordeR: { borderRadius: 6, overflow: "hidden" },
 });

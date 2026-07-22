@@ -1,12 +1,22 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
-export default function Button({ styles, content, onPress, disable = false }) {
+export default function Button({
+  styles,
+  content,
+  onPress,
+  disable = false,
+  styling,
+}) {
   return (
     <Pressable
       disabled={disable}
       onPress={onPress}
-      style={({ pressed }) => [pressed && styless.pressed, { flex: 1 }]}
+      style={({ pressed }) => [
+        pressed && styless.pressed,
+        { flex: 1 },
+        styling,
+      ]}
     >
       <View
         style={[

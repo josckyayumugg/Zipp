@@ -1,21 +1,36 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import VerificationRow from "./VerficaionRow";
 import { useNavigation } from "@react-navigation/native";
 import { useLogout } from "../_CustomHooks/Authentication";
+import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import { openWebsite } from "../Helpers";
 
-export default function ProfileOverView() {
+export default function ProfileOverView({ profileId }) {
   const navigation = useNavigation();
-  const { mutate, isPending } = useLogout;
+  const { mutate, isPending, error, isError } = useLogout();
+
+  const {
+    isPendingProfile,
+    isErrorProfile,
+    errorProfile,
+    data: dataProfile,
+  } = useGetCurrentProfile(profileId);
 
   function LogoutHandler() {
     mutate(undefined, {
       onSuccess: () => {
-        console.log("succeded");
         navigation.navigate("login");
+      },
+      onError: (error) => {
+        Toast.show({
+          type: "error",
+          text1: "Logout failed",
+          text2: error.message,
+        });
       },
     });
   }
@@ -44,8 +59,11 @@ export default function ProfileOverView() {
           Verification Status
         </Text>
         <View style={{ flexDirection: "column", gap: 12, padding: 8 }}>
-          <VerificationRow title={"Tin Number"} data={"122223"} />
-          <VerificationRow title={"Id Number"} data={"3030303"} />
+          <VerificationRow title={"Tin Number"} data={dataProfile?.tin} />
+          <VerificationRow
+            title={"Id Number"}
+            data={dataProfile?.nationalId || dataProfile?.id}
+          />
         </View>
       </View>
       <View
@@ -75,22 +93,27 @@ export default function ProfileOverView() {
         <View style={styles.column}>
           <Text>
             <Ionicons name="send-sharp" size={13} />
-            Jean@gmail.com
+            {dataProfile?.businessEmail}
           </Text>
           <Text>
             <Ionicons name="phone-portrait-sharp" size={13} />
-            +250 400 440890
+            {dataProfile?.phone}
           </Text>
           <Text>
             <Ionicons name="location" size={13} />
-            Kigali,Rwanda,Gatsata
+            {dataProfile?.directions}
           </Text>
-          <Text>
+          <Pressable
+            style={styles.row}
+            onPress={() => openWebsite(dataProfile?.website)}
+          >
             <Ionicons name="globe" size={13} />
-            www.yourWebiste@gmail.com
-          </Text>
+
+            <Text style={{ color: "blue" }}>{dataProfile?.website}</Text>
+          </Pressable>
         </View>
       </View>
+
       <View
         style={[
           {
@@ -105,12 +128,11 @@ export default function ProfileOverView() {
             // Android shadow
             elevation: 8,
 
-            gap: 20,
             paddingVertical: 8,
             borderWidth: 1,
             borderColor: 1,
             flexDirection: "column",
-            gap: 8,
+            gap: 4
           },
           styles.bordeR,
         ]}
@@ -119,7 +141,12 @@ export default function ProfileOverView() {
           onPress={() => {
             navigation.navigate("Settings");
           }}
-          styles={[styles.smallMVertical, styles.bordeR]}
+          styles={[
+            styles.smallMVertical,
+            { borderWidth: 1 },
+            styles.bordeR,
+            styles.paddingLg,
+          ]}
           content={
             <Text>
               <Ionicons
@@ -131,35 +158,14 @@ export default function ProfileOverView() {
             </Text>
           }
         />
-      </View>
-
-      <View
-        style={[
-          {
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 4,
-            },
-            shadowOpacity: 0.3,
-            shadowRadius: 6,
-
-            // Android shadow
-            elevation: 8,
-
-            gap: 20,
-            paddingVertical: 8,
-            borderWidth: 1,
-            borderColor: 1,
-            flexDirection: "column",
-            gap: 8,
-          },
-          styles.bordeR,
-          styles.smallMVertical,
-        ]}
-      >
         <Button
-          styles={[styles.smallMVertical, styles.bordeR]}
+          onPress={LogoutHandler}
+          styles={[
+            styles.smallMVertical,
+            { borderWidth: 1, borderColor: "red" },
+            styles.paddingLg,
+            styles.bordeR,
+          ]}
           content={<Text style={{ color: "red" }}>Logout</Text>}
         />
       </View>

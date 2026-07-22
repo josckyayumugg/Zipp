@@ -13,7 +13,7 @@ export default function SettingsPage() {
   function LogoutHandler() {
     mutate(undefined, {
       onSuccess: () => {
-        console.log("succeded");
+        
         navigation.navigate("login");
       },
     });

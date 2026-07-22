@@ -133,3 +133,21 @@ export function useGetCurrentUser() {
     },
   });
 }
+
+export function useGetCurrentProfile(id) {
+  return useQuery({
+    queryKey: ["profile", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Profiles")
+        .select("*")
+        .eq("profileId", id)
+        .single();
+
+      if (error) throw error;
+
+      return data;
+    },
+    enabled: !!id,
+  });
+}

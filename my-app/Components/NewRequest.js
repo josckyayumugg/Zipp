@@ -20,16 +20,16 @@ import { supabase } from "../_lib/supabase";
 import { useForm, Controller } from "react-hook-form";
 import { useCreateRequest } from "../_CustomHooks/RequestServices";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
-
+import { containsContactInfo } from "../Helpers";
 import LoadingPaging from "./LoadingPaging";
 import { queryClient } from "../App";
+import AppDropdown from "./Dropdown";
 export default function NewRequestModal({
   isCreateModalOpen,
   setIsCreateModalOpen,
   setRequestType,
   user,
 }) {
-  console.log("kigali new request modal");
   //get User
 
   const {
@@ -89,6 +89,12 @@ export default function NewRequestModal({
       },
     );
   }
+  const [currencyItems, setCurrencyItems] = useState([
+    { label: "RWF 🇷🇼", value: "RWF" },
+    { label: "USD 🇺🇸", value: "USD" },
+    { label: "EUR 🇪🇺", value: "EUR" },
+    { label: "GBP 🇬🇧", value: "GBP" },
+  ]);
 
   return (
     <Modal
@@ -146,6 +152,9 @@ export default function NewRequestModal({
                   rules={{
                     maxLength: 50,
                     required: "name is required",
+                    validate: (value) =>
+                      !containsContactInfo(value) ||
+                      "Do not include phone numbers, email addresses, social media accounts, or links.",
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <InputText
@@ -153,7 +162,7 @@ export default function NewRequestModal({
                       onBlur={onBlur}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
                       value={value}
-                      maxLength={30}
+                      maxLength={50}
                       onChange={onChange}
                       styled={[
                         {
@@ -182,6 +191,9 @@ export default function NewRequestModal({
                   rules={{
                     maxLength: 300,
                     required: "Description is required",
+                    validate: (value) =>
+                      !containsContactInfo(value) ||
+                      "Do not include phone numbers, email addresses, social media accounts, or links.",
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <InputText
@@ -191,7 +203,7 @@ export default function NewRequestModal({
                       onBlur={onBlur}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
                       value={value}
-                      maxLength={200}
+                      maxLength={300}
                       onChange={onChange}
                       styled={[
                         {
@@ -229,15 +241,18 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 25,
+                        maxLength: 30,
                         required: "Brand  is required",
+                        validate: (value) =>
+                          !containsContactInfo(value) ||
+                          "Do not include phone numbers, email addresses, social media accounts, or links.",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
                         <InputText
                           placeholder={"Toyota"}
                           onChange={onChange}
                           onBlur={onBlur}
-                          maxLength={20}
+                          maxLength={30}
                           value={value}
                           styled={{
                             borderWidth: 1,
@@ -260,15 +275,18 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 25,
+                        maxLength: 40,
                         required: "modal is required",
+                        validate: (value) =>
+                          !containsContactInfo(value) ||
+                          "Do not include phone numbers, email addresses, social media accounts, or links.",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
                         <InputText
                           placeholder={"Rav4"}
                           onChange={onChange}
                           value={value}
-                          maxLength={25}
+                          maxLength={40}
                           onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
@@ -290,15 +308,18 @@ export default function NewRequestModal({
                     <Controller
                       control={control}
                       rules={{
-                        maxLength: 25,
+                        maxLength: 40,
                         required: "Year is required",
+                        validate: (value) =>
+                          !containsContactInfo(value) ||
+                          "Do not include phone numbers, email addresses, social media accounts, or links.",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
                         <InputText
                           placeholder={"2019"}
                           onChange={onChange}
                           value={value}
-                          maxLength={15}
+                          maxLength={40}
                           onBlur={onBlur}
                           styled={{
                             borderWidth: 1,
@@ -326,13 +347,16 @@ export default function NewRequestModal({
                       control={control}
                       rules={{
                         maxLength: 30,
+                        validate: (value) =>
+                          !containsContactInfo(value) ||
+                          "Do not include phone numbers, email addresses, social media accounts, or links.",
                       }}
                       render={({ field: { onChange, onBlur, value } }) => (
                         <InputText
                           placeholder={"hybrid"}
                           onChange={onChange}
                           value={value}
-                          maxLength={30}
+                          maxLength={40}
                           styled={{
                             borderWidth: 1,
                             borderColor: GlobalStyles.Primary_Grey,
@@ -374,21 +398,23 @@ export default function NewRequestModal({
                       name="budget"
                     />
                   </View>
-                  <View style={{ alignSelf: "end" }}>
+                  <View style={{ alignSelf: "flex-end",height:50,width:50 }}>
                     <Controller
                       control={control}
                       name="currency"
                       render={({ field: { onChange, value } }) => (
-                        <Picked
-                          selectedValue={value}
-                          width={80}
-                          options={[
-                            { label: "RWF 🇷🇼", value: "RWF" },
-                            { label: "USD 🇺🇸", value: "USD" },
-                            { label: "EUR 🇪🇺", value: "EUR" },
-                            { label: "GBP 🇬🇧", value: "GBP" },
-                          ]}
-                          onValueChange={onChange}
+                        <AppDropdown
+                          value={value}
+                          items={currencyItems}
+                          setItems={setCurrencyItems}
+                          setValue={(callback) => {
+                            const newValue =
+                              typeof callback === "function"
+                                ? callback(value)
+                                : callback;
+
+                            onChange(newValue);
+                          }}
                         />
                       )}
                     />

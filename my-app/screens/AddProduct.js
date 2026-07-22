@@ -7,7 +7,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Image,
-  Dimensions,
+ 
   Platform,
 } from "react-native";
 import { GlobalStyles } from "../Constants";
@@ -31,6 +31,7 @@ import {
   PermissionStatus,
 } from "expo-image-picker";
 import { useEditProduct } from "../_CustomHooks/ProductServices";
+import { containsContactInfo } from "../Helpers";
 
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 
@@ -60,8 +61,6 @@ export default function AddProduct({ route, navigation }) {
   // About Editing
   useEffect(() => {
     if (productId) {
-      
-
       setIsEditing(true);
       setValue("productId", productId);
     }
@@ -76,7 +75,7 @@ export default function AddProduct({ route, navigation }) {
 
   useEffect(() => {
     if (!editProduct || !isEditing) return;
-  
+
     reset({
       name: editProduct.name,
       brand: editProduct.brand,
@@ -336,11 +335,15 @@ export default function AddProduct({ route, navigation }) {
             rules={{
               maxLength: 50,
               required: "Name is required",
+              validate: (value) =>
+                !containsContactInfo(value) ||
+                "Do not include phone numbers, email addresses, social media accounts, or links.",
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <InputText
-                placeholder={"eg: Toyota Hilux Front Bumper 2019"}
+                placeholder={"Izina ry'igicuruzwa"}
                 onBlur={onBlur}
+                maxLength={50}
                 placeholderTextColor={GlobalStyles.Primary_Grey}
                 value={value}
                 onChange={onChange}
@@ -353,8 +356,8 @@ export default function AddProduct({ route, navigation }) {
             name="name"
           />
         </View>
-        {errors.title && (
-          <Text style={{ color: "red" }}>{errors.title.message}</Text>
+        {errors.name && (
+          <Text style={{ color: "red" }}>{errors.name.message}</Text>
         )}
 
         {/* Row Split Fields Grid */}
@@ -363,13 +366,20 @@ export default function AddProduct({ route, navigation }) {
             <Text style={styles.headerTitle}>Brand</Text>
             <Controller
               control={control}
-              rules={{ required: "Brand is Required" }}
+              rules={{
+                required: "Brand is Required",
+
+                validate: (value) =>
+                  !containsContactInfo(value) ||
+                  "Do not include phone numbers, email addresses, social media accounts, or links.",
+              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <InputText
                   placeholder={"Toyota"}
                   placeholderTextColor={GlobalStyles.Primary_Grey}
                   onBlur={onBlur}
                   onChange={onChange}
+                  maxLength={50}
                   value={value}
                   styled={[
                     { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
@@ -391,13 +401,19 @@ export default function AddProduct({ route, navigation }) {
             <Text style={styles.headerTitle}>Model</Text>
             <Controller
               control={control}
-              rules={{ required: "Model is required" }}
+              rules={{
+                required: "Model is required",
+                validate: (value) =>
+                  !containsContactInfo(value) ||
+                  "Do not include phone numbers, email addresses, social media accounts, or links.",
+              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <InputText
                   placeholder={"Hilux"}
                   onBlur={onBlur}
                   placeholderTextColor={GlobalStyles.Primary_Grey}
                   onChange={onChange}
+                  maxLength={50}
                   value={value}
                   styled={[
                     { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
@@ -425,6 +441,7 @@ export default function AddProduct({ route, navigation }) {
                   placeholder={"2019"}
                   onBlur={onBlur}
                   onChange={onChange}
+                  maxLength={50}
                   placeholderTextColor={GlobalStyles.Primary_Grey}
                   value={value}
                   styled={[
@@ -449,14 +466,19 @@ export default function AddProduct({ route, navigation }) {
           <Text style={styles.headerTitle}>Details</Text>
           <Controller
             control={control}
+            rules={{
+              required: "Details are required",
+              validate: (value) =>
+                !containsContactInfo(value) ||
+                "Do not include phone numbers, email addresses, social media accounts, or links.",
+            }}
             render={({ field: { onChange, onBlur, value } }) => (
               <InputText
-                placeholder={
-                  "Describe part condition, flaws, compatibility details..."
-                }
+                placeholder={"Ni nshyashya,iva Dubai,ikorerwa China........"}
                 onBlur={onBlur}
                 placeholderTextColor={GlobalStyles.Primary_Grey}
                 onChange={onChange}
+                maxLength={300}
                 value={value}
                 styled={[
                   {
@@ -471,6 +493,11 @@ export default function AddProduct({ route, navigation }) {
             )}
             name="details"
           />
+          {errors.details && (
+            <Text style={{ color: "red", fontSize: 11 }}>
+              {errors.details.message}
+            </Text>
+          )}
         </View>
 
         {/* Pricing block */}

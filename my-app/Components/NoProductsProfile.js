@@ -3,7 +3,12 @@ import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 
-export default function NoProductsProfile({ message, ButtonContent, onPress }) {
+export default function NoProductsProfile({
+  message,
+  ButtonContent,
+  onPress,
+  style,
+}) {
   return (
     <View
       style={[
@@ -16,6 +21,7 @@ export default function NoProductsProfile({ message, ButtonContent, onPress }) {
 
           alignContent: "center",
         },
+        style,
       ]}
     >
       <Ionicons name="cube" size={30} color={GlobalStyles.Primary_Grey3} />

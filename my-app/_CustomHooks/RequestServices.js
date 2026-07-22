@@ -100,7 +100,7 @@ export function useGetAllRequests(filter, bool, search) {
 
       if (search) {
         query = query.or(
-          `name.ilike.%${search}%,brand.ilike.%${search}%,description.ilike.%${search}%`,
+          `name.ilike.%${search}%,brand.ilike.%${search}%,description.ilike.%${search}%,modal.ilike.%${search}%,more.ilike.%${search}%`,
         );
       }
 

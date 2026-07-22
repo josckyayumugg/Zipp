@@ -39,13 +39,14 @@ export default function AppDropdown({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    height: "100%",
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
     color: "#333",
   },
-  
+
   dropdown: {
     borderColor: "#ccc",
     borderRadius: 8,

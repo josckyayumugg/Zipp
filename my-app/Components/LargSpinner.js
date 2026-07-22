@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { ActivityIndicator } from "react-native-web";
+import { ActivityIndicator } from "react-native";
 export default function LargeSpinner() {
   return (
     <View style={{ flex: 1, justifyItems: "center", alignItems: "center" }}>

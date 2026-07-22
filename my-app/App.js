@@ -47,6 +47,7 @@ import EditProfile from "./screens/ProfileEditint";
 import NotificationsSettings from "./screens/NotificationsSettings";
 import Login from "./screens/Login";
 import SignUp from "./screens/SignUpPage";
+import ProductContacts from "./screens/ProductContacts";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -256,6 +257,16 @@ export default function App() {
           <Stack.Screen
             name="Product"
             component={Product}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          <Stack.Screen
+            name="ProductContacts"
+            component={ProductContacts}
             options={{
               headerStyle: {
                 backgroundColor: GlobalStyles.Black,

@@ -10,18 +10,57 @@ import NoProductsProfile from "../Components/NoProductsProfile";
 import ProfileOverView from "../Components/ProfileOverView";
 import ProfileSelling from "../Components/ProfileSelling";
 import ProfileBuying from "../Components/ProfileBuying";
+import LoadingPaging from "../Components/LoadingPaging";
+import { useGetAllMyProducts } from "../_CustomHooks/ProductServices";
+import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+
+import { getInitials } from "../Helpers";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import { useGetAllMyRequests } from "../_CustomHooks/RequestServices";
+
 export default function Profile() {
   const [isFilter, setIsFilter] = useState("overview");
   const data = { Listings: 0, sold: 0, rating: 4.8 };
+  //abou the current user
+
+  const { isPending, isError, error, data: dataUser } = useGetCurrentUser();
+  const userId = dataUser?.id;
+
+  const {
+    isPending: isPendingProducts,
+    isError: isErrorProducts,
+    error: errorProducts,
+    data: dataProducts,
+  } = useGetAllMyProducts(userId);
+  const {
+    isPending: isPendingRequests,
+    isError: isErrorRequests,
+    error: errorRequests,
+    data: dataRequests,
+  } = useGetAllMyRequests(userId);
+  const {
+    isPendingProfile,
+    isErrorProfile,
+    errorProfile,
+    data: dataProfile,
+  } = useGetCurrentProfile(userId);
+  const initials = getInitials(dataProfile?.sellerNames);
+  
+  //getting the total user products//
+
+  if (isPending || isPendingProducts || isPendingProfile) {
+    return <LoadingPaging />;
+  }
   return (
     <ScrollView style={styles.paddingLg}>
       <View style={[styles.blackBg, styles.bordeR]}>
         <View
           style={[
             styles.row,
+
             styles.smallMVertical,
             styles.paddingSm,
-            { gap: 10 },
+            { gap: 10, alignItems: "center", justifyContent: "center" },
           ]}
         >
           <Text
@@ -32,22 +71,33 @@ export default function Profile() {
               alignContent: "center",
               flexDirection: "column",
               height: 50,
+              fontSize: 24,
+              alignSelf: "center",
+              alignItems: "center",
+              justifyContent: "center",
               borderRadius: 1000,
               backgroundColor: GlobalStyles.Primary_Grey,
               borderColor: "white",
               borderWidth: 1,
             }}
-          ></Text>
+          >
+            <Text style={{ alignSelf: "center" }}>{initials}</Text>
+          </Text>
           <View>
-            <Text style={[styles.bigText, styles.whiteT]}>Jean claude</Text>
+            <Text style={[styles.bigText, styles.whiteT]}>
+              {dataProfile?.sellerNames}
+            </Text>
             <View style={styles.row}>
               <Ionicons name="location" size={12} color={"white"} />
-              <Text style={styles.whiteT}>Kigali,Rwanda</Text>
+              <Text style={styles.whiteT}>{dataProfile?.directions}</Text>
             </View>
             <Span
-              content={"Buyer&Seller"}
+              content={dataProfile?.type}
               styles={[
-                { backgroundColor: GlobalStyles.Primary_Yellow },
+                {
+                  backgroundColor: GlobalStyles.Primary_Yellow,
+                  alignSelf: "flex-start",
+                },
                 styles.bordeR,
                 styles.smallMVertical,
                 styles.paddingSm,
@@ -62,10 +112,10 @@ export default function Profile() {
             { paddingHorizontal: 10 },
           ]}
         >
-          <ProfileCard data={data.Listings} label={"Products"} />
-          <ProfileCard data={data.sold} label={"Requests"} />
+          <ProfileCard data={dataProducts?.length} label={"Products"} />
+          <ProfileCard data={dataRequests?.length} label={"Requests"} />
           <ProfileCard
-            data={data.rating}
+            data={data?.rating || 8}
             label={
               <Text>
                 <Ionicons name="star" color={GlobalStyles.Primary_Grey} />{" "}
@@ -119,7 +169,7 @@ export default function Profile() {
           }}
         />
       </View>
-      {isFilter === "overview" && <ProfileOverView />}
+      {isFilter === "overview" && <ProfileOverView profileId={userId} />}
       {isFilter === "selling" && <ProfileSelling />}
       {isFilter === "buying" && <ProfileBuying />}
     </ScrollView>

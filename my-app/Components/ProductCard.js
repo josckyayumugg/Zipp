@@ -6,18 +6,30 @@ import { Image } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import LargeSpinner from "./LargSpinner";
 
 export default function ProductCard({
-  Data,
   Stylesy,
   isImageLoaded,
   setIsImageLoaded,
+  imageHeight,
+  data,
 }) {
-  const Navigotor = useNavigation();
+  const navigator = useNavigation();
+
+  const sellerId = data?.profileId;
+  const {
+    data: seller,
+    isPending,
+    isError,
+    error,
+  } = useGetCurrentProfile(sellerId);
+
   return (
     <Pressable
       onPress={() => {
-        Navigotor.navigate("Product");
+        (navigator.navigate("Product"), { productId: data?.id });
       }}
       style={[
         Stylesy,
@@ -36,29 +48,35 @@ export default function ProductCard({
           position: "relative",
           // Android shadow
           elevation: 8,
-         
         },
         styles.bordeR,
         styles.smallMVertical,
       ]}
     >
       <View style={[styles.bordeR, { paddingTop: 4 }]}>
-        {!isImageLoaded && (
-          <ActivityIndicator size="small" style={{ alignSelf: "center" }} />
-        )}
+        <View>
+          {!isImageLoaded && (
+            <ActivityIndicator
+              size="small"
+              style={{ position: "absolute", alignSelf: "center" }}
+            />
+          )}
 
-        <Image
-          source={require("../assets/images/cardoor.jpg")}
-          onLoad={() => {
-            setIsImageLoaded(true);
-          }}
-          style={{
-            width: "100%",
+          <Image
+            source={
+              data?.images && data.images.length > 0
+                ? { uri: data?.images[0] } // 1. Use the Supabase URL if it exists
+                : require("../assets/images/cardoor.jpg") // 2. Fall back to your local asset
+            }
+            onLoad={() => setIsImageLoaded(true)}
+            style={{
+              width: "100%",
+              height: 80,
+            }}
+          />
+        </View>
 
-            height: 80,
-          }}
-        />
-        {Data.productStatus && (
+        {data?.status && (
           <View
             style={[
               {
@@ -78,91 +96,130 @@ export default function ProductCard({
               styles.bordeR,
             ]}
           >
-            <Text>{Data.productStatus} </Text>
+            <Text style={styles.smallText}>
+              {data?.status ? "Active" : "Not-active"}
+            </Text>
           </View>
         )}
-        {Data.productImagesLength && (
-          <Text
+
+        {data?.images.length > 0 && (
+          <View
             style={[
               {
                 position: "absolute",
-                top: 65,
+                top: 66,
                 left: 0,
                 borderRadius: 2,
-              
+                flexDirection: "row",
+                gap: 2,
                 backgroundColor: GlobalStyles.Primary_Grey4,
                 alignContent: "center",
                 color: "white",
-                paddingHorizontal:2,
+                paddingHorizontal: 2,
               },
             ]}
           >
-            <Ionicons name="images" size={10} color={"white"} />{" "}
-            {Data.productImagesLength}
+            <Ionicons
+              name="images"
+              size={10}
+              color={"white"}
+              style={{ alignSelf: "flex-end" }}
+            />
+
+            <Text style={{ color: "white", alignSelf: "flex-end" }}>
+              {" "}
+              {data.images.length}
+            </Text>
+          </View>
+        )}
+        {data?.name && (
+          <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
+            {`${data?.name}`.length > 32
+              ? `${data?.name}`.slice(0, 32)
+              : `${data?.name}`}
           </Text>
         )}
-        <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
-          {Data.productName}
-        </Text>
-        <View style={[styles.row, { flexWrap: "wrap" }, styles.smallMVertical]}>
-          <Text
-            style={[
-              styles.smallT,
-              styles.bordeR,
-              styles.paddingSm,
-              { borderWidth: 1 },
-            ]}
-          >
-            {Data.carBrand && Data.carBrand}
-          </Text>
-          <Text
-            style={[
-              styles.smallT,
-              styles.bordeR,
-              styles.paddingSm,
-              { borderWidth: 1 },
-            ]}
-          >
-            {Data.carModal && Data.carModal}
-          </Text>
-          <Text
-            style={[
-              styles.smallT,
-              styles.bordeR,
-              styles.paddingSm,
-              { borderWidth: 1 },
-            ]}
-          >
-            {Data.carYear && Data.carYear}
-          </Text>
+        <View style={[styles.row, { flexWrap: "wrap" }]}>
+          {data?.brand && (
+            <Text
+              style={[
+                styles.smallText,
+                styles.bordeRSmall,
+
+                { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
+              ]}
+            >
+              {data?.brand}
+            </Text>
+          )}
+          {data?.model && (
+            <Text
+              style={[
+                styles.smallText,
+                styles.bordeRSmall,
+
+                { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
+              ]}
+            >
+              {data?.model}
+            </Text>
+          )}
+          {data?.year && (
+            <Text
+              style={[
+                styles.smallText,
+                styles.bordeRSmall,
+
+                { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
+              ]}
+            >
+              {data?.year}
+            </Text>
+          )}
+          {data?.more && (
+            <Text
+              style={[
+                styles.smallText,
+                styles.bordeRSmall,
+
+                { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
+              ]}
+            >
+              {data?.more}
+            </Text>
+          )}
         </View>
-        {Data.price && (
-          <Text
-            style={[
-              styles.smallMVertical,
-              styles.headerTitle,
-              styles.greenT,
-              styles.bold,
-            ]}
-          >
-            {Data.price}
-            {Data?.currency}
+
+        {data?.price && (
+          <Text style={[styles.smallMVertical, styles.greenT, styles.bold]}>
+            {`${data?.price}000(${data?.currency})`}
           </Text>
         )}
-        <Text
-          style={[
-            styles.row,
-            styles.smallT,
-            { color: GlobalStyles.Primary_Green },
-          ]}
-        >
-          <Ionicons
-            name="location"
-            size={13}
-            color={GlobalStyles.Primary_Grey2}
-          />
-          {Data.location}
-        </Text>
+
+        {seller?.directions && (
+          <View
+            style={[
+              styles.smallT,
+              {
+                color: GlobalStyles.Primary_Green,
+                flexDirection: "row",
+                alignContent: "center",
+              },
+            ]}
+          >
+            <Ionicons
+              name="location"
+              size={13}
+              style={{ alignSelf: "flex-end" }}
+              color={GlobalStyles.Primary_Grey2}
+            />
+            <Text style={{ alignSelf: "flex-end" }}>
+              {`${seller?.directions}`.length > 12
+                ? `${seller?.directions}`.slice(0, 12)
+                : `${seller?.directions}`}
+            </Text>
+          </View>
+        )}
       </View>
     </Pressable>
   );
@@ -289,11 +346,8 @@ const styles = StyleSheet.create({
 
   headerCard: {
     backgroundColor: GlobalStyles.Primary_Grey,
-
     margin: 6,
     borderWidth: 1,
-
-    backgroundColor: GlobalStyles.Primary_Grey,
   },
   rowView: {
     flexDirection: "row",
@@ -345,6 +399,10 @@ const styles = StyleSheet.create({
 
   bordeR: {
     borderRadius: 12,
+    overflow: "hidden",
+  },
+  bordeRSmall: {
+    borderRadius: 4,
     overflow: "hidden",
   },
   button: {

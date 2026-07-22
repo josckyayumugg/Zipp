@@ -20,55 +20,12 @@ import { Ionicons } from "@expo/vector-icons";
 import InputText from "../Components/TextInput";
 import AppDropdown from "../Components/Dropdown";
 import Button from "../Components/Button";
+import { containsContactInfo } from "../Helpers";
 // import Picked from "../Components/Picker";
 
 export default function RespondToRequest() {
   const route = useRoute();
   const navigation = useNavigation();
-  const containsContactInfo = (text) => {
-    const patterns = [
-      // Email addresses
-      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
-
-      // URLs
-      /(https?:\/\/|www\.)\S+/i,
-
-      // Phone numbers (7-15 digits with optional separators)
-      /(\+?\d[\d\s\-().]{6,}\d)/,
-
-      // @username
-      /(^|\s)@[a-zA-Z0-9_.]+/,
-
-      // WhatsApp
-      /\bwhatsapp\b/i,
-
-      // Telegram
-      /\btelegram\b/i,
-
-      // Instagram
-      /\binstagram\b|\binsta\b/i,
-
-      // Facebook
-      /\bfacebook\b|\bfb\b/i,
-
-      // Snapchat
-      /\bsnap(chat)?\b/i,
-
-      // TikTok
-      /\btiktok\b/i,
-
-      // Twitter / X
-      /\btwitter\b|\bx\.com\b/i,
-
-      // Discord
-      /\bdiscord\b/i,
-
-      // LinkedIn
-      /\blinkedin\b/i,
-    ];
-
-    return patterns.some((pattern) => pattern.test(text));
-  };
 
   const { request, user } = route?.params;
 
@@ -83,6 +40,7 @@ export default function RespondToRequest() {
     control,
     handleSubmit,
     setValue,
+    reset,
     watch,
     formState: { errors },
   } = useForm({
@@ -119,9 +77,7 @@ export default function RespondToRequest() {
             queryKey: ["responses", user.id],
           });
 
-          navigation.navigate("Request")
-          setIsCreateModalOpen(false);
-          setRequestType("myRequest");
+          navigation.goBack();
         },
 
         onError: (error) => {

@@ -1,25 +1,60 @@
-import { useQuery, mutationFn, useMutation } from "@tanstack/react-query";
+import {
+  useQuery,
+  mutationFn,
+  useMutation,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
+import { isEnabled } from "react-native/Libraries/Performance/Systrace";
 
-export async function getAllProducts() {
+export function useGetAllProducts(filters, page) {
   return useQuery({
-    queryKey: ["getAllProducts"],
+    queryKey: ["getallProductspagination", filters, page],
     queryFn: async () => {
-      let { data: Products, error } = await supabase
-        .from("Products")
-        .select("*");
+      const pageSize = 15;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase.from("Products").select("*");
+
+      // Add filters here...
+      if (filters.brand) {
+        query = query.eq("brand", filters.brand);
+      }
+
+      if (filters.year) {
+        query = query.eq("year", filters.year);
+      }
+      if (filters.condition) {
+        query = query.eq("condition", filters.condition);
+      }
+      if (filters.category) {
+        query = query.eq("category", filters.category);
+      }
+      if (filters.model) {
+        query = query.eq("model", filters.model);
+      }
+
+      if (filters?.search && filters.search.trim() !== "") {
+        const cleanSearch = filters.search.trim();
+        query = query.or(
+          `name.ilike.%${cleanSearch}%,description.ilike.%${cleanSearch}%,brand.ilike.%${cleanSearch}%,model.ilike.%${cleanSearch}%,more.ilike.%${cleanSearch}%`,
+        );
+      }
+
+      query = query.range(from, to);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.log("error fetching product", error);
+        throw error;
+      }
+
+      return data;
     },
-  });
-}
-export async function getAllProductsWithPagination() {
-  return useQuery({
-    queryKey: ["getallProductspagination"],
-    queryFn: async () => {
-      let { data: Products, error } = await supabase
-        .from("Products")
-        .select("*")
-        .range(0, 9);
-    },
+    enabled: filters.shouldSearch,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -47,6 +82,19 @@ export function useGetSingleProduct(id) {
     enabled: !!id,
   });
 }
+export function useGetAllMyProducts(id) {
+  return useQuery({
+    queryKey: ["getAllProducts", id],
+    queryFn: async () => {
+      let { data: spData, error } = await supabase
+        .from("Products")
+        .select("*")
+        .eq("profileId", id);
+      return spData;
+    },
+    enabled: !!id,
+  });
+}
 
 export function useCreateProduct() {
   console.log("stargin to create the product");
@@ -55,7 +103,6 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: async (data) => {
-      
       console.log("Incoming data:", data);
 
       const imageUrls = [];
