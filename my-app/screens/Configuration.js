@@ -34,6 +34,7 @@ export default function ConfigureProfile({ route, navigation }) {
       tin: "",
       website: "",
       directions: "",
+      phone: "",
     },
   });
 
@@ -44,13 +45,32 @@ export default function ConfigureProfile({ route, navigation }) {
       { ...data, userId },
       {
         onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: "Success 👋",
+            text2: "Profile was created successfully!",
+            position: "top",
+            visibilityTime: 3000,
+          });
           Navigation.navigate("Tabs");
+        },
+        onError: (error) => {
+          // Extract error message from API response or fall back to default
+          const errorMessage =
+            error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong while creating your profile.";
+
+          Toast.show({
+            type: "error",
+            text1: "Error ❌",
+            text2: errorMessage,
+            position: "top",
+            visibilityTime: 4000,
+          });
         },
       },
     );
-  }
-  if (isError) {
-    console.log(error);
   }
 
   return (
@@ -146,6 +166,53 @@ export default function ConfigureProfile({ route, navigation }) {
               <Text style={styles.errorText}>{errors.ownerNames.message}</Text>
             )}
           </View>
+          {/* PHone Numbers */}
+          <View style={styles.inputWrapper}>
+            <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
+              PHONE NUMBER
+            </Text>
+            <View style={[styles.row, styles.bordeR, styles.inputFieldOuter]}>
+              <Ionicons
+                name="phone-landscape-outline"
+                size={18}
+                color={GlobalStyles.Primary_Grey}
+                style={styles.iconSpacer}
+              />
+              <Controller
+                control={control}
+                rules={{
+                  required: "Number is required",
+                  validate: (val) => {
+                    // Strip spaces and special characters to count raw digits
+                    const digitsOnly = (val || "").replace(/\D/g, "");
+
+                    if (digitsOnly.length < 10) {
+                      return "Phone number must be at least 10 digits";
+                    }
+                    return true;
+                  },
+                }}
+                name="phone"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <InputText
+                    placeholder="0788000000"
+                    placeholderTextColor={GlobalStyles.Primary_Grey}
+                    onBlur={onBlur}
+                    onChange={onChange}
+                    maxLength={16}
+                    keyBoardType={"phone-pad"}
+                    value={value}
+                    keyboardType="phone-pad"
+                    styled={[{ width: "90%" }]}
+                  />
+                )}
+              />
+            </View>
+            {errors.phone && (
+              <Text style={styles.errorText}>{errors.phone.message}</Text>
+            )}
+          </View>
+
           {/* WHATSAPP PHONE NUMBER */}
           <View style={styles.inputWrapper}>
             <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
@@ -160,7 +227,18 @@ export default function ConfigureProfile({ route, navigation }) {
               />
               <Controller
                 control={control}
-                rules={{ required: "WhatsApp contact number is required" }}
+                rules={{
+                  required: "WhatsApp contact number is required",
+                  validate: (val) => {
+                    // Strip spaces and special characters to count raw digits
+                    const digitsOnly = (val || "").replace(/\D/g, "");
+
+                    if (digitsOnly.length < 10) {
+                      return "Phone number must be at least 10 digits";
+                    }
+                    return true;
+                  },
+                }}
                 name="whatsapp"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <InputText
@@ -168,6 +246,8 @@ export default function ConfigureProfile({ route, navigation }) {
                     placeholderTextColor={GlobalStyles.Primary_Grey}
                     onBlur={onBlur}
                     onChange={onChange}
+                    maxLength={16}
+                    keyBoardType={"phone-pad"}
                     value={value}
                     keyboardType="phone-pad"
                     styled={[{ width: "90%" }]}

@@ -7,9 +7,10 @@ import { GlobalStyles } from "../Constants";
 import { ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import { formatNumber } from "../Helpers";
 import LargeSpinner from "./LargSpinner";
 
-export default function ProductCard({
+export default function ProductCardHome({
   Stylesy,
   isImageLoaded,
   setIsImageLoaded,
@@ -18,19 +19,20 @@ export default function ProductCard({
 }) {
   const navigator = useNavigation();
 
+  const seller = {
+    directions: "Kigali/Gatsata/av2019",
+  };
+
   const sellerId = data?.profileId;
   const {
-    data: seller,
+    // data: seller,
     isPending,
     isError,
     error,
   } = useGetCurrentProfile(sellerId);
 
   return (
-    <Pressable
-      onPress={() => {
-        navigator.navigate("Product", { productId: data?.id });
-      }}
+    <View
       style={[
         Stylesy,
         {
@@ -50,6 +52,7 @@ export default function ProductCard({
           elevation: 8,
         },
         styles.bordeR,
+
         styles.smallMVertical,
       ]}
     >
@@ -58,21 +61,44 @@ export default function ProductCard({
           {!isImageLoaded ? (
             <ActivityIndicator
               size="small"
-              style={{ position: "absolute", alignSelf: "center" }}
+              style={{
+                position: "absolute",
+                alignSelf: "center",
+              }}
             />
           ) : null}
 
           <Image
+            onLoad={() => {
+              setIsImageLoaded(true);
+            }}
             source={
               data?.images?.length > 0
-                ? { uri: data.images[0] }
+                ? { uri: data?.images[0] }
                 : require("../assets/images/noImage.jpg")
             }
-            onLoad={() => setIsImageLoaded(true)}
-            style={{
-              width: "100%",
-              height: 80,
-            }}
+            style={[
+              {
+                width: "95%",
+                marginHorizontal: "auto",
+                height: 200,
+
+                // iOS shadow
+                shadowColor: "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 4,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 6,
+
+                // Android shadow
+                elevation: 8,
+
+                borderRadius: 12,
+              },
+              styles.bordeR,
+            ]}
           />
         </View>
 
@@ -96,7 +122,7 @@ export default function ProductCard({
               styles.bordeR,
             ]}
           >
-            <Text style={styles.smallText}>
+            <Text style={styles.paragraph}>
               {data?.status ? "Active" : "Not-active"}
             </Text>
           </View>
@@ -107,8 +133,8 @@ export default function ProductCard({
             style={[
               {
                 position: "absolute",
-                top: 66,
-                left: 0,
+                top: 4,
+                left: 50,
                 borderRadius: 2,
                 flexDirection: "row",
                 gap: 2,
@@ -127,23 +153,34 @@ export default function ProductCard({
             />
 
             <Text style={{ color: "white", alignSelf: "flex-end" }}>
-              {data.images.length}
+              {data?.images.length}
             </Text>
           </View>
         ) : null}
         {data?.name ? (
-          <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
+          <Text style={[styles.headerTitle, styles.bold, styles.smallMTop]}>
             {`${data?.name}`.length > 32
               ? `${data?.name}`.slice(0, 32)
               : `${data?.name}`}
           </Text>
         ) : null}
-        <View style={[styles.row, { flexWrap: "wrap" }]}>
+        <View
+          style={[
+            styles.row,
+            {
+              flexWrap: "wrap",
+              width: "100%",
+              gap: 12,
+              paddingHorizontal: 4,
+            },
+          ]}
+        >
           {data?.brand ? (
             <Text
               style={[
-                styles.smallText,
+                styles.paragraph,
                 styles.bordeRSmall,
+                styles.paddingSm,
 
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
               ]}
@@ -154,9 +191,9 @@ export default function ProductCard({
           {data?.model ? (
             <Text
               style={[
-                styles.smallText,
+                styles.paragraph,
                 styles.bordeRSmall,
-
+                styles.paddingSm,
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
               ]}
             >
@@ -166,9 +203,9 @@ export default function ProductCard({
           {data?.year ? (
             <Text
               style={[
-                styles.smallText,
+                styles.paragraph,
                 styles.bordeRSmall,
-
+                styles.paddingSm,
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
               ]}
             >
@@ -178,9 +215,9 @@ export default function ProductCard({
           {data?.more ? (
             <Text
               style={[
-                styles.smallText,
+                styles.paragraph,
                 styles.bordeRSmall,
-
+                styles.paddingSm,
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
               ]}
             >
@@ -190,8 +227,15 @@ export default function ProductCard({
         </View>
 
         {data?.price ? (
-          <Text style={[styles.smallMVertical, styles.greenT, styles.bold]}>
-            {`${data?.price} ${data?.currency}`}
+          <Text
+            style={[
+              styles.smallMVertical,
+              styles.greenT,
+              styles.bold,
+              styles.bigText,
+            ]}
+          >
+            {`${formatNumber(data?.price)} ${data?.currency}`}
           </Text>
         ) : null}
 
@@ -208,19 +252,36 @@ export default function ProductCard({
           >
             <Ionicons
               name="location"
-              size={13}
+              size={20}
               style={{ alignSelf: "flex-end" }}
               color={GlobalStyles.Primary_Grey2}
             />
-            <Text style={{ alignSelf: "flex-end" }}>
-              {`${seller?.directions}`.length > 12
-                ? `${seller?.directions}`.slice(0, 12)
-                : `${seller?.directions}`}
+            <Text style={[{ alignSelf: "flex-end" }, styles.paragraph]}>
+              {seller?.directions}
             </Text>
           </View>
         ) : null}
+        <View
+          style={[
+            {
+              backgroundColor: GlobalStyles.Primary_Yellow,
+              width: "90%",
+              alignSelf: "center",
+              borderRadius: 4,
+            },
+            styles.smallMVertical,
+            styles.paddingLg,
+          ]}
+        >
+          <Button
+            onPress={() => {
+              navigator.navigate("Product", { productId: data?.id });
+            }}
+            content={<Text style={{ alignSelf: "center" }}>View Details</Text>}
+          />
+        </View>
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -241,7 +302,6 @@ const styles = StyleSheet.create({
   PageHeaderTitle: {
     fontFamily: "Roboto-Extrabold",
     fontSize: 25,
-    textAlign: "center",
   },
   Views: {
     marginVertical: 12,
@@ -291,7 +351,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
 
-    justifyContent: "space-between",
     paddingHorizontal: 4,
   },
   column: {
@@ -371,6 +430,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-semibold",
     fontSize: 18,
     paddingBottom: 4,
+    fontWeight:700,
   },
   sectionTitle: {
     fontFamily: "Roboto-Extrabold",
@@ -381,7 +441,8 @@ const styles = StyleSheet.create({
 
   bigText: {
     fontSize: 22,
-    fontFamily: "Roboto-Light",
+    fontWeight: 800,
+    fontFamily: "Roboto-bold",
     marginRight: 20,
   },
   paragraph: {
@@ -414,5 +475,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
 
     transform: [{ scale: 0.97 }],
+  },
+  paddingLg: {
+    padding: 6,
   },
 });

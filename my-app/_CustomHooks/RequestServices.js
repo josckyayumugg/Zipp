@@ -213,3 +213,45 @@ export function useEditResponse({ id }) {
     },
   });
 }
+export function useCountProducts(id) {
+  return useQuery({
+    queryKey: ["productsNumber", id],
+    queryFn: async () => {
+      console.log("Fetching product count for profileId:", id);
+
+      const { count, error } = await supabase
+        .from("Products")
+        .select("id", { count: "exact" })
+        .eq("profileId", id);
+
+      if (error) {
+        throw new Error(error.message || "Failed to count products");
+      }
+
+      return count ?? 0;
+    },
+    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+    enabled: !!id,
+  });
+}
+export function useCountMyRequests(id) {
+  return useQuery({
+    queryKey: ["MyRequestsNumber", id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("Requests")
+        .select("id", { count: "exact", head: true })
+        .eq("createdBy", id);
+
+      if (error) {
+        // Log all error properties explicitly
+
+        throw new Error(error.message);
+      }
+
+      return count ?? 0;
+    },
+    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+    enabled: !!id,
+  });
+}

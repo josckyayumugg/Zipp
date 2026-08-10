@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
-import { useGetSingleProduct } from "../_CustomHooks/ProductServices";
+
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import LoadingPaging from "../Components/LoadingPaging";
 import { Pressable } from "react-native";
@@ -18,31 +18,42 @@ import { openWebsite, toWhatsAppDigits } from "../Helpers";
 import { getInitials, formatPhone } from "../Helpers";
 import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
-import Button from "../Components/Button";
+import { useGetSingleResponse } from "../_CustomHooks/ResponseServices";
+import ErrorPage from "../Components/ErrorPage";
 
-export default function ProductContacts({ route, navigation }) {
+export default function ContactsReply({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
-  const productId = route.params?.productId;
-
+  console.log("ReplyContacts params:", route?.params);
   const {
-    data: product,
+    data: reply,
     isPending,
     isError,
     error,
-  } = useGetSingleProduct(productId);
+  } = useGetSingleResponse(route.params?.responseId);
+
   const {
     data: seller,
     isPending: isPendingSeller,
     isError: isErrorSeller,
     error: errorSeller,
-  } = useGetCurrentProfile(product?.profileId);
+  } = useGetCurrentProfile(reply?.createdBy);
 
   const {
     data: sellerProductsNumber,
-    isPendingProducts,
-    isErrorProducts,
-    errorProducts,
+    isPendingReply,
+    isErrorPNumber,
+    errorPNumber,
   } = useCountProducts(seller?.profileId);
+
+  if (isError) {
+    return <ErrorPage message={error?.message} />;
+  }
+  if (isErrorPNumber) {
+    return <ErrorPage message={errorPNumber?.message} />;
+  }
+  if (isErrorSeller) {
+    return <ErrorPage message={errorSeller?.message} />;
+  }
 
   const handleEmail = () => {
     Linking.openURL(`mailto:${seller?.email}`).catch(() => {
@@ -59,9 +70,6 @@ export default function ProductContacts({ route, navigation }) {
     });
   };
 
-  if (isPending || isPendingSeller || isPendingProducts) {
-    <LoadingPaging />;
-  }
   const initials = getInitials(seller?.businessNames);
   const year = getYear(seller?.createdAt); // "2026"
   const formattedPhoneNumber = formatPhone(seller?.phone);
@@ -99,8 +107,8 @@ export default function ProductContacts({ route, navigation }) {
         </View>
         <View style={styles.productBannerTextContainer}>
           <Text style={styles.productBannerLabel}>Inquiring about</Text>
-          <Text style={styles.productBannerTitle}>{product?.name}</Text>
-          <Text style={styles.productBannerPrice}>{product?.price}</Text>
+          <Text style={styles.productBannerTitle}>{reply?.name}</Text>
+          <Text style={styles.productBannerPrice}>{reply?.price}</Text>
         </View>
       </View>
 
@@ -248,39 +256,24 @@ export default function ProductContacts({ route, navigation }) {
 
       {/* Quick Action Buttons */}
       <View style={styles.quickActionsContainer}>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              { backgroundColor: GlobalStyles.Primary_Green },
-            ]}
-            onPress={handleCall}
-          >
-            <Ionicons name="call-outline" size={20} color="white" />
-            <Text style={styles.actionButtonText}>Call Seller</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.actionButton,
+            { backgroundColor: GlobalStyles.Primary_Green },
+          ]}
+          onPress={handleCall}
+        >
+          <Ionicons name="call-outline" size={20} color="white" />
+          <Text style={styles.actionButtonText}>Call Seller</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#25D366" }]}
-            onPress={handleWhatsApp}
-          >
-            <Ionicons name="logo-whatsapp" size={20} color="white" />
-            <Text style={styles.actionButtonText}>WhatsApp</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ justifyContent: "center", marginHorizontal: "auto" }}>
-          <View>
-            <Text>Usanze umucuruzi ntayo afite kanda hano</Text>
-            <Text>If the product is sold out  report it here</Text>
-          </View>
-          <Button
-            content={
-              <Text style={{ color: "red", textDecoration: "underline" }}>
-                "report no product"
-              </Text>
-            }
-          />
-        </View>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: "#25D366" }]}
+          onPress={handleWhatsApp}
+        >
+          <Ionicons name="logo-whatsapp" size={20} color="white" />
+          <Text style={styles.actionButtonText}>WhatsApp</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -469,7 +462,7 @@ const styles = StyleSheet.create({
     color: "black",
   },
   quickActionsContainer: {
-    flexDirection: "column",
+    flexDirection: "row",
     gap: 12,
     marginTop: 8,
   },

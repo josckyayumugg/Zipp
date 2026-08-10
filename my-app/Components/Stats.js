@@ -4,22 +4,32 @@ import { GlobalStyles } from "../Constants";
 
 export default function Stats({ yourProducts, today, requests }) {
   return (
-    <View style={styles.row}>
-      <View style={styles.column}>
-        <Text style={[styles.bigText, styles.bold, styles.yellow]}>
+    <View style={[styles.row, { paddingHorizontal: 30 }]}>
+      <View style={[styles.column]}>
+        <Text
+          style={[
+            styles.bigText,
+            styles.bold,
+            styles.yellow,
+            { alignSelf: "center" },
+          ]}
+        >
           {yourProducts}
         </Text>
         <Text style={styles.paragraph}>Your products </Text>
       </View>
       <View style={styles.column}>
-        <Text style={[styles.bigText, styles.bold, styles.yellow]}>
+        <Text
+          style={[
+            styles.bigText,
+            styles.bold,
+            styles.yellow,
+            { alignSelf: "center" },
+          ]}
+        >
           {requests}
         </Text>
         <Text style={styles.paragraph}>Requests</Text>
-      </View>
-      <View style={styles.column}>
-        <Text style={[styles.bigText, styles.bold, styles.yellow]}>{today}</Text>
-        <Text style={styles.paragraph}>today</Text>
       </View>
     </View>
   );

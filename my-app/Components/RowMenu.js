@@ -6,6 +6,7 @@ import { View, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ConfirmDeleteProduct from "./confirmDeleteProduct";
 import { useDeleteProduct } from "../_CustomHooks/ProductServices";
+import { queryClient } from "../App";
 import Toast from "react-native-toast-message";
 
 export default function RowMenu({ styles, productId, item }) {
@@ -24,6 +25,7 @@ export default function RowMenu({ styles, productId, item }) {
           position: "top", // or "bottom"
           visibilityTime: 3000,
         });
+        queryClient.invalidateQueries("getMyAllProducts");
       },
     });
   }
@@ -31,7 +33,10 @@ export default function RowMenu({ styles, productId, item }) {
     <View style={[{ flexDirection: "row", gap: 4, width: "100%" }]}>
       <Button
         onPress={() => {
-          navigation.navigate("Upload", { productId: productId });
+          navigation.navigate("Tabs", {
+            screen: "Upload",
+            params: { productId: productId },
+          });
         }}
         styles={[{ borderWidth: 1, height: 25 }, styled.bordeR]}
         content={<Text style={styled.paragraph}>Edit</Text>}

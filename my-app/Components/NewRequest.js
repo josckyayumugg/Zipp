@@ -57,7 +57,7 @@ export default function NewRequestModal({
 
   const { isPending, isError, error, mutate } = useCreateRequest();
   function submitHandler(data) {
-    console.log({ Data1: data });
+    
     mutate(
       { ...data, createdBy: user?.id },
       {
@@ -372,7 +372,7 @@ export default function NewRequestModal({
                     flexDirection: "row",
                   }}
                 >
-                  <View style={{ width: "100%" }}>
+                  <View style={{ width: "70%" }}>
                     <Text style={[styles.smallT]}>Budget(optional) </Text>
 
                     <Controller
@@ -398,7 +398,7 @@ export default function NewRequestModal({
                       name="budget"
                     />
                   </View>
-                  <View style={{ alignSelf: "flex-end",height:50,width:50 }}>
+                  <View style={{ alignSelf: "flex-end",height:50,width:90 }}>
                     <Controller
                       control={control}
                       name="currency"

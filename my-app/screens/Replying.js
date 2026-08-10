@@ -5,6 +5,7 @@ import { useCreateResponse } from "../_CustomHooks/ResponseServices";
 import { queryClient } from "../App";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
+import { useGetReqResponse } from "../_CustomHooks/ResponseServices";
 
 import {
   View,
@@ -22,19 +23,45 @@ import AppDropdown from "../Components/Dropdown";
 import Button from "../Components/Button";
 import { containsContactInfo } from "../Helpers";
 // import Picked from "../Components/Picker";
+import { useGetReqResponses } from "../_CustomHooks/ResponseServices";
+import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import LoadingPaging from "../Components/LoadingPaging";
 
 export default function RespondToRequest() {
   const route = useRoute();
   const navigation = useNavigation();
-
-  const { request, user } = route?.params;
-
+  const [isConditionOpen, setIsConditionOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(false);
   const [currencyItems, setCurrencyItems] = useState([
     { label: "RWF 🇷🇼", value: "RWF" },
     { label: "USD 🇺🇸", value: "USD" },
     { label: "EUR 🇪🇺", value: "EUR" },
     { label: "GBP 🇬🇧", value: "GBP" },
   ]);
+
+  const { request } = route?.params;
+
+  const {
+    data: user,
+    isPending: isPendingAuth,
+    isError: isErrorAuth,
+    error: errorAuth,
+  } = useGetCurrentUser();
+  const {
+    data: Responses,
+    isError: isErrorResponse,
+    isPending: isPendingResponses,
+    error: errorResponse,
+  } = useGetReqResponses();
+
+  const {
+    data: userData,
+    isError: isErrorUser,
+    error: errorUser,
+    isPending: isPendingUser,
+  } = useGetCurrentProfile(user?.id);
 
   const {
     control,
@@ -49,13 +76,27 @@ export default function RespondToRequest() {
       condition: "",
       note: "",
       currency: "RWF",
+      location: "",
+      businessNames: "",
     },
   });
+
+  const [conditionItem, setIsConditionItem] = useState([
+    { label: "New(nshyashya)", value: "new" },
+    { label: "used(okaziyo)", value: "used" },
+    { label: "refurbished(yasubiwemo)", value: "refurbished" },
+  ]);
 
   const { mutate, isError, error, isPending } = useCreateResponse(request.id);
   function submitOfferHandler(data) {
     mutate(
-      { ...data, createdBy: user?.id, request: request.id },
+      {
+        ...data,
+        createdBy: user?.id,
+        request: request.id,
+        location: userData?.directions,
+        businessNames: userData?.businessNames,
+      },
       {
         onSuccess: () => {
           Toast.show({
@@ -71,6 +112,8 @@ export default function RespondToRequest() {
             condition: "",
             note: "",
             currency: "RWF",
+            location: "",
+            businessNames: "",
           });
 
           queryClient.invalidateQueries({
@@ -93,6 +136,29 @@ export default function RespondToRequest() {
     );
   }
   /////creaeting the response//
+  if (isErrorAuth) {
+    return (
+      <View style={styles.centered}>
+        <Text>Couldn't verify your account. Please try again.</Text>
+      </View>
+    );
+  }
+
+  if (isErrorResponse) {
+    return (
+      <View style={styles.centered}>
+        <Text>Couldn't load responses. Please try again.</Text>
+      </View>
+    );
+  }
+
+  if (isErrorUser) {
+    return (
+      <View style={styles.centered}>
+        <Text>Couldn't load your profile. Please try again.</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -112,7 +178,7 @@ export default function RespondToRequest() {
         <View style={{ marginTop: 16, gap: 16 }}>
           {/* Form Row 1: Price Entry Input Field */}
           <View>
-            <Text style={styles.fieldLabelTitle}>Your Price Offer (Rwf)</Text>
+            <Text style={styles.fieldLabelTitle}>Your Price Offer</Text>
             <View
               style={{
                 flexDirection: "column",
@@ -125,12 +191,12 @@ export default function RespondToRequest() {
                 <Controller
                   control={control}
                   rules={{
-                    maxLength: 50,
+                    maxLength: 30,
                     required: "Price is required",
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <InputText
-                      placeholder={"350 000 RWf"}
+                      placeholder={"500 000"}
                       onBlur={onBlur}
                       maxLength={50}
                       placeholderTextColor={GlobalStyles.Primary_Grey}
@@ -178,6 +244,11 @@ export default function RespondToRequest() {
                     <AppDropdown
                       value={value}
                       items={currencyItems}
+                      isCurrencyOpen={isCurrencyOpen}
+                      open={openDropdown === "currency"}
+                      setOpen={(isOpen) =>
+                        setOpenDropdown(isOpen ? "currency" : null)
+                      }
                       setItems={setCurrencyItems}
                       setValue={(callback) => {
                         const newValue =
@@ -200,31 +271,28 @@ export default function RespondToRequest() {
 
             <Controller
               control={control}
-              rules={{
-                maxLength: 100,
-                required: "Condition is required or Short ",
-                validate: (value) =>
-                  !containsContactInfo(value) ||
-                  "Do not include phone numbers, email addresses, social media accounts, or links.",
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <InputText
-                  placeholder={"Ubushyashya,Igihugu,uruganda,icyuma ikozwemo"}
-                  onBlur={onBlur}
-                  placeholderTextColor={GlobalStyles.Primary_Grey}
+              name="condition"
+              render={({ field: { onChange, value } }) => (
+                <AppDropdown
                   value={value}
-                  onChange={onChange}
-                  maxLength={100}
-                  styled={[
-                    {
-                      borderColor: GlobalStyles.Primary_Grey,
-                      borderWidth: 1,
-                    },
-                    styles.paddingLg,
-                  ]}
+                  isConditionOpen={isConditionOpen}
+                  open={openDropdown === "condition"}
+                  setOpen={(isOpen) =>
+                    setOpenDropdown(isOpen ? "condition" : null)
+                  }
+                  placeholder="select condition"
+                  items={conditionItem}
+                  setItems={setIsConditionItem}
+                  setValue={(callback) => {
+                    const newValue =
+                      typeof callback === "function"
+                        ? callback(value)
+                        : callback;
+
+                    onChange(newValue);
+                  }}
                 />
               )}
-              name="condition"
             />
             {errors.condition && (
               <Text style={{ color: "red", marginBottom: 10 }}>
@@ -242,6 +310,7 @@ export default function RespondToRequest() {
             <Controller
               control={control}
               rules={{
+                required: "Notes are required",
                 maxLength: 100,
                 validate: (value) =>
                   !containsContactInfo(value) ||
@@ -299,6 +368,7 @@ export default function RespondToRequest() {
           <Button
             onPress={handleSubmit(submitOfferHandler)}
             content="Send Offer"
+            disable={isPending}
             styles={[
               styles.paddingLg,
               styles.bordeR,
@@ -345,6 +415,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
     marginBottom: 6,
+  },
+  centered: {
+    height: "100%",
+    width: "100%",
+    flex: 1,
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
   },
   customInputField: {
     borderColor: GlobalStyles.Primary_Grey,

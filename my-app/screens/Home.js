@@ -21,319 +21,173 @@ import Button from "../Components/Button";
 import ProductCard from "../Components/ProductCard";
 import SeeAll from "../Components/Seeall";
 import { ActivityIndicator } from "react-native";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
-export default function Home() {
+import StoryItem from "../Components/FullCard";
+import FullWidthStoryCard from "../Components/FullCard";
+import ProductCardHome from "../Components/ProductCardHom";
+import Categories from "../Components/Categories";
+import CreateDealModal from "../Components/CreateDealModal";
+import {
+  useGetAllNewProducts,
+  useGetAllProductDeals,
+  useGetNewProductsHome,
+} from "../_CustomHooks/ProductServices";
+
+import FullWidthNoData from "../Components/FullCardNoData";
+import LoadingPaging from "../Components/LoadingPaging";
+
+export default function Home({ route }) {
   const Navigation = useNavigation();
+  const isCreateDeal = route.params?.isCreateDealOpen;
+  const isEditing = route.params?.isCreateDealOpen;
+  const EditingId = route.params?.dealId;
+
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const Data = [
-    {
-      id: 1,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-    {
-      id: 2,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-    {
-      id: 3,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-    {
-      id: 4,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-    {
-      id: 5,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-    {
-      id: 6,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-    {
-      id: 7,
-      carBrand: "Toyota",
-      productName: "Toyota Hilux front Bumper",
-      carModal: "Hilux",
-      price: "300 000 Rwf",
-      location: "kigali Rwanda",
-      carYear: "2019",
-      productImagesLength: "5",
-      productStatus: "used",
-    },
-  ];
+  const [isCreateDealOpen, setIsCreateDealOpen] = useState(false);
+  const flatListRef = useRef(null);
+  const [isCurrentDeal, setIsCurrentDeal] = useState(0);
+
+  useEffect(() => {
+    setIsCreateDealOpen(isCreateDeal);
+  }, [isCreateDeal]);
+
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({
+      offset: 0,
+      animated: true,
+    });
+  };
+
+  //about the single deals card
+
+  const {
+    data,
+    isLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+    error,
+    isPending: isPendingDeals,
+  } = useGetAllProductDeals();
+
+  const dataDeals = data ? data?.pages.flatMap((page) => page) : [];
+
+  const handleNext = () => {
+    if (dataDeals.length === 0) return;
+
+    if (
+      isCurrentDeal >= dataDeals.length - 2 &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+
+    setIsCurrentDeal((prev) => (prev === dataDeals.length - 1 ? 0 : prev + 1));
+  };
+
+  const handlePrev = () => {
+    if (dataDeals.length === 0) return;
+    setIsCurrentDeal((prev) => (prev === 0 ? dataDeals.length - 1 : prev - 1));
+  };
+  //////////////////////////////////////////////////////////////////
+  //about get new product for home page
+
+  const {
+    data: dataHome,
+    isLoading: isLoadingHomeProducts,
+    hasNextPage: hasNextPageHomeProducts,
+    isPending: pendingHomeProducts,
+    fetchNextPage: fetchNextPageHomeProducts,
+    isFetchingNextPage: isFetchingNextPageHomeProducts,
+    error: errorHomeProducts,
+  } = useGetNewProductsHome();
+  const homeData = dataHome ? dataHome?.pages.flatMap((page) => page) : [];
+  const activeProduct = dataDeals?.[isCurrentDeal];
+  //single deals today productsconst
+  if (pendingHomeProducts) return <LoadingPaging />;
+
   return (
-    <ScrollView style={[{ padding: 6 }, styles.container]}>
-      <View
-        style={[styles.blackBg, { paddingVertical: 8, paddingHorizontal: 8 }]}
-      >
-        <View
+    <View style={[styles.container]}>
+      <FlatList
+        style={{ position: "relative" }}
+        data={homeData}
+        ref={flatListRef}
+        keyExtractor={(item) => item.id.toString()}
+        // columnWrapperStyle={{ marginBottom: 10 }}
+        onEndReached={() => {
+          if (!isFetchingNextPageHomeProducts && hasNextPageHomeProducts) {
+            fetchNextPageHomeProducts();
+          }
+        }}
+        contentContainerStyle={{ padding: 2 }}
+        renderItem={({ item }) => (
+          <ProductCardHome
+            isCreateDealOpen={isCreateDealOpen}
+            setIsCreateDealOpen={isCreateDealOpen}
+            Stylesy={{
+              width: "85%",
+              marginHorizontal: "auto",
+            }}
+            product={item}
+            setIsImageLoaded={setIsImageLoaded}
+            isImageLoaded={isImageLoaded}
+            // isImageLoaded={isImageLoaded}
+            // setIsImageLoaded={setIsImageLoaded}
+            isFetchingNextPageHomeProducts={isFetchingNextPageHomeProducts}
+            hasNextPageHomeProducts={hasNextPageHomeProducts}
+            fetchNextPageHomeProducts={fetchNextPageHomeProducts}
+            data={item}
+          />
+        )}
+        ListHeaderComponent={
+          <>
+            {isCreateDealOpen && (
+              <CreateDealModal
+                visible={isCreateDealOpen}
+                isEditing={isEditing}
+                EditingId={EditingId}
+                setIsVisible={setIsCreateDealOpen}
+              />
+            )}
+            {dataDeals.length <= 0 ? (
+              <FullWidthNoData
+                isPending={isPendingDeals}
+                setIsVisible={setIsCreateDealOpen}
+              />
+            ) : (
+              <FullWidthStoryCard
+                setIsCreateDealOpen={setIsCreateDealOpen}
+                item={activeProduct}
+                dataLength={dataDeals?.length}
+                handleNext={handleNext}
+                totalItems={dataDeals.length}
+                currentIndex={isCurrentDeal}
+                handlePrev={handlePrev}
+              />
+            )}
+            <Categories />
+          </>
+        }
+      />
+      <View>
+        <Pressable
+          onPress={scrollToTop}
           style={[
-            styles.row,
-            styles.bordeR,
-            styles.smallMVertical,
             {
-              borderColor: GlobalStyles.Primary_Grey,
-              borderWidth: 1,
-              backgroundColor: "white",
+              backgroundColor: "black",
+              position: "absolute",
+              bottom: 4,
+              left: 7,
+              borderRadius: 50,
             },
           ]}
         >
-          <Ionicons name="search" size={13} />
-
-          <InputText
-            placeholder={"Search parts,brands,models"}
-            styles={[styles.bordeR, styles.paddingSm, { width: "100%" }]}
-          />
-
-          <Button content={"Search"} />
-        </View>
+          <Ionicons name={"arrow-up"} size={30} color={"white"} />
+        </Pressable>
       </View>
-      <SpecialOffer />
-      <View style={{ marginVertical: 4 }}>
-        <View style={styles.row}>
-          <Text style={styles.headerTitle}>Categories</Text>
-          <SeeAll isImageLoaded={isImageLoaded} />
-        </View>
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-          <Category
-            onPress
-            name="Engine"
-            icon="cog-outline"
-            searchQuery={[
-              "engine",
-              "moteri",
-              "moteli",
-              "moteur",
-              "motor",
-              "imashini",
-              "imoteri",
-            ]}
-          />
-          <Category
-            name="brakes(feri)"
-            icon="disc-outline"
-            searchQuery={[
-              "feri",
-              "feli",
-              "fer",
-              "brakes",
-              "fire",
-              "file",
-              "fil",
-            ]}
-          />
-          <Category
-            name="Lighting"
-            icon="bulb"
-            searchQuery={["amatara", "ampule", "ampoule", "itara"]}
-          />
-          <Category
-            name="suspension"
-            icon="build-outline"
-            searchQuery={["morotiseri"]}
-          />
-          <Category
-            name="Electrical"
-            icon="logo-electron"
-            searchQuery={["electricity"]}
-          />
-          <Category name="Others" icon="car-outline" searchQuery={"Others"} />
-        </ScrollView>
-        <View style={[styles.row, styles.largeMTop]}>
-          <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
-            <Ionicons name="trending-up-outline" size={18} /> Trending
-          </Text>
-          <SeeAll isImageLoaded={isImageLoaded} searchQuery={"Recents"} />
-        </View>
-
-        <AutoMarqueeList
-          data={Data}
-          itemWidth={150}
-          itemHeight={290}
-          renderItem={({ item, isActive }) => (
-            <ProductCard
-              Data={item}
-              Stylesy={{
-                height: 230,
-                width: 140,
-                marginHorizontal: 4,
-              }}
-              isActive={isActive}
-              isImageLoaded={isImageLoaded}
-              setIsImageLoaded={setIsImageLoaded}
-            />
-          )}
-        />
-        <View>
-          <View style={[styles.row, styles.largeMTop]}>
-            <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
-              <Ionicons name="trending-up-outline" size={18} /> New Products
-            </Text>
-            <SeeAll
-              isImageLoaded={isImageLoaded}
-              searchQuery={"New Products"}
-            />
-          </View>
-
-          <AutoMarqueeList
-            data={Data}
-            itemWidth={150}
-            itemHeight={290}
-            renderItem={({ item, isActive }) => (
-              <ProductCard
-                Data={item}
-                Stylesy={{
-                  height: 230,
-                  width: 140,
-                  marginHorizontal: 4,
-                }}
-                isActive={isActive}
-                isImageLoaded={isImageLoaded}
-                setIsImageLoaded={setIsImageLoaded}
-              />
-            )}
-          />
-        </View>
-        <View>
-          <View style={[styles.row, styles.largeMTop]}>
-            <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
-              <Ionicons name="disc-outline" size={18} />
-              Brakes(Feri)
-            </Text>
-            <SeeAll isImageLoaded={isImageLoaded} searchQuery={"brakes"} />
-          </View>
-          <AutoMarqueeList
-            data={Data}
-            itemWidth={150}
-            itemHeight={290}
-            renderItem={({ item, isActive }) => (
-              <ProductCard
-                Data={item}
-                Stylesy={{
-                  height: 230,
-                  width: 140,
-                  marginHorizontal: 4,
-                }}
-                isActive={isActive}
-                isImageLoaded={isImageLoaded}
-                setIsImageLoaded={setIsImageLoaded}
-              />
-            )}
-          />
-        </View>
-        <View>
-          <View style={[styles.row, styles.largeMTop]}>
-            <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
-              <Ionicons name="bulb-outline" size={18} />
-              Light
-            </Text>
-            <SeeAll isImageLoaded={isImageLoaded} searchQuery={"light"} />
-          </View>
-          <AutoMarqueeList
-            data={Data}
-            itemWidth={150}
-            itemHeight={290}
-            renderItem={({ item, isActive }) => (
-              <ProductCard
-                Data={item}
-                Stylesy={{
-                  height: 230,
-                  width: 140,
-                  marginHorizontal: 4,
-                }}
-                isActive={isActive}
-                isImageLoaded={isImageLoaded}
-                setIsImageLoaded={setIsImageLoaded}
-              />
-            )}
-          />
-        </View>
-        <View>
-          <View style={[styles.row, styles.largeMTop]}>
-            <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
-              <Ionicons name="car" size={18} />
-              Toyota
-            </Text>
-            <SeeAll isImageLoaded={isImageLoaded} searchQuery={"light"} />
-          </View>
-          <AutoMarqueeList
-            data={Data}
-            itemWidth={150}
-            itemHeight={290}
-            renderItem={({ item, isActive }) => (
-              <ProductCard
-                Data={item}
-                Stylesy={{
-                  height: 230,
-                  width: 140,
-                  marginHorizontal: 4,
-                }}
-                isActive={isActive}
-                isImageLoaded={isImageLoaded}
-                setIsImageLoaded={setIsImageLoaded}
-              />
-            )}
-          />
-        </View>
-      </View>
-      <View
-        style={[
-          styles.bordeR,
-          styles.padding,
-          { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
-        ]}
-      >
-        <Text style={[styles.headerTitle, { flexDirection: "row" }]}>
-          <Ionicons name={"bar-chart-outline"} size={18} />
-          Statics
-        </Text>
-        <Stats yourProducts={0} requests={0} today={0} />
-      </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -378,6 +232,9 @@ const styles = StyleSheet.create({
   label: {
     borderWidth: 2,
   },
+  italic: {
+    fontFamily: "Roboto-italic",
+  },
   Roboto: {
     fontFamily: "Roboto-Light",
     fontSize: 16,
@@ -403,7 +260,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-
     justifyContent: "space-between",
   },
   column: {
@@ -485,7 +341,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: "Roboto-semibold",
     fontSize: 24,
-    paddingBottom: 4,
   },
   sectionTitle: {
     fontFamily: "Roboto-Extrabold",

@@ -11,12 +11,19 @@ import ProfileOverView from "../Components/ProfileOverView";
 import ProfileSelling from "../Components/ProfileSelling";
 import ProfileBuying from "../Components/ProfileBuying";
 import LoadingPaging from "../Components/LoadingPaging";
-import { useGetAllMyProducts } from "../_CustomHooks/ProductServices";
+import {
+  useCountProducts,
+  useGetAllMyProducts,
+} from "../_CustomHooks/ProductServices";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 
 import { getInitials } from "../Helpers";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
-import { useGetAllMyRequests } from "../_CustomHooks/RequestServices";
+import {
+  useCountMyRequests,
+  useGetAllMyRequests,
+} from "../_CustomHooks/RequestServices";
+import { useCountMyResponses } from "../_CustomHooks/ResponseServices";
 
 export default function Profile() {
   const [isFilter, setIsFilter] = useState("overview");
@@ -31,13 +38,13 @@ export default function Profile() {
     isError: isErrorProducts,
     error: errorProducts,
     data: dataProducts,
-  } = useGetAllMyProducts(userId);
+  } = useCountProducts(userId);
   const {
     isPending: isPendingRequests,
     isError: isErrorRequests,
     error: errorRequests,
     data: dataRequests,
-  } = useGetAllMyRequests(userId);
+  } = useCountMyRequests(userId);
   const {
     isPendingProfile,
     isErrorProfile,
@@ -45,7 +52,7 @@ export default function Profile() {
     data: dataProfile,
   } = useGetCurrentProfile(userId);
   const initials = getInitials(dataProfile?.sellerNames);
-  
+
   //getting the total user products//
 
   if (isPending || isPendingProducts || isPendingProfile) {
@@ -112,8 +119,8 @@ export default function Profile() {
             { paddingHorizontal: 10 },
           ]}
         >
-          <ProfileCard data={dataProducts?.length} label={"Products"} />
-          <ProfileCard data={dataRequests?.length} label={"Requests"} />
+          <ProfileCard data={dataProducts} label={"Products"} />
+          <ProfileCard data={dataRequests} label={"Requests"} />
           <ProfileCard
             data={data?.rating || 8}
             label={
@@ -147,17 +154,17 @@ export default function Profile() {
           }}
         />
         <Button
-          content={"Selling"}
+          content={"Selling&Buying"}
           styles={[
-            isFilter === "selling" && { backgroundColor: "white" },
+            isFilter === "Trading" && { backgroundColor: "white" },
             { height: 35 },
             styles.bordeR,
           ]}
           onPress={() => {
-            setIsFilter("selling");
+            setIsFilter("Trading");
           }}
         />
-        <Button
+        {/* <Button
           content={"Buying"}
           styles={[
             isFilter === "buying" && { backgroundColor: "white" },
@@ -167,11 +174,15 @@ export default function Profile() {
           onPress={() => {
             setIsFilter("buying");
           }}
-        />
+        /> */}
       </View>
       {isFilter === "overview" && <ProfileOverView profileId={userId} />}
-      {isFilter === "selling" && <ProfileSelling />}
-      {isFilter === "buying" && <ProfileBuying />}
+      {isFilter === "Trading" && (
+        <ProfileSelling
+          profileId={userId}
+          creationYear={dataProfile.createdAt}
+        />
+      )}
     </ScrollView>
   );
 }

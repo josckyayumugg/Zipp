@@ -10,7 +10,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
-import { useGetSingleProduct } from "../_CustomHooks/ProductServices";
+import {
+  useGetSingleProduct,
+  useGetSingleProductDeal,
+} from "../_CustomHooks/ProductServices";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import LoadingPaging from "../Components/LoadingPaging";
 import { Pressable } from "react-native";
@@ -18,30 +21,29 @@ import { openWebsite, toWhatsAppDigits } from "../Helpers";
 import { getInitials, formatPhone } from "../Helpers";
 import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
-import Button from "../Components/Button";
 
-export default function ProductContacts({ route, navigation }) {
+export default function DealContacts({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
-  const productId = route.params?.productId;
-
+  console.log("DealContacts params:", route?.params);
   const {
-    data: product,
+    data: deal,
     isPending,
     isError,
     error,
-  } = useGetSingleProduct(productId);
+  } = useGetSingleProductDeal(route.params?.dealId);
+
   const {
     data: seller,
     isPending: isPendingSeller,
     isError: isErrorSeller,
     error: errorSeller,
-  } = useGetCurrentProfile(product?.profileId);
+  } = useGetCurrentProfile(deal?.createdBy);
 
   const {
-    data: sellerProductsNumber,
-    isPendingProducts,
-    isErrorProducts,
-    errorProducts,
+    data: sellerDealsNumber,
+    isPendingDeal,
+    isErrorDeal,
+    errorDeal,
   } = useCountProducts(seller?.profileId);
 
   const handleEmail = () => {
@@ -59,9 +61,6 @@ export default function ProductContacts({ route, navigation }) {
     });
   };
 
-  if (isPending || isPendingSeller || isPendingProducts) {
-    <LoadingPaging />;
-  }
   const initials = getInitials(seller?.businessNames);
   const year = getYear(seller?.createdAt); // "2026"
   const formattedPhoneNumber = formatPhone(seller?.phone);
@@ -99,8 +98,8 @@ export default function ProductContacts({ route, navigation }) {
         </View>
         <View style={styles.productBannerTextContainer}>
           <Text style={styles.productBannerLabel}>Inquiring about</Text>
-          <Text style={styles.productBannerTitle}>{product?.name}</Text>
-          <Text style={styles.productBannerPrice}>{product?.price}</Text>
+          <Text style={styles.productBannerTitle}>{deal?.name}</Text>
+          <Text style={styles.productBannerPrice}>{deal?.price}</Text>
         </View>
       </View>
 
@@ -129,7 +128,7 @@ export default function ProductContacts({ route, navigation }) {
 
         <View style={styles.sellerStatsRow}>
           <View style={styles.statCol}>
-            <Text style={styles.statVal}>{sellerProductsNumber}</Text>
+            <Text style={styles.statVal}>{sellerDealsNumber}</Text>
             <Text style={styles.statLbl}>Listings</Text>
           </View>
           <View style={styles.statColDivider} />
@@ -142,7 +141,7 @@ export default function ProductContacts({ route, navigation }) {
 
       {/* Product Location Card */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Product Location & Address</Text>
+        <Text style={styles.sectionTitle}>Deal Location & Address</Text>
         <View style={styles.infoRow}>
           <View
             style={[
@@ -248,39 +247,24 @@ export default function ProductContacts({ route, navigation }) {
 
       {/* Quick Action Buttons */}
       <View style={styles.quickActionsContainer}>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              { backgroundColor: GlobalStyles.Primary_Green },
-            ]}
-            onPress={handleCall}
-          >
-            <Ionicons name="call-outline" size={20} color="white" />
-            <Text style={styles.actionButtonText}>Call Seller</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.actionButton,
+            { backgroundColor: GlobalStyles.Primary_Green },
+          ]}
+          onPress={handleCall}
+        >
+          <Ionicons name="call-outline" size={20} color="white" />
+          <Text style={styles.actionButtonText}>Call Seller</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#25D366" }]}
-            onPress={handleWhatsApp}
-          >
-            <Ionicons name="logo-whatsapp" size={20} color="white" />
-            <Text style={styles.actionButtonText}>WhatsApp</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ justifyContent: "center", marginHorizontal: "auto" }}>
-          <View>
-            <Text>Usanze umucuruzi ntayo afite kanda hano</Text>
-            <Text>If the product is sold out  report it here</Text>
-          </View>
-          <Button
-            content={
-              <Text style={{ color: "red", textDecoration: "underline" }}>
-                "report no product"
-              </Text>
-            }
-          />
-        </View>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: "#25D366" }]}
+          onPress={handleWhatsApp}
+        >
+          <Ionicons name="logo-whatsapp" size={20} color="white" />
+          <Text style={styles.actionButtonText}>WhatsApp</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -469,7 +453,7 @@ const styles = StyleSheet.create({
     color: "black",
   },
   quickActionsContainer: {
-    flexDirection: "column",
+    flexDirection: "row",
     gap: 12,
     marginTop: 8,
   },

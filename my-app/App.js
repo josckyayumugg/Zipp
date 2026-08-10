@@ -9,13 +9,14 @@ import TermsAndConditions from "./screens/TermsAnd";
 import PrivacyPolicy from "./screens/Privacy";
 import ChangePassword from "./screens/ChangePassword";
 import ConfigureProfile from "./screens/Configuration";
-
+import DealContacts from "./screens/ContactsDeals";
 import Toast from "react-native-toast-message";
 import Request from "./screens/Request";
 import SeeAllScreen from "./screens/SeeAllScreen";
 import SettingsPage from "./screens/Settings";
 import ReportScreen from "./screens/Report";
 import ContactUs from "./screens/ContactUs";
+import ContactsReply from "./screens/ContactsReplies";
 import {
   useQuery,
   useMutation,
@@ -48,6 +49,9 @@ import NotificationsSettings from "./screens/NotificationsSettings";
 import Login from "./screens/Login";
 import SignUp from "./screens/SignUpPage";
 import ProductContacts from "./screens/ProductContacts";
+import DealPage from "./screens/Deal";
+import ProfileRows from "./Components/ProfileRows";
+import DealsRow from "./Components/ProfileDeals";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -265,8 +269,78 @@ export default function App() {
             }}
           />
           <Stack.Screen
-            name="ProductContacts"
+            name="Deal"
+            component={DealPage}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          <Stack.Screen
+            name="DealsContacts"
+            component={DealContacts}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          <Stack.Screen
+            name="Product Contacts"
             component={ProductContacts}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          <Stack.Screen
+            name="My Products"
+            component={ProfileRows}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          <Stack.Screen
+            name="My Deals"
+            component={DealsRow}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          {/* <Stack.Screen
+            name="My Responses"
+            component={ProformaRows}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }} */}
+          {/* /> */}
+          {/* <Stack.Screen
+            name="My Requests"
+            component={RequestRows}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          /> */}
+          <Stack.Screen
+            name="Reply Contacts"
+            component={ContactsReply}
             options={{
               headerStyle: {
                 backgroundColor: GlobalStyles.Black,

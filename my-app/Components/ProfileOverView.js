@@ -8,6 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useLogout } from "../_CustomHooks/Authentication";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { openWebsite } from "../Helpers";
+import ErrorPage from "./ErrorPage";
 
 export default function ProfileOverView({ profileId }) {
   const navigation = useNavigation();
@@ -19,6 +20,10 @@ export default function ProfileOverView({ profileId }) {
     errorProfile,
     data: dataProfile,
   } = useGetCurrentProfile(profileId);
+
+  if (isError) {
+    return <ErrorPage message={errorProfile.message} />;
+  }
 
   function LogoutHandler() {
     mutate(undefined, {
@@ -129,12 +134,10 @@ export default function ProfileOverView({ profileId }) {
             elevation: 8,
 
             paddingVertical: 8,
-            borderWidth: 1,
-            borderColor: 1,
+
             flexDirection: "column",
-            gap: 4
+            gap: 4,
           },
-          styles.bordeR,
         ]}
       >
         <Button

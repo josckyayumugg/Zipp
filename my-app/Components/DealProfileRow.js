@@ -5,12 +5,59 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import RowMenu from "./RowMenu";
 import { formatDateTime } from "../Helpers";
-import { ActivityIndicator } from "react-native-web";
+import { ActivityIndicator } from "react-native";
+import ConfirmDeleteDeal from "./ConfirmDeleteDeal";
+import { useState } from "react";
+import { useDeleteProductDeal } from "../_CustomHooks/ProductServices";
+import ErrorPage from "./ErrorPage";
+import Toast from "react-native-toast-message";
+import SeeAllScreen from "../screens/SeeAllScreen";
+import { SceneStyleInterpolators } from "@react-navigation/bottom-tabs";
+import { queryClient } from "../App";
+import LoadingPaging from "./LoadingPaging";
 
-export default function ProductProfileRow({ Data }) {
+export default function DealProfileRow({ Data }) {
   const navigation = useNavigation();
+  const [isDeleteVisible, setIsDeleteVisible] = useState(false);
 
-  const creationDate = formatDateTime(Data?.createdAt);
+  const creationDate = formatDateTime(Data?.created_at);
+  const {
+    mutate: DeleteDeal,
+    isPending,
+    isError,
+    error,
+  } = useDeleteProductDeal(Data?.id);
+
+  const handleDeleteConfirm = (dealId) => {
+    DeleteDeal(dealId, {
+      onSuccess: () => {
+        Toast.show({
+          type: "success",
+          text1: "Deleted 🗑️",
+          text2: "The deal was removed successfully.",
+          position: "top",
+          visibilityTime: 3000,
+        });
+        setIsDeleteVisible(false);
+        queryClient.invalidateQueries("noFilterDeals");
+      },
+      onError: (err) => {
+        Toast.show({
+          type: "error",
+          text1: "Delete failed",
+          text2: err?.message || "Something went wrong.",
+          position: "top",
+          visibilityTime: 4000,
+        });
+      },
+    });
+  };
+  if (isPending) {
+    <LoadingPaging />;
+  }
+  if (isError) {
+    <ErrorPage message={error.message} />;
+  }
   return (
     <View
       style={[
@@ -22,42 +69,87 @@ export default function ProductProfileRow({ Data }) {
       ]}
     >
       <View style={[styles.info]}>
-        <Text style={[styles.paragraph, styles.bold]}>{Data.name}</Text>
+        <Text style={[styles.smallText, styles.bold]}>{Data?.name}</Text>
+        {/*  */}
+
         <View
           style={{
-            flexDirection: "column",
-            gap: 8,
-            alignItems: "flex-start",
-            flexWrap: "wrap",
-          }}
-        ></View>
+            flexDirection: "row",
 
-        <Text style={styles.smallT}>
-          Product reports:{Data.reports ? Data.reports : 0}
-        </Text>
+            gap: 4,
+          }}
+        >
+          <Text style={[styles.smallText, styles.bold, styles.greenT]}>
+            {Data?.price}
+          </Text>
+          <Text
+            style={[
+              styles.greenT,
+              styles.smallText,
+              styles.bold,
+              { alignSelf: "center" },
+            ]}
+          >
+            {Data?.currency}
+          </Text>
+        </View>
         <Text style={styles.smallText}>{creationDate}</Text>
       </View>
       <View
         style={{
           width: "35%",
-          flexDirection: "column",
+          flexDirection: "row",
+          gap: 8,
         }}
       >
-        {Data?.reported > 1 ? (
-          <Button
-            styles={[
-              {
-                backgroundColor: GlobalStyles.Primary_Yellow,
-                marginVertical: 8,
+        <Button
+          onPress={() => {
+            navigation.navigate("Tabs", {
+              screen: "Home",
+              params: {
+                dealId: Data?.id,
+                isCreateDealOpen: true,
+                isEditing: true,
               },
-              styles.bordeR,
-              styles.paddingSm,
-            ]}
-            content={<Text>Activate</Text>}
-          />
-        ) : null}
-        <RowMenu productId={Data.id} item={Data.name} />
+            });
+          }}
+          styles={[
+            {
+              backgroundColor: GlobalStyles.Primary_Yellow,
+              marginVertical: 8,
+            },
+            styles.bordeR,
+            styles.paddingSm,
+          ]}
+          content={<Text>Edit</Text>}
+        />
+        <Button
+          onPress={() => {
+            setIsDeleteVisible(true);
+          }}
+          styles={[
+            {
+              backgroundColor: GlobalStyles.Primary_Yellow,
+              marginVertical: 8,
+            },
+            styles.bordeR,
+            styles.paddingSm,
+          ]}
+          content={<Text>Delete</Text>}
+        />
       </View>
+      {isDeleteVisible && (
+        <ConfirmDeleteDeal
+          isDeleteVisible={isDeleteVisible}
+          setIsDeleteVisible={setIsDeleteVisible}
+          item={Data?.name}
+          dealId={Data?.id}
+          isPending={isPending}
+          onConfirm={handleDeleteConfirm}
+          isError={isError}
+          error={error}
+        />
+      )}
     </View>
   );
 }
@@ -125,7 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   smallMVertical: {
-    marginVertical: 8,
+    marginVertical: 4,
   },
   largeMTop: {
     marginTop: 50,
@@ -247,9 +339,8 @@ const styles = StyleSheet.create({
   },
 
   bigText: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Roboto-Light",
-    marginRight: 20,
   },
   paragraph: {
     fontFamily: "Roboto-Light",

@@ -4,16 +4,16 @@ import DropDownPicker from "react-native-dropdown-picker";
 
 export default function AppDropdown({
   label,
-  placeholder = "Select an option",
+  placeholder = "Select Currency",
   value,
   setValue,
   items,
   setItems,
   error,
   zIndex = 1000, // Crucial for dropdown rendering order
+  open,
+  setOpen,
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
     <View style={[styles.container, styles.zIndex, { zIndex }]}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -25,6 +25,7 @@ export default function AppDropdown({
         setOpen={setOpen}
         setValue={setValue}
         setItems={setItems}
+        dropDownDirection="TOP"
         placeholder={placeholder}
         style={[styles.dropdown, error ? styles.dropdownError : null]}
         dropDownContainerStyle={[styles.dropdownContainer]}
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   label: {
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: "600",
     color: "#333",
   },
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     backgroundColor: "#fff",
-    minHeight: 50,
+    minHeight: 35,
   },
   dropdownError: {
     borderColor: "#ff4d4f",

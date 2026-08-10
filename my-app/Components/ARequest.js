@@ -209,7 +209,12 @@ export default function ARequest({
         )}
         {requestType === "myRequest" && (
           <Button
-            onPress={() => Navigation.navigate("Replies")}
+            onPress={() =>
+              Navigation.navigate("Replies", {
+                requestId: Data?.id,
+                requestName: Data?.name,
+              })
+            }
             styles={[
               styles.bordeR,
               styles.paddingLg,

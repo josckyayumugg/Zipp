@@ -2,6 +2,7 @@ export const GlobalStyles = {
   Primary_Yellow: "#FFD600",
   Primary_Yellow2: "#f6cf0c34",
   Secondary_Yellow: "#ffbb00",
+  Secondary_Yellow1: "#ffbb007d",
   Black: "#000000",
   Primary_Green: "#2f6f2f",
 

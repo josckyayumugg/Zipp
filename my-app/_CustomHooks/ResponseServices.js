@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
+import { enableFreeze } from "react-native-screens";
 
 export function useCreateResponse(data) {
   return useMutation({
@@ -38,7 +39,7 @@ export function useDeleteResponses() {
 
 export function useGetAllResponses(id, query) {
   return useQuery({
-    queryKey: ["AllMyRequests", id, query],
+    queryKey: ["allResponses", id, query],
 
     queryFn: async () => {
       try {
@@ -71,6 +72,47 @@ export function useGetAllResponses(id, query) {
     enabled: !!id,
   });
 }
+export function useGetReqResponses(id) {
+  return useQuery({
+    queryKey: ["requests", id],
+    queryFn: async () => {
+      console.log("ingiga");
+      const { data, error } = await supabase
+        .from("Responses")
+        .select("*")
+        .eq("request", id);
+
+      if (error) {
+        console.log({ errorResponses: error });
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+export function useGetSingleResponse(id) {
+  return useQuery({
+    queryKey: ["response", id],
+    queryFn: async () => {
+      console.log("doreko", "mwigize");
+      const { data, error } = await supabase
+        .from("Responses")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.log({ errorSingleResponse: error });
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!id,
+  });
+}
 export function useEditResponse() {
   return useMutation({
     mutationFn: async (updatedData) => {
@@ -92,5 +134,27 @@ export function useEditResponse() {
         throw error;
       }
     },
+  });
+}
+
+export function useCountMyResponses(id) {
+  return useQuery({
+    queryKey: ["countedDeals", id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("Responses")
+        .select("id", { count: "exact", head: true })
+        .eq("createdBy", id);
+
+      if (error) {
+        // Log all error properties explicitly
+
+        throw error;
+      }
+
+      return count ?? 0;
+    },
+    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+    enabled: !!id,
   });
 }

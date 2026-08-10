@@ -39,7 +39,7 @@ export default function Category({ icon, name, searchQuery }) {
             color={GlobalStyles.Secondary_Yellow}
           />
         </View>
-        <Text style={styles.smallT}>{name}</Text>
+        <Text style={styles.smallText}>{name}</Text>
       </View>
     </Pressable>
   );
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     color: GlobalStyles.Primary_Green,
   },
   smallText: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: "Roboto-Light",
   },
   whiteText: {

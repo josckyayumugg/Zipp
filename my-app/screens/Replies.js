@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,71 +10,89 @@ import {
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Span from "../Components/Span";
+import { Alert } from "react-native";
+import { useGetAllResponses } from "../_CustomHooks/RequestServices";
+import { useGetReqResponses } from "../_CustomHooks/ResponseServices";
+import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import ErrorPaging from "../Components/ErrorPage";
+import NoProductsProfile from "../Components/NoProductsProfile";
+import { useNavigation } from "@react-navigation/native";
+import ErrorPage from "../Components/ErrorPage";
 
-export default function ViewReplies ({ route, navigation }) {
-  // Fallback test variables if context route params aren't passed yet
-  const requestName = route?.params?.productName || "Suzuki right door";
+export default function ViewReplies({ route, navigation }) {
+  // Fallback test variables f context route params aren't passed yet
+  const navigator = useNavigation();
+  const requestName = route?.params?.requestName;
+  const {
+    data: Responses,
+    isError: isErrorResponse,
+    isPending: isPendingResponses,
+    error: errorResponse,
+  } = useGetReqResponses(route.params?.requestId);
 
-  const placeholderOffers = [
-    {
-      id: "1",
-      shopName: "Alcatraz Auto Parts Ltd",
-      location: "Gatsata, Kigali",
-      price: "320,000 Rwf",
-      condition: "Used - Genuine OEM",
-      phone: "+250788123456",
-      notes: "We have it in silver color. Clean condition, no deep scratches.",
-    },
-    {
-      id: "2",
-      shopName: "Nyabugogo Spare Hub",
-      location: "Nyabugogo",
-      price: "380,000 Rwf",
-      condition: "Brand New",
-      phone: "+250788654321",
-      notes:
-        "Aftermarket import from Dubai. Comes with a 1-month installation check guarantee.",
-    },
-  ];
+  const {
+    data: SellerData,
+    isError: isErrorSeller,
+    error: errorSeller,
+    isPending: isPendingSeller,
+  } = useGetCurrentProfile(Responses?.createdBy);
 
+  if (isErrorResponse) {
+    return <ErrorPage message={errorResponse.message} />;
+  }
+  if (isErrorSeller) {
+    return <ErrorPage message={errorSeller.message} />;
+  }
+  if (Responses <= 0) {
+    return <NoProductsProfile message={"No Replies yet for this request"} />;
+  }
   return (
     <View style={styles.screenWrapper}>
       {/* Active Context Bar */}
+
       <View style={styles.topAlertBar}>
-        <Text style={styles.contextSubText}>Replies for:</Text>
+        <Text style={styles.contextSubText}>
+          <Text style={{ marginHorizontal: 8 }}>{Responses?.length}</Text>
+          available Replies for:
+        </Text>
         <Text style={styles.contextTitleText}>{requestName}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {placeholderOffers.map((offer) => (
-          <View key={offer.id} style={styles.offerCard}>
+        {Responses?.map((response) => (
+          <View key={response.id} style={styles.offerCard}>
             {/* Header info strip inside offer card layout */}
             <View style={styles.rowBtn}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.shopNameText}>{offer.shopName}</Text>
+                <Text style={styles.shopNameText}>
+                  {response?.businessNames}
+                </Text>
                 <View style={[styles.row, { gap: 4, marginTop: 2 }]}>
                   <Ionicons
                     name="location"
                     size={14}
                     color={GlobalStyles.Primary_Grey}
                   />
-                  <Text style={styles.locationText}>{offer.location}</Text>
+                  <Text style={styles.locationText}>{response?.location}</Text>
                 </View>
               </View>
               <Span
-                content={offer.condition}
+                content={response?.condition}
                 styles={[styles.bordeR, styles.conditionBadge]}
               />
             </View>
 
             {/* Middle body section detailing comments */}
-            <Text style={styles.notesText}>"{offer.notes}"</Text>
+            <Text style={styles.notesText}>"{response?.note}"</Text>
 
             {/* Pricing Summary and Contact Row Actions Layout */}
             <View style={[styles.rowBtn, styles.borderTopSection]}>
               <View>
                 <Text style={styles.priceLabel}>Offered Price</Text>
-                <Text style={styles.priceValue}>{offer.price}</Text>
+                <View style={{ flexDirection: "row", gap: 2 }}>
+                  <Text style={styles.priceValue}>{response?.price}</Text>
+                  <Text style={styles.priceValue}>{response?.currency}</Text>
+                </View>
               </View>
 
               <Pressable
@@ -82,11 +100,13 @@ export default function ViewReplies ({ route, navigation }) {
                   styles.callButton,
                   pressed && { opacity: 0.8 },
                 ]}
-                onPress={() =>
-                  Alert.alert("Calling...", `Dialing ${offer.phone}`)
-                }
+                onPress={() => {
+                  navigator.navigate("Reply Contacts", {
+                    responseId: response?.id,
+                  });
+                }}
               >
-                <Ionicons name="call" size={16} color="black" />
+                <Ionicons name="eye-outline" size={16} color="black" />
                 <Text style={styles.callButtonText}>Contact Seller</Text>
               </Pressable>
             </View>
@@ -96,7 +116,6 @@ export default function ViewReplies ({ route, navigation }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,

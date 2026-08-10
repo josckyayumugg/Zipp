@@ -1,53 +1,41 @@
-import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
-import Span from "./Span";
-export default function SpecialOffer() {
+import { Ionicons } from "@expo/vector-icons";
+import Button from "./Button";
+import { useNavigation } from "@react-navigation/native";
+
+export default function ErrorPage({ message, ButtonContent, onPress, style }) {
+  const navigator = useNavigation();
   return (
     <View
       style={[
-        styles.yellowBg,
-        styles.bordeR,
-        styles.row,
         styles.paddingLg,
-        { height: 150, marginVertical: 10 },
+        {
+          flex: 1,
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+
+          alignContent: "center",
+        },
+        style,
       ]}
     >
-      <View style={[styles.column]}>
-        <Span
-          content={"Special offer"}
+      <Ionicons name="alert-circle-outline" size={30} color="red" />
+      <Text style={styles.smallT}>{message}</Text>
+      {ButtonContent ? (
+        <Button
+          content={ButtonContent}
+          onPress={() => {
+            (navigator.goBack(), onPress);
+          }}
           styles={[
-            styles.smallT,
-
-            styles.blackBg,
-            styles.whiteT,
-            styles.bordeR,
-            styles.paddingSm,
-
-            {
-              alignSelf: "flex-start",
-              flexDirection: "column",
-              justifyContent: "center",
-            },
-          ]}
-        />
-        <Text style={[styles.bigText, styles.headerTitle]}>Quality Parts</Text>
-        <Text style={[styles.smallText, styles.smallText,styles.italic]}>
-          Find verified auto parts from trusted sellers
-        </Text>
-        <Span
-          content="Start Now"
-          styles={[
-            styles.paragraph,
+            { backgroundColor: GlobalStyles.Primary_Yellow },
             styles.paddingLg,
-            
-            styles.whiteT,
             styles.bordeR,
-            styles.smallT,
-            { alignSelf: "flex-start" },
           ]}
         />
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -71,9 +59,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     textAlign: "center",
   },
-  italic:{
-fontFamily:'italic'
-  },
   Views: {
     marginVertical: 12,
   },
@@ -82,7 +67,7 @@ fontFamily:'italic'
   },
   smallT: {
     fontFamily: "Roboto-regular",
-    fontSize: 16,
+    fontSize: 12,
   },
   smallMVertical: {
     marginVertical: 8,
@@ -113,6 +98,10 @@ fontFamily:'italic'
     marginBottom: 10,
   },
   row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  rowBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -166,8 +155,6 @@ fontFamily:'italic'
   },
 
   headerCard: {
-    backgroundColor: GlobalStyles.Primary_Grey,
-
     margin: 6,
     borderWidth: 1,
 
@@ -194,7 +181,7 @@ fontFamily:'italic'
   },
   headerTitle: {
     fontFamily: "Roboto-semibold",
-
+    fontSize: 18,
     paddingBottom: 4,
   },
   sectionTitle: {
@@ -208,11 +195,11 @@ fontFamily:'italic'
     fontSize: 20,
     fontFamily: "Roboto-Light",
     marginRight: 20,
-    padding: 2,
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 20,
+    fontSize: 16,
+    lineHeight: 16,
   },
   button: {
     alignSelf: "start",

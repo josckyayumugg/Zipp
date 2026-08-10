@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    marginVertical: 10,
+    marginVertical: 5,
   },
 });

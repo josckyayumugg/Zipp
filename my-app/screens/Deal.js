@@ -1,11 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Span from "../Components/Span";
 import Button from "../Components/Button";
-import {
-  useGetSingleProduct,
-  useGetSingleProductDeal,
-} from "../_CustomHooks/ProductServices";
+import { useGetSingleProductDeal } from "../_CustomHooks/ProductServices";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -24,19 +21,20 @@ import LoadingPaging from "../Components/LoadingPaging";
 const { width } = Dimensions.get("window");
 const SLIDER_WIDTH = width - 24; // Width of the image container accounting for screen padding
 
-export default function ProductPage() {
+export default function DealPage() {
   const route = useRoute();
   const navigator = useNavigation();
 
-  const {
-    isPending,
-    isError,
-    error,
-    data: product,
-  } = useGetSingleProduct(route.params?.productId);
+  const dealId = route.params?.dealId;
 
-  const [activeIndex, setActiveIndex] = useState(0); // Tracks current slide index
-  // const [isCurrent, setIsCurrent] = useState(null);
+  const {
+    isPending: isPendingDeal,
+    isError: isErrorDeal,
+    data: dataDeal,
+  } = useGetSingleProductDeal(dealId);
+
+  // Tracks current slide index
+  const [activeIndex, setActiveIndex] = useState(null);
 
   // Dynamically calculates which image index the user is viewing
   const handleScroll = (event) => {
@@ -45,7 +43,11 @@ export default function ProductPage() {
     setActiveIndex(currentIndex);
   };
 
-  let images = product?.images || [];
+  if (isPendingDeal) {
+    return <LoadingPaging />;
+  }
+
+  const images = dataDeal?.images || [];
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f8f9fa" }}>
@@ -82,13 +84,13 @@ export default function ProductPage() {
 
         {/* TITLE & TAGS */}
         <View style={styles.sectionContainer}>
-          {product?.name && (
-            <Text style={[styles.bigText, styles.bold]}>{product?.name}</Text>
+          {dataDeal?.name && (
+            <Text style={[styles.bigText, styles.bold]}>{dataDeal?.name}</Text>
           )}
           <View style={styles.tagRow}>
-            {product?.brand && (
+            {dataDeal?.brand && (
               <Span
-                content={product?.brand}
+                content={dataDeal?.brand}
                 styles={[
                   styles.bordeR,
                   styles.paddingSm,
@@ -101,9 +103,9 @@ export default function ProductPage() {
                 ]}
               />
             )}
-            {product?.model && (
+            {dataDeal?.model && (
               <Span
-                content={product?.model}
+                content={dataDeal?.model}
                 styles={[
                   styles.bordeR,
                   styles.paddingSm,
@@ -116,9 +118,9 @@ export default function ProductPage() {
                 ]}
               />
             )}
-            {product?.year && (
+            {dataDeal?.year && (
               <Span
-                content={product?.year}
+                content={dataDeal?.year}
                 styles={[
                   styles.bordeR,
                   styles.paddingSm,
@@ -131,9 +133,9 @@ export default function ProductPage() {
                 ]}
               />
             )}
-            {product?.more && (
+            {dataDeal?.more && (
               <Span
-                content={product?.more}
+                content={dataDeal?.more}
                 styles={[
                   styles.bordeR,
                   styles.paddingSm,
@@ -150,7 +152,7 @@ export default function ProductPage() {
         </View>
 
         {/* PRICE */}
-        {product?.budget && (
+        {dataDeal?.budget && (
           <View style={styles.sectionContainer}>
             <Text style={styles.headerTitle}>Budget</Text>
             <Text
@@ -163,23 +165,25 @@ export default function ProductPage() {
                 },
               ]}
             >
-              {product?.budget}Kigali
+              {dataDeal?.budget}Kigali
             </Text>
           </View>
         )}
 
         {/* DESCRIPTION */}
         <View style={styles.sectionContainer}>
-          {product?.details && <Text style={styles.headerTitle}>Details</Text>}
-          <Text style={styles.paragraph}>{product?.details}</Text>
+          {dataDeal?.description && (
+            <Text style={styles.headerTitle}>Details</Text>
+          )}
+          <Text style={styles.paragraph}>{dataDeal?.description}</Text>
         </View>
-        {product?.price ? (
+        {dataDeal?.price ? (
           <View style={styles.sectionContainer}>
             <Text style={styles.headerTitle}>Price</Text>
             <Text
               style={[styles.priceText, { color: GlobalStyles.Primary_Green }]}
             >
-              {`${product?.price}(${product?.currency ? product?.currency : "RWF"})`}
+              {`${dataDeal?.price}(${dataDeal?.currency ? dataDeal?.currency : "RWF"})`}
             </Text>
           </View>
         ) : null}
@@ -191,8 +195,8 @@ export default function ProductPage() {
           style={styles.yellowContactBtn}
           // onPress={() => SetIsViewSeller((prev) => !prev)}
           onPress={() =>
-            navigator.navigate("Product Contacts", {
-              productId: product?.id,
+            navigator.navigate("DealsContacts", {
+              dealId: dataDeal?.id,
             })
           }
         >

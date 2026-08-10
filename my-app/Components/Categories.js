@@ -1,51 +1,66 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import Button from "./Button";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "react-native";
 import { GlobalStyles } from "../Constants";
-import Span from "./Span";
-export default function SpecialOffer() {
+import { ActivityIndicator } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Category from "./Category";
+export default function Categories() {
+  const navigator = useNavigation();
   return (
     <View
       style={[
-        styles.yellowBg,
-        styles.bordeR,
-        styles.row,
-        styles.paddingLg,
-        { height: 150, marginVertical: 10 },
+        {
+          alignSelf: "center",
+          justifyContent: "center",
+          marginHorizontal: "auto",
+        },
+        styles.largeMTop,
       ]}
     >
-      <View style={[styles.column]}>
-        <Span
-          content={"Special offer"}
-          styles={[
-            styles.smallT,
-
-            styles.blackBg,
-            styles.whiteT,
-            styles.bordeR,
-            styles.paddingSm,
-
-            {
-              alignSelf: "flex-start",
-              flexDirection: "column",
-              justifyContent: "center",
-            },
-          ]}
+      <Text
+        style={[
+          { textAlign: "center", color: GlobalStyles.Primary_Green },
+          styles.bigText,
+          styles.bold,
+        ]}
+      >
+        Browse Categories
+      </Text>
+      <View
+        style={{
+          flexWrap: "wrap",
+          flexDirection: "row",
+          alignSelf: "center",
+          justifyContent: "center",
+          marginHorizontal: "auto",
+        }}
+      >
+        <Category searchQuery={"engine"} name="Engine" icon="cog-outline" />
+        <Category
+          name="brakes(feri)"
+          searchQuery={"brakes"}
+          icon="disc-outline"
         />
-        <Text style={[styles.bigText, styles.headerTitle]}>Quality Parts</Text>
-        <Text style={[styles.smallText, styles.smallText,styles.italic]}>
-          Find verified auto parts from trusted sellers
-        </Text>
-        <Span
-          content="Start Now"
-          styles={[
-            styles.paragraph,
-            styles.paddingLg,
-            
-            styles.whiteT,
-            styles.bordeR,
-            styles.smallT,
-            { alignSelf: "flex-start" },
-          ]}
+        <Category name="Lighting" searchQuery={"lights"} icon="bulb" />
+        <Category
+          name="suspension"
+          icon="build-outline"
+          searchQuery={"suspension"}
+        />
+        <Category
+          name="Electrical"
+          icon="logo-electron"
+          searchQuery={"electricity"}
+        />
+        <Category
+          name="Others"
+          icon="car-outline"
+          searchQuery={"Others"}
+          
         />
       </View>
     </View>
@@ -69,10 +84,6 @@ const styles = StyleSheet.create({
   PageHeaderTitle: {
     fontFamily: "Roboto-Extrabold",
     fontSize: 25,
-    textAlign: "center",
-  },
-  italic:{
-fontFamily:'italic'
   },
   Views: {
     marginVertical: 12,
@@ -82,13 +93,13 @@ fontFamily:'italic'
   },
   smallT: {
     fontFamily: "Roboto-regular",
-    fontSize: 16,
+    fontSize: 12,
   },
   smallMVertical: {
     marginVertical: 8,
   },
   largeMTop: {
-    marginTop: 50,
+    marginTop: 35,
   },
   smallMTop: {
     marginTop: 8,
@@ -112,15 +123,21 @@ fontFamily:'italic'
     paddingHorizontal: 8,
     marginBottom: 10,
   },
+  padding: {
+    padding: 8,
+  },
+  paddingSm: {
+    padding: 2,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
+
     justifyContent: "space-between",
+    paddingHorizontal: 4,
   },
   column: {
     flexDirection: "column",
-    justifyContent: "space-evenly",
-    gap: 8,
   },
   whiteT: {
     color: "white",
@@ -137,6 +154,9 @@ fontFamily:'italic'
   },
   whiteText: {
     color: GlobalStyles.Primary_Grey,
+  },
+  yellow: {
+    color: GlobalStyles.Secondary_Yellow,
   },
   yellowBg: {
     backgroundColor: GlobalStyles.Primary_Yellow,
@@ -167,11 +187,8 @@ fontFamily:'italic'
 
   headerCard: {
     backgroundColor: GlobalStyles.Primary_Grey,
-
     margin: 6,
     borderWidth: 1,
-
-    backgroundColor: GlobalStyles.Primary_Grey,
   },
   rowView: {
     flexDirection: "row",
@@ -194,7 +211,7 @@ fontFamily:'italic'
   },
   headerTitle: {
     fontFamily: "Roboto-semibold",
-
+    fontSize: 18,
     paddingBottom: 4,
   },
   sectionTitle: {
@@ -205,14 +222,14 @@ fontFamily:'italic'
   },
 
   bigText: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: "Roboto-Light",
     marginRight: 20,
-    padding: 2,
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 20,
+    fontSize: 16,
+    lineHeight: 16,
   },
   button: {
     alignSelf: "start",
@@ -222,14 +239,12 @@ fontFamily:'italic'
   },
 
   bordeR: {
-    borderRadius: 6,
+    borderRadius: 12,
     overflow: "hidden",
   },
-  paddingSm: {
-    padding: 4,
-  },
-  paddingLg: {
-    padding: 8,
+  bordeRSmall: {
+    borderRadius: 4,
+    overflow: "hidden",
   },
   button: {
     backgroundColor: GlobalStyles.Primary_Green,
@@ -239,6 +254,10 @@ fontFamily:'italic'
   },
   pressed: {
     opacity: 0.7,
+
     transform: [{ scale: 0.97 }],
+  },
+  paddingLg: {
+    padding: 6,
   },
 });

@@ -1,18 +1,88 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
 import Button from "./Button";
 import { Ionicons } from "@expo/vector-icons";
 import NoProductsProfile from "./NoProductsProfile";
 import ProductProfileRow from "./ProfileProductRow";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProfileProformaRow from "./ProfileProformaRow";
-export default function ProfileSelling() {
+import { useCountMyResponses } from "../_CustomHooks/ResponseServices";
+import { FlatList } from "react-native";
+import { getYear } from "../Helpers";
+import { useCountMyRequests } from "../_CustomHooks/RequestServices";
+import {
+  useCountProducts,
+  useCountProductsDeals,
+  useGetAllMyProducts,
+} from "../_CustomHooks/ProductServices";
+import ErrorPage from "./ErrorPage";
+import {
+  NavigationRouteContext,
+  useNavigation,
+} from "@react-navigation/native";
+
+export default function ProfileSelling({ profileId, creationYear }) {
   const [isSellingFilter, setIsSellingFilter] = useState("yourProducts");
+
+  const [page, setPage] = useState(1);
+  const sinceYear = getYear(creationYear);
+  const navigator = useNavigation();
+  const {
+    data: productsNumber,
+    isPending: isPendingPNumber,
+    isError: isErrorPNumber,
+    error: errorPNumber,
+  } = useCountProducts(profileId);
+  const {
+    data: NumberDeals,
+    isError: isErrorDeals,
+    error: errorDeals,
+    isPending,
+  } = useCountProductsDeals(profileId);
+  const {
+    data: NumberReplies,
+    isPending: isPendingReplies,
+    isError: isErrorReplies,
+    error: errorReplies,
+  } = useCountMyResponses(profileId);
+
+  const {
+    data: AllMyProducts,
+    isPending: isPendingProducts,
+    isError: isErrorProducts,
+    error: errorProducts,
+    isFetching,
+  } = useGetAllMyProducts(profileId);
+  const {
+    data: requestNumber,
+    isPending: isPendingRNumber,
+    isError: isErrorRNumber,
+    error: errorRNumber,
+  } = useCountMyRequests(profileId);
+
+  if (isErrorPNumber) {
+    return <ErrorPage message={errorPNumber?.message} />;
+  }
+  if (isErrorDeals) {
+    return <ErrorPage message={errorDeals?.message} />;
+  }
+  if (isErrorReplies) {
+    return <ErrorPage message={errorDeals?.message} />;
+  }
+  if (isErrorPNumber) {
+    return <ErrorPage message={errorProducts?.message} />;
+  }
+  if (isErrorRNumber) {
+    return <ErrorPage message={errorRNumber?.message} />;
+  }
 
   return (
     <View style={styles.paddingLg}>
       <View style={styles.rowBtn}>
-        <View
+        <Pressable
+          onPress={() => {
+            navigator.navigate("My Products", { type: "Products" });
+          }}
           style={[
             styles.paddingLg,
             styles.row,
@@ -52,13 +122,16 @@ export default function ProfileSelling() {
             ]}
           />
           <View style={[styles.column]}>
-            <Text style={[styles.paragraph]}>Total Uploaded</Text>
+            <Text style={[styles.paragraph]}>Total Products</Text>
             <Text style={[styles.paragraph, styles.bold, styles.bigText]}>
-              0
+              {productsNumber ? productsNumber : 0}
             </Text>
           </View>
-        </View>
-        <View
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            navigator.navigate("My Deals", { type: "Deals" });
+          }}
           style={[
             styles.paddingLg,
             styles.row,
@@ -98,15 +171,18 @@ export default function ProfileSelling() {
             ]}
           />
           <View style={[styles.column]}>
-            <Text style={[styles.paragraph]}>Active Listings</Text>
+            <Text style={[styles.paragraph]}>Active Deals</Text>
             <Text style={[styles.paragraph, styles.bold, styles.bigText]}>
-              0
+              {NumberDeals ? NumberDeals : 0}
             </Text>
           </View>
-        </View>
+        </Pressable>
       </View>
       <View style={styles.rowBtn}>
-        <View
+        <Pressable
+          onPress={() => {
+            navigator.navigate("My Data", { type: "Responses" });
+          }}
           style={[
             styles.paddingLg,
             styles.row,
@@ -146,13 +222,16 @@ export default function ProfileSelling() {
             ]}
           />
           <View style={[styles.column]}>
-            <Text style={[styles.paragraph]}>Total Pro forma</Text>
+            <Text style={[styles.paragraph]}>Total Proforma</Text>
             <Text style={[styles.paragraph, styles.bold, styles.bigText]}>
-              0
+              {NumberReplies ? NumberReplies : 0}
             </Text>
           </View>
-        </View>
-        {/* <View
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            navigator.navigate("My Data", { type: "Requests" });
+          }}
           style={[
             styles.paddingLg,
             styles.row,
@@ -192,63 +271,17 @@ export default function ProfileSelling() {
             ]}
           />
           <View style={[styles.column]}>
-            <Text style={[styles.paragraph]}>Active Listings</Text>
+            <Text style={[styles.paragraph]}>Total Requests</Text>
             <Text style={[styles.paragraph, styles.bold, styles.bigText]}>
-              0
+              {requestNumber ? requestNumber : 0}
             </Text>
           </View>
-        </View> */}
+        </Pressable>
       </View>
-      <View
-        style={[
-          styles.bordeR,
-          { borderWidth: 1, borderColor: GlobalStyles.Primary_Grey },
-          styles.largeMTop,
-        ]}
-      >
-        <View
-          style={[
-            { backgroundColor: GlobalStyles.Primary_Grey3 },
-            styles.row,
-            styles.paddingLg,
-          ]}
-        >
-          <Button
-            styles={[
-              isSellingFilter === "yourProducts" && {
-                backgroundColor: "white",
-              },
-              { height: 35 },
-              styles.bordeR,
-            ]}
-            content="You products"
-            onPress={() => {
-              setIsSellingFilter("yourProducts");
-            }}
-          />
-          <Button
-            styles={[
-              isSellingFilter === "yourProforma" && {
-                backgroundColor: "white",
-              },
-              { height: 35 },
-              styles.bordeR,
-            ]}
-            content="Your Proforma"
-            onPress={() => {
-              setIsSellingFilter("yourProforma");
-            }}
-          />
-        </View>
 
-        {/* <NoProductsProfile
-          ButtonContent={"Upload Product"}
-          message={"You have no Products in your listing  yet"}
-        /> */}
-        {isSellingFilter === "yourProducts" && <ProductProfileRow />}
-        {isSellingFilter === "yourProforma" && <ProfileProformaRow />}
-      </View>
-      <Text style={{ textAlign: "center" }}>Member since 2023</Text>
+      <Text style={{ textAlign: "center", marginTop: 30 }}>
+        Member since {sinceYear}
+      </Text>
     </View>
   );
 }

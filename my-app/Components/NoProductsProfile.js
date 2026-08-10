@@ -25,16 +25,18 @@ export default function NoProductsProfile({
       ]}
     >
       <Ionicons name="cube" size={30} color={GlobalStyles.Primary_Grey3} />
-      <Text>{message}</Text>
-      <Button
-        content={ButtonContent}
-        onPress={onPress}
-        styles={[
-          { backgroundColor: GlobalStyles.Primary_Yellow },
-          styles.paddingLg,
-          styles.bordeR,
-        ]}
-      />
+      <Text style={styles.smallT}>{message}</Text>
+      {ButtonContent ? (
+        <Button
+          content={ButtonContent}
+          onPress={onPress}
+          styles={[
+            { backgroundColor: GlobalStyles.Primary_Yellow },
+            styles.paddingLg,
+            styles.bordeR,
+          ]}
+        />
+      ) : null}
     </View>
   );
 }

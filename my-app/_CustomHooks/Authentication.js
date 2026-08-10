@@ -16,7 +16,7 @@ export async function getCurrentUser() {
   const { data: session } = await supabase.auth.getSession();
   if (!session.session) return null;
   const { data, error } = await supabase.auth.getUser();
-  console.log(data);
+
   return data?.user;
 }
 
@@ -103,6 +103,7 @@ export function useCreateProfile() {
             profileId: data.userId,
             website: data.website,
             directions: data.directions,
+            phone: data.phone,
           },
         ])
         .select()
@@ -143,10 +144,9 @@ export function useGetCurrentProfile(id) {
         .select("*")
         .eq("profileId", id)
         .single();
-
       if (error) throw error;
-
       return data;
+      // throw new Error("Nyirandari ndari");
     },
     enabled: !!id,
   });

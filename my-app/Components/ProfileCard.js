@@ -31,7 +31,7 @@ export default function ProfileCard({ data, label }) {
           },
         ]}
       >
-        {data}
+        {data ? data : null}
       </Text>
       <Text
         style={[

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { useGetAllProducts } from "../_CustomHooks/ProductServices";
 import Button from "../Components/Button";
 import ProductCard from "../Components/ProductCard";
 import { useRoute } from "@react-navigation/native";
+import { queryClient } from "../App";
 import NoProductsProfile from "../Components/NoProductsProfile";
 import LargeSpinner from "../Components/LargSpinner";
 import {
@@ -27,6 +28,7 @@ export default function Search() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   const route = useRoute();
+  console.log("copulo", route.params);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSearchQuery, setIsSearchQuery] = useState("");
   const [isInputQuery, setIsInputQuery] = useState("");
@@ -53,7 +55,18 @@ export default function Search() {
     },
     page,
   );
+  useEffect(() => {
+    if (route.params?.query) {
+      setAppliedFilter({ category: route.params?.query });
+      setShouldSearch(true);
+      queryClient.invalidateQueries("getallProductspagination");
+      setHasSearched(true);
+    }
 
+    return () => {
+      // Optional cleanup
+    };
+  }, [route.params?.query]);
   const { data: user, isPending: pendingUser } = useGetCurrentUser();
   const { data: currentProfile, isPending: isPendingProfile } =
     useGetCurrentProfile(user?.id);
@@ -107,8 +120,6 @@ export default function Search() {
             },
           ]}
         >
-          
-
           <InputText
             placeholder={"Search parts, brands, models"}
             value={isInputQuery}
@@ -124,7 +135,6 @@ export default function Search() {
 
           <Button
             onPress={triggerNewSearch}
-            
             content={<Text style={styles.smallT}>Search</Text>}
           />
         </View>
