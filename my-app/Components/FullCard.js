@@ -13,8 +13,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
 import Button from "./Button";
 import { useNavigation } from "@react-navigation/native";
+
+import {
+  useGetCurrentProfile,
+  useGetCurrentUser,
+} from "../_CustomHooks/Authentication";
+
 import Span from "./Span";
 import { formatNumber, getTimeRemaining } from "../Helpers";
+import LoadingPaging from "./LoadingPaging";
+import ErrorPage from "./ErrorPage";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function FullWidthStoryCard({
@@ -24,24 +32,46 @@ export default function FullWidthStoryCard({
   dataLength,
   setIsCreateDealOpen,
 }) {
-  console.log("kigali", item);
   const navigator = useNavigation();
+  const { data: dataUser, isPending, isError, error } = useGetCurrentUser();
+  const {
+    data: dataProfile,
+    isPendingProfile,
+    isErrorProfile,
+    errorProfile,
+  } = useGetCurrentProfile(dataUser?.id);
 
   const { hours, minutes } = getTimeRemaining(item?.created_at);
   const numericAmount = formatNumber(item?.price);
+
+  if (isError) {
+    return <ErrorPage message={error.message} />;
+  }
+  if (isPending || isPendingProfile) return <LoadingPaging />;
   return (
     <Pressable
       onPress={() => {
         navigator.navigate("Deal", { dealId: item?.id });
       }}
     >
-      <View style={styles.outerContainer}>
+      <View
+        style={[
+          styles.outerContainer,
+
+          {
+            borderWidth: 4,
+            borderColor: GlobalStyles.gold,
+            borderRadius: 8,
+            overflow: "hidden",
+          },
+        ]}
+      >
         <LinearGradient
-          colors={["#442d14", "black", "#000000"]}
-          locations={[0, 0.25, 0.6]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={[styles.cardGradient, { borderRadius: 8 }]}
+          colors={["#8a5132", "#0c1322", "#0a0e1a"]}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.cardGradient]}
         >
           {/* 1. BRAND NAME & STORY INDEX (LEFT-ALIGNED) */}
           <View style={styles.headerRow}>
@@ -53,22 +83,24 @@ export default function FullWidthStoryCard({
                 top: 0,
               }}
             >
-              <Ionicons name="time" color={"yellow"} size={20} />
-              <Text style={styles.sectionT}>24 hrs deals</Text>
+              <Ionicons name="flash" color={"orange"} size={20} />
+              <Text style={styles.sectionT}>Deals</Text>
             </View>
-            <Button
-              onPress={() => {
-                setIsCreateDealOpen(true);
-              }}
-              styles={{ alignSelf: "flex-end" }}
-              content={
-                <Ionicons
-                  name={"add"}
-                  color={GlobalStyles.Primary_Yellow}
-                  size={30}
-                />
-              }
-            />
+            {dataProfile?.type === "seller" ? (
+              <Button
+                onPress={() => {
+                  setIsCreateDealOpen(true);
+                }}
+                styles={{ alignSelf: "flex-end" }}
+                content={
+                  <Ionicons
+                    name={"add"}
+                    color={GlobalStyles.Primary_Yellow}
+                    size={30}
+                  />
+                }
+              />
+            ) : null}
           </View>
 
           <View
@@ -290,7 +322,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     borderRadius: 4,
-    paddingHorizontal: 2,
+
     overflow: "hidden",
 
     shadowColor: "#FF6600",

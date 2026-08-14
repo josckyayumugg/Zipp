@@ -76,7 +76,9 @@ export default function ConfirmDeleteDeal({
             <Button
               onPress={() => {
                 if (dealId) {
-                  (onConfirm(dealId), closeModal());
+                  (onConfirm(dealId),
+                    queryClient.invalidateQueries("allDeals"),
+                    closeModal());
                 }
               }}
               styles={[

@@ -40,7 +40,7 @@ export function useSignedUpData() {
   return useQuery({
     queryFn: async ({ email, password }) => {
       const {
-        data: { user },
+        data: { user, error },
       } = await supabase.auth.getUser();
 
       if (error) {
@@ -76,14 +76,31 @@ export function useLogout() {
 }
 
 export async function updateUser({ email, password }) {
-  return useQuery({
-    queryKey: ["updateUser"],
-    queryFn: async () => {
-      let { data, error } = await supabase.auth.updateUser({
-        email: "new@email.com",
-        password: "new-password",
-        data: { hello: "world" },
+  return useMutation({
+    mutationFn: async (data) => {
+      let { spaData, error } = await supabase.auth.updateUser({
+        email: data.email,
+        password: data.password,
       });
+    },
+  });
+}
+export function useUpdateProfile() {
+  return useMutation({
+    mutationFn: async ({ id, ...dataToUpdate }) => {
+      console.log(id, dataToUpdate);
+      let { data, error } = await supabase
+        .from("Profiles")
+
+        .update(dataToUpdate)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) {
+        console.log("ereri", error);
+        throw error;
+      }
+      return data;
     },
   });
 }

@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useRoute } from "@react-navigation/native";
-import { useCreateResponse } from "../_CustomHooks/ResponseServices";
+import {
+  useCreateResponse,
+  useEditResponse,
+} from "../_CustomHooks/ResponseServices";
 import { queryClient } from "../App";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
@@ -27,11 +30,17 @@ import { useGetReqResponses } from "../_CustomHooks/ResponseServices";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import LoadingPaging from "../Components/LoadingPaging";
+import { useGetSingleResponse } from "../_CustomHooks/ResponseServices";
+import ErrorPage from "../Components/ErrorPage";
 
 export default function RespondToRequest() {
   const route = useRoute();
   const navigation = useNavigation();
+  const editId = route?.params?.responseId;
+  const editingMode = route?.params?.isEditing;
+
   const [isConditionOpen, setIsConditionOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(false);
   const [currencyItems, setCurrencyItems] = useState([
@@ -40,8 +49,6 @@ export default function RespondToRequest() {
     { label: "EUR 🇪🇺", value: "EUR" },
     { label: "GBP 🇬🇧", value: "GBP" },
   ]);
-
-  const { request } = route?.params;
 
   const {
     data: user,
@@ -62,6 +69,18 @@ export default function RespondToRequest() {
     error: errorUser,
     isPending: isPendingUser,
   } = useGetCurrentProfile(user?.id);
+  const {
+    data: editData,
+    isError: isErrorGetResponse,
+    error: errorGetResponse,
+    isPending: isPendingGetResponse,
+  } = useGetSingleResponse(editId);
+  const {
+    mutate: EditResponse,
+    isError: isErrorEditingResponse,
+    error: errorEditingResponse,
+    isPending: isPendingEditingResponse,
+  } = useEditResponse();
 
   const {
     control,
@@ -75,20 +94,58 @@ export default function RespondToRequest() {
       price: "",
       condition: "",
       note: "",
-      currency: "RWF",
+      currency: "",
       location: "",
       businessNames: "",
     },
   });
-
+  useEffect(() => {
+    if (editId) {
+      setIsEditing(true);
+      reset({
+        price: editData?.price,
+        condition: editData?.condition,
+        note:  editData?.note,
+        currency: editData?.currency,
+        location: editData?.location,
+        businessNames: editData?.businessName,
+      });
+    }
+  }, [editingMode, editData]);
+  const { request } = route?.params;
   const [conditionItem, setIsConditionItem] = useState([
     { label: "New(nshyashya)", value: "new" },
     { label: "used(okaziyo)", value: "used" },
     { label: "refurbished(yasubiwemo)", value: "refurbished" },
   ]);
 
-  const { mutate, isError, error, isPending } = useCreateResponse(request.id);
+  const { mutate, isError, error, isPending } = useCreateResponse(request?.id);
   function submitOfferHandler(data) {
+    if (isEditing) {
+      return EditResponse(
+        { ...data, id: editId },
+        {
+          onSuccess: () => {
+            Toast.show({
+              type: "success",
+              text1: "Success 👋",
+              text2: "Edit was successful!",
+              position: "top", // or "bottom"
+              visibilityTime: 3000,
+            });
+            reset({
+              price: "",
+              condition: "",
+              note: "",
+              currency: "",
+              location: "",
+              businessNames: "",
+            });
+            setIsEditing(false);
+          },
+        },
+      );
+    }
     mutate(
       {
         ...data,
@@ -117,7 +174,7 @@ export default function RespondToRequest() {
           });
 
           queryClient.invalidateQueries({
-            queryKey: ["responses", user.id],
+            queryKey: ["responses"],
           });
 
           navigation.goBack();
@@ -136,11 +193,10 @@ export default function RespondToRequest() {
     );
   }
   /////creaeting the response//
+  console.log("umunsiwari", editData);
   if (isErrorAuth) {
     return (
-      <View style={styles.centered}>
-        <Text>Couldn't verify your account. Please try again.</Text>
-      </View>
+      <ErrorPage message={"Couldn't verify your account. Please try again"} />
     );
   }
 

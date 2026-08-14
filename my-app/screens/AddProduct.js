@@ -35,9 +35,14 @@ import {
 } from "expo-image-picker";
 import { useEditProduct } from "../_CustomHooks/ProductServices";
 import { containsContactInfo } from "../Helpers";
+import BecomeButton from "../Components/BecomButton";
 
-import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import {
+  useGetCurrentProfile,
+  useGetCurrentUser,
+} from "../_CustomHooks/Authentication";
 import { useCreateProductDeal } from "../_CustomHooks/ProductServices";
+import Profile from "./Profile";
 
 export default function AddProduct({ route, navigation }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -148,6 +153,12 @@ export default function AddProduct({ route, navigation }) {
   } = useGetCurrentUser();
 
   const userId = user?.id;
+  const {
+    data: profile,
+    isPending: isPendingProfile,
+    isError: isErrorProfile,
+    error: errorProfile,
+  } = useGetCurrentProfile(user?.id);
 
   // Pull out the active array state in real time
   const capturedImages = watch("images") || [];
@@ -276,14 +287,26 @@ export default function AddProduct({ route, navigation }) {
                 size={20}
                 color={GlobalStyles.Primary_Green}
               />
-              <Text
-                style={[
-                  styles.paragraph,
-                  { color: GlobalStyles.Primary_Green },
-                ]}
-              >
-                Please provide different angles (Max 4)
-              </Text>
+              {profile?.type === "seller" ? (
+                <Text
+                  style={[
+                    styles.paragraph,
+                    { color: GlobalStyles.Primary_Green },
+                  ]}
+                >
+                  Please provide different angles (Max 4)
+                </Text>
+              ) : (
+                <Text
+                  style={[
+                    styles.paragraph,
+                    styles.italic,
+                    { color: GlobalStyles.Kn_orange },
+                  ]}
+                >
+                  Iyi service ni iyabacuruzi gusa
+                </Text>
+              )}
             </View>
           )}
         </View>
@@ -706,48 +729,63 @@ export default function AddProduct({ route, navigation }) {
           </View>
         </View>
         {/* Submission Actions Row */}
-        <View
-          style={[
-            styles.row,
-            {
-              justifyContent: "space-between",
-              marginTop: 30,
-              marginBottom: 20,
-            },
-          ]}
-        >
-          <Button
-            onPress={() => {
-              Navigation.goBack();
-            }}
-            content="Cancel"
-            styles={[
-              styles.bordeR,
-              styles.paddingLg,
+        {profile?.type === "seller" ? (
+          <View
+            style={[
+              styles.row,
               {
-                borderColor: GlobalStyles.Primary_Grey,
-                borderWidth: 1,
-                width: "90%",
-                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: 30,
+                marginBottom: 20,
               },
             ]}
-          />
-          <Button
-            onPress={handleSubmit(submitHandler)}
-            disable={isPending}
-            content="Submit "
-            styles={[
-              {
-                backgroundColor: GlobalStyles.Primary_Yellow,
-                width: "90%",
+          >
+            <Button
+              onPress={() => {
+                Navigation.goBack();
+              }}
+              content="Cancel"
+              styles={[
+                styles.bordeR,
+                styles.paddingLg,
+                {
+                  borderColor: GlobalStyles.Primary_Grey,
+                  borderWidth: 1,
+                  width: "90%",
+                  alignItems: "center",
+                },
+              ]}
+            />
+            <Button
+              onPress={handleSubmit(submitHandler)}
+              disable={isPending}
+              content="Submit "
+              styles={[
+                {
+                  backgroundColor: GlobalStyles.Primary_Yellow,
+                  width: "90%",
 
+                  alignItems: "center",
+                },
+                styles.bordeR,
+                styles.paddingLg,
+              ]}
+            />
+          </View>
+        ) : (
+          <BecomeButton
+            styles={[
+              {
+                backgroundColor: GlobalStyles.Primary_Green,
+                width: "100%",
+                marginVertical: 30,
                 alignItems: "center",
               },
               styles.bordeR,
               styles.paddingLg,
             ]}
           />
-        </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -781,6 +819,9 @@ const styles = StyleSheet.create({
   smallT: {
     fontFamily: "Roboto-regular",
     fontSize: 12,
+  },
+  italic: {
+    fontFamily: "Roboto-italic",
   },
   smallMVertical: {
     marginVertical: 8,

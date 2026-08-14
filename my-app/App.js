@@ -17,6 +17,9 @@ import SettingsPage from "./screens/Settings";
 import ReportScreen from "./screens/Report";
 import ContactUs from "./screens/ContactUs";
 import ContactsReply from "./screens/ContactsReplies";
+import { registerForPushNotifications } from "./_lib/Notification";
+import { useGetCurrentUser } from "./_CustomHooks/Authentication";
+import { useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -52,12 +55,23 @@ import ProductContacts from "./screens/ProductContacts";
 import DealPage from "./screens/Deal";
 import ProfileRows from "./Components/ProfileRows";
 import DealsRow from "./Components/ProfileDeals";
+import ProformaRows from "./Components/ProfileProforma";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 export const queryClient = new QueryClient();
 function Tabs() {
   const navigation = useNavigation();
+
+  const { data: user } = useGetCurrentUser();
+
+  useEffect(() => {
+    if (user?.id) {
+      console.log("dunda", user?.id);
+      registerForPushNotifications(user?.id);
+    }
+  }, [user?.id]);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -195,11 +209,6 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator>
           <Stack.Screen
-            name="Tabs"
-            component={Tabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
             name="login"
             component={Login}
             options={{
@@ -208,6 +217,11 @@ export default function App() {
               },
               headerTintColor: "#fff", // back button and title color
             }}
+          />
+          <Stack.Screen
+            name="Tabs"
+            component={Tabs}
+            options={{ headerShown: false }}
           />
 
           <Stack.Screen
@@ -311,6 +325,16 @@ export default function App() {
           <Stack.Screen
             name="My Deals"
             component={DealsRow}
+            options={{
+              headerStyle: {
+                backgroundColor: GlobalStyles.Black,
+              },
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+          <Stack.Screen
+            name="My Responses"
+            component={ProformaRows}
             options={{
               headerStyle: {
                 backgroundColor: GlobalStyles.Black,

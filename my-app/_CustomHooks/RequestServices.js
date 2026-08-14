@@ -1,11 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
 
 export function useCreateRequest() {
   return useMutation({
     mutationFn: async (data) => {
-      console.log("mbaho se", data);
       const { data: spData, error } = await supabase
         .from("Requests")
         .insert([data])
@@ -21,7 +20,6 @@ export function useCreateRequest() {
 export function useDeleteRequest() {
   return useMutation({
     mutationFn: async (id) => {
-      console.log("here to delete", id);
       const { data: spData, error } = await supabase
         .from("Requests")
         .delete()
@@ -60,42 +58,53 @@ export function useGetSingleRequest(id) {
   });
 }
 export function useGetAllMyRequests(id, query) {
-  return useQuery({
+  const pageSize = 10;
+  return useInfiniteQuery({
     queryKey: ["AllMyRequests", id, query],
 
-    queryFn: async () => {
-      try {
-        let request = supabase.from("Requests").select("*").eq("createdBy", id);
+    queryFn: async ({ pageParam }) => {
+      const from = pageParam * pageSize;
 
-        if (query) {
-          request = request.or(
-            `name.ilike.%${query}%,brand.ilike.%${query}%,description.ilike.%${query}%`,
-          );
-        }
+      const to = from + pageSize - 1;
 
-        request = request.order("createdAt", {
-          ascending: false,
-        });
+      let request = supabase.from("Requests").select("*").eq("createdBy", id);
 
-        const { data, error } = await request;
-
-        if (error) throw error;
-
-        return data;
-      } catch (error) {
-        console.error("Error fetching all requests:", error);
-        throw error;
+      if (query) {
+        request = request.or(
+          `name.ilike.%${query}%,brand.ilike.%${query}%,description.ilike.%${query}%`,
+        );
       }
+
+      request = request
+        .order("createdAt", {
+          ascending: false,
+        })
+        .range(from, to);
+
+      const { data, error } = await request;
+
+      if (error) throw error;
+
+      return data || [];
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < pageSize) {
+        return undefined;
+      }
+      return allPages.length;
     },
 
     enabled: !!id,
   });
 }
 export function useGetAllRequests(filter, bool, search) {
-  return useQuery({
+  const pageSize = 10;
+  return useInfiniteQuery({
     queryKey: ["AllRequests", filter, bool, search],
-
-    queryFn: async () => {
+    queryFn: async ({ pageParam }) => {
+      const from = pageSize * pageParam;
+      const to = from + pageSize - 1;
       let query = supabase.from("Requests").select("*");
 
       if (search) {
@@ -104,25 +113,50 @@ export function useGetAllRequests(filter, bool, search) {
         );
       }
 
-      query = query.order(`${filter}`, {
-        ascending: bool,
-      });
+      query = query
+        .order(`${filter}`, {
+          ascending: bool,
+        })
+        .range(from, to);
 
-      const { data: spData, error } = await query;
+      const { data, error } = await query;
 
       if (error) {
         throw error;
       }
 
-      return spData;
+      return data || [];
     },
     staleTime: 1000 * 60 * 5, // cache is fresh for 5 minutes
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      // If last fetched page had fewer items than pageSize, we hit the end
+      if (lastPage.length < pageSize) {
+        return undefined; // No more pages
+      }
+      return allPages.length; // Next page number (0, 1, 2...)
+    },
+  });
+}
+export function useEditResponse() {
+  return useMutation({
+    mutationFn: async (updatedData) => {
+      const { data, error } = await supabase
+        .from("Responses")
+        .update(updatedData)
+        .eq("id", updatedData.id)
+        .select()
+        .single();
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
   });
 }
 export function useEditRequest() {
   return useMutation({
     mutationFn: async (updatedData) => {
-      console.log("44", updatedData);
       try {
         const { data, error } = await supabase
           .from("Requests")
@@ -176,17 +210,10 @@ export function useGetAllResponses({ id }) {
     },
   });
 }
-export function useDeleteResponse({ id }) {
-  return useQuery({
-    queryKey: ["response"],
-    queryFn: async () => {
-      const { error } = await supabase.from("Responses").delete().eq("id", id);
-    },
-  });
-}
+
 export function useSubscribeResponse({ id }) {
   return useQuery({
-    queryKey: ["response"],
+    queryKey: ["subscribeResponse"],
     queryFn: async () => {
       const Responses = supabase
         .channel("custom-insert-channel")
@@ -201,18 +228,7 @@ export function useSubscribeResponse({ id }) {
     },
   });
 }
-export function useEditResponse({ id }) {
-  return useQuery({
-    queryKey: ["response"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("Responses")
-        .update({ other_column: "otherValue" })
-        .eq("some_column", "someValue")
-        .select();
-    },
-  });
-}
+
 export function useCountProducts(id) {
   return useQuery({
     queryKey: ["productsNumber", id],

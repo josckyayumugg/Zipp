@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ProductProfileRow from "./ProfileProductRow";
-import ProfileProformaRow from "./ProfileProformaRow";
+
 import { FlatList } from "react-native";
 import { GlobalStyles } from "../Constants";
 import {
@@ -15,6 +15,7 @@ import { useRoute } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ActivityIndicator } from "react-native";
 import { View } from "react-native";
+import ProfileFlatListHeader from "./ProfileFlatlistHeader";
 
 export default function ProfileRows({ Data }) {
   const [isType, setIsType] = useState("");
@@ -78,6 +79,7 @@ export default function ProfileRows({ Data }) {
         }}
         onEndReachedThreshold={0.4}
         // Small activity spinner at the bottom when fetching page 2, 3, 4...
+        ListHeaderComponent={<ProfileFlatListHeader message={"Ibicuruzwa byawe abandi babona"} />}
         ListFooterComponent={
           isFetchingProducts && page > 1 ? (
             <ActivityIndicator

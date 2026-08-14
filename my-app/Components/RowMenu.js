@@ -38,16 +38,30 @@ export default function RowMenu({ styles, productId, item }) {
             params: { productId: productId },
           });
         }}
-        styles={[{ borderWidth: 1, height: 25 }, styled.bordeR]}
-        content={<Text style={styled.paragraph}>Edit</Text>}
+        styles={[
+          {
+            height: 25,
+            backgroundColor: GlobalStyles.Primary_Yellow,
+          },
+          styled.bordeR,
+        ]}
+        content={"Edit"}
       />
 
       <Button
         onPress={() => {
           setIsDeleteVisible((prev) => !prev);
         }}
-        styles={[{ borderWidth: 1, height: 25 }, styled.bordeR]}
-        content={<Text style={styled.paragraph}>delete</Text>}
+        styles={[
+          {
+            height: 25,
+
+            backgroundColor: GlobalStyles.Primary_Yellow,
+          },
+          styled.bordeR,
+          styled.paragraph,
+        ]}
+        content={"delete"}
       />
       {isDeleteVisible && (
         <ConfirmDeleteProduct
@@ -83,6 +97,7 @@ const styled = StyleSheet.create({
   Views: {
     marginVertical: 12,
   },
+  paragraph: { fontSize: 20 },
   icon: {
     marginHorizontal: 8,
   },

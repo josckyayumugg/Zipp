@@ -4,7 +4,12 @@ import Button from "./Button";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import RowMenu from "./RowMenu";
-import { formatDateTime } from "../Helpers";
+
+import {
+  formatDateTime,
+  formatNumber,
+  isEligibleForActivation,
+} from "../Helpers";
 import { ActivityIndicator } from "react-native";
 import ConfirmDeleteDeal from "./ConfirmDeleteDeal";
 import { useState } from "react";
@@ -15,18 +20,29 @@ import SeeAllScreen from "../screens/SeeAllScreen";
 import { SceneStyleInterpolators } from "@react-navigation/bottom-tabs";
 import { queryClient } from "../App";
 import LoadingPaging from "./LoadingPaging";
+import { useActivateProductDeal } from "../_CustomHooks/ProductServices";
+import { QueryClientContext } from "@tanstack/react-query";
 
-export default function DealProfileRow({ Data }) {
+export default function DealProfileRow({ Data, setIsEditId, setIsVisible }) {
   const navigation = useNavigation();
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
+  // const [isDealActive,setIsDealActive]=useState(false)
 
   const creationDate = formatDateTime(Data?.created_at);
+  const formattedPrice = formatNumber(Data?.price);
   const {
     mutate: DeleteDeal,
     isPending,
     isError,
     error,
   } = useDeleteProductDeal(Data?.id);
+
+  const {
+    mutate: ActivateDeal,
+    isError: isErrorActivate,
+    error: errorActivate,
+    isPending: isPendingActivate,
+  } = useActivateProductDeal();
 
   const handleDeleteConfirm = (dealId) => {
     DeleteDeal(dealId, {
@@ -52,12 +68,42 @@ export default function DealProfileRow({ Data }) {
       },
     });
   };
+
+  const activate = isEligibleForActivation(Data?.lastUpdatedAt);
+  const handleActivateDeal = (dealId) => {
+    ActivateDeal(dealId, {
+      onSuccess: () => {
+        Toast.show({
+          type: "success",
+          text1: "Activated🗑️",
+          text2: "The deal was activated successfully.",
+          position: "top",
+          visibilityTime: 3000,
+        });
+
+        queryClient.invalidateQueries("allDeals");
+      },
+      onError: (err) => {
+        Toast.show({
+          type: "error",
+          text1: "Delete failed",
+          text2: err?.message || "Something went wrong.",
+          position: "top",
+          visibilityTime: 4000,
+        });
+      },
+    });
+  };
   if (isPending) {
     <LoadingPaging />;
   }
   if (isError) {
     <ErrorPage message={error.message} />;
   }
+  if (isErrorActivate) {
+    <ErrorPage message={errorActivate.message} />;
+  }
+
   return (
     <View
       style={[
@@ -69,7 +115,9 @@ export default function DealProfileRow({ Data }) {
       ]}
     >
       <View style={[styles.info]}>
-        <Text style={[styles.smallText, styles.bold]}>{Data?.name}</Text>
+        <Text style={[styles.smallText, styles.bold, { marginBottom: 2 }]}>
+          {Data?.name}
+        </Text>
         {/*  */}
 
         <View
@@ -79,13 +127,13 @@ export default function DealProfileRow({ Data }) {
             gap: 4,
           }}
         >
-          <Text style={[styles.smallText, styles.bold, styles.greenT]}>
-            {Data?.price}
+          <Text style={[styles.body, styles.bold, styles.greenT]}>
+            {formattedPrice}
           </Text>
           <Text
             style={[
               styles.greenT,
-              styles.smallText,
+              styles.smallT,
               styles.bold,
               { alignSelf: "center" },
             ]}
@@ -93,50 +141,82 @@ export default function DealProfileRow({ Data }) {
             {Data?.currency}
           </Text>
         </View>
-        <Text style={styles.smallText}>{creationDate}</Text>
+        <Text style={styles.smallT}>{creationDate}</Text>
       </View>
-      <View
-        style={{
-          width: "35%",
-          flexDirection: "row",
-          gap: 8,
-        }}
-      >
-        <Button
-          onPress={() => {
-            navigation.navigate("Tabs", {
-              screen: "Home",
-              params: {
-                dealId: Data?.id,
-                isCreateDealOpen: true,
-                isEditing: true,
+      <View style={{ width: "35%" }}>
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            gap: 8,
+          }}
+        >
+          <Button
+            onPress={() => {
+              setIsEditId(Data?.id);
+              setIsVisible(true);
+            }}
+            styles={[
+              {
+                backgroundColor: GlobalStyles.Primary_Yellow,
+                marginVertical: 8,
               },
-            });
-          }}
-          styles={[
-            {
-              backgroundColor: GlobalStyles.Primary_Yellow,
-              marginVertical: 8,
-            },
-            styles.bordeR,
-            styles.paddingSm,
-          ]}
-          content={<Text>Edit</Text>}
-        />
-        <Button
-          onPress={() => {
-            setIsDeleteVisible(true);
-          }}
-          styles={[
-            {
-              backgroundColor: GlobalStyles.Primary_Yellow,
-              marginVertical: 8,
-            },
-            styles.bordeR,
-            styles.paddingSm,
-          ]}
-          content={<Text>Delete</Text>}
-        />
+              styles.bordeR,
+              styles.paddingSm,
+            ]}
+            content={<Text>Edit</Text>}
+          />
+          <Button
+            onPress={() => {
+              setIsDeleteVisible(true);
+            }}
+            styles={[
+              {
+                backgroundColor: GlobalStyles.Primary_Yellow,
+                marginVertical: 8,
+              },
+              styles.bordeR,
+              styles.paddingSm,
+            ]}
+            content={<Text>Delete</Text>}
+          />
+        </View>
+        {activate ? (
+          <Pressable
+            disabled={isPendingActivate}
+            onPress={() => {
+              handleActivateDeal(Data.id);
+            }}
+            style={({ pressed }) => [
+              pressed && styles.pressed,
+
+              {
+                backgroundColor: GlobalStyles.Primary_Green2,
+                marginVertical: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+              styles.bordeR,
+              styles.paddingSm,
+            ]}
+          >
+            {isPendingActivate ? (
+              <ActivityIndicator size={"small"} />
+            ) : (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name={"refresh"} size={12} />
+                <Text style={styles.smallText}>Activate</Text>
+              </View>
+            )}
+          </Pressable>
+        ) : null}
       </View>
       {isDeleteVisible && (
         <ConfirmDeleteDeal
@@ -148,6 +228,7 @@ export default function DealProfileRow({ Data }) {
           onConfirm={handleDeleteConfirm}
           isError={isError}
           error={error}
+          type={"deal"}
         />
       )}
     </View>
@@ -268,6 +349,10 @@ const styles = StyleSheet.create({
     color: GlobalStyles.Primary_Green,
   },
   smallText: {
+    fontSize: 18,
+    fontFamily: "Roboto-Light",
+  },
+  body: {
     fontSize: 16,
     fontFamily: "Roboto-Light",
   },

@@ -92,7 +92,7 @@ export default function ProfileOverView({ profileId }) {
         ]}
       >
         <Text style={[styles.bigText, styles.bold, styles.smallMVertical]}>
-          <Ionicons name="folder" size={18} style={{ marginHorizontal: 8 }} />
+          <Ionicons name="folder" size={18} />
           contact information
         </Text>
         <View style={styles.column}>
@@ -144,12 +144,7 @@ export default function ProfileOverView({ profileId }) {
           onPress={() => {
             navigation.navigate("Settings");
           }}
-          styles={[
-            styles.smallMVertical,
-            { borderWidth: 1 },
-            styles.bordeR,
-            styles.paddingLg,
-          ]}
+          styles={[styles.smallMVertical, styles.paddingLg]}
           content={
             <Text>
               <Ionicons
@@ -163,12 +158,7 @@ export default function ProfileOverView({ profileId }) {
         />
         <Button
           onPress={LogoutHandler}
-          styles={[
-            styles.smallMVertical,
-            { borderWidth: 1, borderColor: "red" },
-            styles.paddingLg,
-            styles.bordeR,
-          ]}
+          styles={[styles.smallMVertical]}
           content={<Text style={{ color: "red" }}>Logout</Text>}
         />
       </View>

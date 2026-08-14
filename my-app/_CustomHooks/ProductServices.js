@@ -10,11 +10,11 @@ import { isEnabled } from "react-native/Libraries/Performance/Systrace";
 import { TouchableWithoutFeedbackBase } from "react-native";
 
 export function useGetAllProducts(filters, page) {
+  const pageSize = 15;
   return useInfiniteQuery({
     queryKey: ["getallProductspagination", filters, page],
-    queryFn: async () => {
-      const pageSize = 15;
-      const from = (page - 1) * pageSize;
+    queryFn: async ({ pageParam }) => {
+      const from = pageParam * pageSize;
       const to = from + pageSize - 1;
 
       let query = supabase.from("Products").select("*");
@@ -55,8 +55,15 @@ export function useGetAllProducts(filters, page) {
 
       return data;
     },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < pageSize) {
+        return undefined;
+      }
+      return allPages.length;
+    },
+
     enabled: filters.shouldSearch,
-    placeholderData: keepPreviousData,
   });
 }
 
@@ -70,14 +77,14 @@ export function useGetAllProductDeals() {
       ).toISOString();
 
       let from = pageParam * 10;
-      let to = from + 9;
+      let to = from + pageSize - 1;
 
       // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
         .from("Deals")
         .select("*")
 
-        .gte("created_at", twentyFourHoursAgo)
+        .gte("lastUpdatedAt", twentyFourHoursAgo)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -104,7 +111,7 @@ export function useGetAllMyProductDealsWithInvisible(id) {
     queryKey: ["noFilterDeals"],
     queryFn: async ({ pageParam }) => {
       let from = pageParam * 10;
-      let to = from + 9;
+      let to = from + pageSize - 1;
 
       // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
@@ -129,6 +136,7 @@ export function useGetAllMyProductDealsWithInvisible(id) {
       return allPages.length; // Next page number (0, 1, 2...)
     },
     initialPageParam: 0,
+    enabled: !!id,
   });
 }
 export function useGetNewProductsHome() {
@@ -136,8 +144,8 @@ export function useGetNewProductsHome() {
   return useInfiniteQuery({
     queryKey: ["homeProducts"],
     queryFn: async ({ pageParam }) => {
-      let from = pageParam * 10;
-      let to = from + 9;
+      let from = pageParam * pageSize;
+      let to = from + pageSize - 1;
 
       // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
@@ -155,10 +163,10 @@ export function useGetNewProductsHome() {
     refetchInterval: 20 * 60 * 1000,
     getNextPageParam: (lastPage, allPages) => {
       // If last fetched page had fewer items than pageSize, we hit the end
-      if (lastPage.length < pageSize) {
+      if (lastPage?.length < pageSize) {
         return undefined; // No more pages
       }
-      return allPages.length; // Next page number (0, 1, 2...)
+      return allPages?.length; // Next page number (0, 1, 2...)
     },
     initialPageParam: 0,
   });
@@ -455,6 +463,23 @@ export function useEditProductDeal() {
     },
   });
 }
+
+export function useActivateProductDeal() {
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data, error } = await supabase
+        .from("Deals")
+        .update({ lastUpdatedAt: new Date().toISOString() })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useDeleteProduct() {
   return useMutation({
     mutationFn: async (id) => {
@@ -517,9 +542,9 @@ export function useCountProductsDeals(id) {
       ).toISOString();
       const { count, error } = await supabase
         .from("Deals")
-        .select("id", { count: "exact", head: true })
+        .select("id", { count: "exact" })
         .eq("createdBy", id)
-        .gte("created_at", twentyFourHoursAgo);
+        .gte("lastUpdatedAt", twentyFourHoursAgo);
 
       if (error) {
         // Log all error properties explicitly

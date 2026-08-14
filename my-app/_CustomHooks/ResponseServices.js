@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
 import { enableFreeze } from "react-native-screens";
@@ -6,7 +6,6 @@ import { enableFreeze } from "react-native-screens";
 export function useCreateResponse(data) {
   return useMutation({
     mutationFn: async (data) => {
-      console.log({ dore: data });
       const { data: spData, error } = await supabase
         .from("Responses")
         .insert([data])
@@ -23,9 +22,8 @@ export function useCreateResponse(data) {
 export function useDeleteResponses() {
   return useMutation({
     mutationFn: async (id) => {
-      console.log("here to delete", id);
       const { data: spData, error } = await supabase
-        .from("Requests")
+        .from("Responses")
         .delete()
         .eq("id", id)
         .select();
@@ -42,6 +40,7 @@ export function useGetAllResponses(id, query) {
     queryKey: ["allResponses", id, query],
 
     queryFn: async () => {
+      //i used request instead of responses//
       try {
         let request = supabase
           .from("Responses")
@@ -69,6 +68,45 @@ export function useGetAllResponses(id, query) {
       }
     },
 
+    enabled: !!id,
+  });
+}
+export function useGetAllMyResponses(id) {
+  //it is the same as usegetallresponses
+
+  const pageSize = 15;
+  return useInfiniteQuery({
+    queryKey: ["allMyResponses", id],
+
+    queryFn: async ({ pageParam }) => {
+      let from = pageParam * pageSize;
+      let to = from + 14;
+
+      const { data, error } = await supabase
+        .from("Responses")
+        .select("*")
+        .eq("createdBy", id)
+
+        .order("createdAt", {
+          ascending: false,
+        })
+        .range(from, to);
+
+      if (error) {
+        console.log("inyungu", error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // If last fetched page had fewer items than pageSize, we hit the end
+      if (lastPage.length < pageSize) {
+        return undefined; // No more pages
+      }
+      return allPages.length; // Next page number (0, 1, 2...)
+    },
+    initialPageParam: 0,
     enabled: !!id,
   });
 }
@@ -113,29 +151,29 @@ export function useGetSingleResponse(id) {
     enabled: !!id,
   });
 }
-export function useEditResponse() {
-  return useMutation({
-    mutationFn: async (updatedData) => {
-      try {
-        const { data, error } = await supabase
-          .from("Responses")
-          .update(updatedData)
-          .eq("id", updatedData.id)
-          .select()
-          .single();
+// export function useEditResponse() {
+//   return useMutation({
+//     mutationFn: async (updatedData) => {
+//       try {
+//         const { data, error } = await supabase
+//           .from("Responses")
+//           .update(updatedData)
+//           .eq("id", updatedData.id)
+//           .select()
+//           .single();
 
-        if (error) {
-          throw error;
-        }
+//         if (error) {
+//           throw error;
+//         }
 
-        return data;
-      } catch (error) {
-        console.error("Error updating request:", error);
-        throw error;
-      }
-    },
-  });
-}
+//         return data;
+//       } catch (error) {
+//         console.error("Error updating request:", error);
+//         throw error;
+//       }
+//     },
+//   });
+// }
 
 export function useCountMyResponses(id) {
   return useQuery({
@@ -156,5 +194,32 @@ export function useCountMyResponses(id) {
     },
     // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
     enabled: !!id,
+  });
+}
+// export function useDeleteResponse({ id }) {
+//   return useQuery({
+//     queryKey: ["deleteResponse"],
+//     queryFn: async () => {
+//       const { error } = await supabase.from("Responses").delete().eq("id", id);
+//     },
+//   });
+// }
+
+export function useEditResponse() {
+  return useMutation({
+    mutationFn: async (updatedData) => {
+      console.log("zunguzayi", updatedData);
+      const { id, ...editFields } = updatedData;
+      const { data, error } = await supabase
+        .from("Responses")
+        .update(editFields)
+        .eq("id", id)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
   });
 }

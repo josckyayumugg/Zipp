@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import NoProductsProfile from "./NoProductsProfile";
 import ProductProfileRow from "./ProfileProductRow";
 import { useEffect, useState } from "react";
-import ProfileProformaRow from "./ProfileProformaRow";
+
 import { useCountMyResponses } from "../_CustomHooks/ResponseServices";
 import { FlatList } from "react-native";
 import { getYear } from "../Helpers";
@@ -181,7 +181,7 @@ export default function ProfileSelling({ profileId, creationYear }) {
       <View style={styles.rowBtn}>
         <Pressable
           onPress={() => {
-            navigator.navigate("My Data", { type: "Responses" });
+            navigator.navigate("My Responses", { type: "Responses" });
           }}
           style={[
             styles.paddingLg,
@@ -230,7 +230,10 @@ export default function ProfileSelling({ profileId, creationYear }) {
         </Pressable>
         <Pressable
           onPress={() => {
-            navigator.navigate("My Data", { type: "Requests" });
+            navigator.navigate("Tabs", {
+              screen: "Request",
+              params: { type: "myRequest" },
+            });
           }}
           style={[
             styles.paddingLg,

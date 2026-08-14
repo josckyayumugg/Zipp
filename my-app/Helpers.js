@@ -214,3 +214,12 @@ export function formatNumber(amount) {
   // 6. Format with commas
   return numericAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+export function isEligibleForActivation(lastUpdatedAt) {
+  if (!lastUpdatedAt) return false;
+
+  const lastUpdated = new Date(lastUpdatedAt);
+  const now = new Date();
+  const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
+
+  return hoursSinceUpdate >= 24;
+}

@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import RowMenu from "./RowMenu";
 import { formatDateTime } from "../Helpers";
-import { ActivityIndicator } from "react-native-web";
+import { ActivityIndicator } from "react-native";
 
 export default function ProductProfileRow({ Data }) {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ export default function ProductProfileRow({ Data }) {
       ]}
     >
       <View style={[styles.info]}>
-        <Text style={[styles.paragraph, styles.bold]}>{Data.name}</Text>
+        <Text style={[styles.smallText, styles.bold]}>{Data.name}</Text>
         <View
           style={{
             flexDirection: "column",
@@ -35,7 +35,7 @@ export default function ProductProfileRow({ Data }) {
         <Text style={styles.smallT}>
           Product reports:{Data.reports ? Data.reports : 0}
         </Text>
-        <Text style={styles.smallText}>{creationDate}</Text>
+        <Text style={styles.smallT}>{creationDate}</Text>
       </View>
       <View
         style={{

@@ -11,7 +11,10 @@ import NewRequestModal from "../Components/NewRequest";
 import ARequest from "../Components/ARequest";
 
 import ConfirmDeleteRequest from "../Components/ConfirmDeleteRequest";
-import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import {
+  useGetCurrentProfile,
+  useGetCurrentUser,
+} from "../_CustomHooks/Authentication";
 import { useGetAllMyRequests } from "../_CustomHooks/RequestServices";
 import LoadingPaging from "../Components/LoadingPaging";
 import { FlatList } from "react-native";
@@ -19,8 +22,19 @@ import EditRequestModal from "../Components/EditRequestModal";
 import { useGetAllRequests } from "../_CustomHooks/RequestServices";
 import { ActivityIndicator } from "react-native";
 import NoProductsProfile from "../Components/NoProductsProfile";
+import { useRoute } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
+import { queryClient } from "../App";
+import Profile from "./Profile";
+import ErrorPage from "../Components/ErrorPage";
+import BecomeButton from "../Components/BecomButton";
+import { Watch } from "react-hook-form";
 
 export default function Request() {
+  const route = useRoute();
+  const fromProfile = route?.params?.type || "myRequest";
+
   //getuser
   const {
     data: user,
@@ -28,6 +42,13 @@ export default function Request() {
     error: errorUser,
     isError: isErrorUser,
   } = useGetCurrentUser();
+
+  const {
+    data: profile,
+    isError: isErrorProfile,
+    error: errorProfile,
+    isPending: isPendingError,
+  } = useGetCurrentProfile(user?.id);
   //hooks
   const Navigation = useNavigation();
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
@@ -49,9 +70,18 @@ export default function Request() {
     isError,
     error,
     isPending,
+    hasNextPage: hasNextPageMy,
+
+    isFetching: isFetchingMy,
+    fetchNextPage: fetchNextPageMy,
   } = useGetAllMyRequests(profileId, isMySearchQuery);
 
   /////Getttin all requests
+  useFocusEffect(
+    useCallback(() => {
+      setRequestType(route?.params?.type || "myRequest");
+    }, [route?.params?.type]),
+  );
 
   const {
     isPending: isPendingAll,
@@ -59,11 +89,21 @@ export default function Request() {
 
     data: dataAll,
     isError: isErrorAll,
+    hasNextPage: hasNextPageAll,
+    isFetching: isFetchingAll,
+    fetchNextPage: fetchNextPageAll,
   } = useGetAllRequests(isFilterType, isSortBoolean, isSearchQuery);
 
   if (isPendingUser) {
     return <LoadingPaging />;
   }
+  if (isError) return <ErrorPage message={error.message} />;
+  if (isErrorProfile) return <ErrorPage message={error.message} />;
+  if (isErrorAll) return <ErrorPage message={errorAll.message} />;
+  if (isErrorUser) return <ErrorPage message={errorAll.message} />;
+  if (isErrorUser) return <ErrorPage message={errorUser.message} />;
+  const myRequestedData = MyRequests?.pages.flat() ?? [];
+  const AllRequestData = dataAll?.pages.flat() ?? [];
   return (
     <View style={[styles.paddingSm, { flex: 1 }]}>
       {requestType === "myRequest" && (
@@ -145,46 +185,63 @@ export default function Request() {
             <View
               style={{ flexDirection: "row", width: "30%", gap: 4, height: 30 }}
             >
-              <Button
-                styles={[
+              <View
+                style={[
                   styles.bordeR,
-                  {
-                    borderWidth: 1,
-                    paddingVertical: 2,
-                    borderColor: GlobalStyles.Primary_Green,
-
-                    color: GlobalStyles.Primary_Grey5,
-                  },
-
-                  styles.smallT,
-                  styles.bold,
                   isFilterType === "createdAt" && styles.greenBg,
-                ]}
-                onPress={() => {
-                  setIsFilterType("createdAt");
-                }}
-                content={<Text style={styles.smallT}>Time</Text>}
-              />
-              <Button
-                styles={[
-                  styles.bordeR,
                   {
                     borderWidth: 1,
-                    padding: 2,
-                    borderColor: GlobalStyles.Primary_Green,
+                    justifyContent: "center",
+                    alignItems: "center",
 
+                    padding: 2,
+                    paddingHorizontal: 4,
+                    borderColor: GlobalStyles.Primary_Green,
+                    flexDirection: "row",
                     color: GlobalStyles.Primary_Grey5,
                   },
-
-                  styles.smallT,
-                  styles.bold,
-                  isFilterType === "budget" && styles.greenBg,
                 ]}
-                onPress={() => {
-                  setIsFilterType("budget");
-                }}
-                content={<Text style={styles.smallT}>Price</Text>}
-              />
+              >
+                <Ionicons name={"time"} size={12} />
+                <Button
+                  styles={[styles.smallT, styles.bold]}
+                  onPress={() => {
+                    setIsFilterType("createdAt");
+                  }}
+                  content={<Text style={styles.smallT}>Time</Text>}
+                />
+              </View>
+              <View
+                style={[
+                  styles.bordeR,
+                  isFilterType === "budget" && styles.greenBg,
+                  {
+                    borderWidth: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+
+                    padding: 2,
+
+                    paddingHorizontal: 4,
+                    borderColor: GlobalStyles.Primary_Green,
+                    flexDirection: "row",
+                    color: GlobalStyles.Primary_Grey5,
+                  },
+                ]}
+              >
+                <Span content={"$"} styles={styles.bold} />
+                <Button
+                  styles={[
+                    styles.smallT,
+                    styles.bold,
+                    
+                  ]}
+                  onPress={() => {
+                    setIsFilterType("budget");
+                  }}
+                  content={<Text style={styles.smallT}>Price</Text>}
+                />
+              </View>
             </View>
             <Button
               styles={[
@@ -230,6 +287,7 @@ export default function Request() {
           }
           onPress={() => {
             setRequestType("allRequests");
+            queryClient.invalidateQueries("AllRequests");
           }}
         />
         <Button
@@ -249,8 +307,20 @@ export default function Request() {
       {requestType === "myRequest" && (
         <View style={{ flex: 1 }}>
           {isPending && <ActivityIndicator style={{ marginTop: 150 }} />}
+
+          {myRequestedData?.length <= 0 && (
+            <NoProductsProfile
+              message={"No requests found"}
+              ButtonContent={"Reload"}
+              style={{
+                marginTop: 100,
+              }}
+              onPress={() => queryClient.invalidateQueries("AllMyRequests")}
+            />
+          )}
+
           <FlatList
-            data={MyRequests}
+            data={myRequestedData}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <ARequest
@@ -267,39 +337,67 @@ export default function Request() {
                 }}
               />
             )}
+            onEndReached={() => {
+              if (hasNextPageMy && !isFetchingMy) {
+                fetchNextPageMy();
+              }
+            }}
+            onEndReachedThreshold={0.4}
           />
         </View>
       )}
       {requestType === "allRequests" && (
         <View style={{ flex: 1 }}>
           {isPendingAll && <ActivityIndicator style={{ marginTop: 150 }} />}
-          {dataAll?.length <= 0 && (
+          {AllRequestData?.length <= 0 && profile?.type === "seller" ? (
             <NoProductsProfile
-              message={"No Requests  were found"}
+              message={"No Requests   found"}
               ButtonContent={"Reload"}
+              style={{ marginTop: 100 }}
               onPress={() => setIsSearchQuery("")}
             />
+          ) : null}
+          {profile?.type === "seller" ? (
+            <FlatList
+              data={AllRequestData}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <ARequest
+                  Data={item}
+                  user={user}
+                  requestType={requestType}
+                  id={item.id}
+                  onEdit={() => {
+                    setIsSelectedRequest(item);
+                    setIsEditModalVisible(true);
+                  }}
+                  onDelete={() => {
+                    setIsSelectedRequest(item);
+                    setIsConfirmDeleteOpen(true);
+                  }}
+                />
+              )}
+              onEndReached={() => {
+                if (hasNextPageAll && !isFetchingAll) {
+                  fetchNextPageAll();
+                }
+              }}
+            />
+          ) : (
+            <View style={{ width: "100%", marginTop: 100 }}>
+              <Text
+                style={[
+                  styles.italic,
+                  styles.smallMVertical,
+                  { color: GlobalStyles.Kn_orange },
+                ]}
+              >
+                Gushyira ibiciro kuri requests z’abandi bisaba kuba uri
+                umucuruzi.
+              </Text>
+              <BecomeButton styles={{ height: 40 }} />
+            </View>
           )}
-          <FlatList
-            data={dataAll}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <ARequest
-                Data={item}
-                user={user}
-                requestType={requestType}
-                id={item.id}
-                onEdit={() => {
-                  setIsSelectedRequest(item);
-                  setIsEditModalVisible(true);
-                }}
-                onDelete={() => {
-                  setIsSelectedRequest(item);
-                  setIsConfirmDeleteOpen(true);
-                }}
-              />
-            )}
-          />
         </View>
       )}
       {isCreateModalOpen && (
@@ -486,6 +584,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: "Roboto-Light",
     marginRight: 20,
+  },
+  italic: {
+    fontSize: 16,
+    fontFamily: "Roboto-italic",
   },
   paragraph: {
     fontFamily: "Roboto-Light",

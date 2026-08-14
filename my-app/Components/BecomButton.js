@@ -1,127 +1,78 @@
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import React from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
-import Button from "./Button";
-
-export default function ProfileProformaRow({ onToggleStatus }) {
-  const Data = {
-    title: "Mercedes Benz Front Bumper",
-    price: 200000,
-    more: ["Toyota", "Suv"],
-    status: "not active",
-    RequestedBy: "AgroBusiness in Gatsata",
-  };
+import { Ionicons } from "@expo/vector-icons";
+export default function BecomeButton({
+  styles,
+  content,
+  onPress,
+  disable = false,
+  styling,
+}) {
   return (
-    <View
-      style={[
-        styles.row,
-        styles.bordeR,
-        styles.smallMVertical,
-        {
-          borderWidth: 1,
-          borderColor: GlobalStyles.Primary_Grey2,
-        },
+    <Pressable
+      disabled={disable}
+      onPress={onPress}
+      style={({ pressed }) => [
+        pressed && styless.pressed,
+        { flex: 1 },
+        styling,
       ]}
     >
-      <View style={[styles.info, styles.smallMVertical, { gap: 4 }]}>
+      <View
+        style={[
+          styless.column,
+          styless.paddingLg,
+          styless.bordeR,
+          styles,
+          {
+            alignItems: "center",
+            backgroundColor: GlobalStyles.Primary_Green,
+
+            justifyContent: "center",
+          },
+        ]}
+      >
         <View
           style={[
+            styless.paragraph,
+            styless.bold,
             {
               flexDirection: "row",
-              gap: 8,
-              alignItems: "flex-end",
-              flexWrap: "wrap",
+              gap: 4,
+              justifyContent: "center",
+              alignContent: "center",
             },
           ]}
         >
-          <Text style={styles.headerTitle}>{Data.title}</Text>
-
-          {Data.more.map((item, i) => (
-            <Text
-              key={i}
-              style={[
-                styles.smallT,
-                styles.bordeR,
-
-                {
-                  borderColor: GlobalStyles.Primary_Grey2,
-                  borderWidth: 1,
-                  padding: 1,
-                },
-              ]}
-            >
-              {item}
-            </Text>
-          ))}
+          <Ionicons
+            style={{ alignSelf: "center" }}
+            name={"lock-closed-sharp"}
+            color={GlobalStyles.gold}
+            size={16}
+          />
+          <Text style={[styless.bold, styless.smallText, styless.whiteT]}>
+            Become a seller(Ba umucuruzi)
+          </Text>
         </View>
-
-        <Text style={{ fontSize: 18 }}>
-          by:
-          <Text>{Data.RequestedBy}</Text>
-        </Text>
-        <Text style={styles.smallT}>Added on 12/24/2022 8:00Am</Text>
-        <Text
-          style={[
-            styles.bold,
-            styles.paddingSm,
-            {
-              backgroundColor: GlobalStyles.Primary_Green2,
-              alignSelf: "flex-start",
-            },
-          ]}
-        >
-          300 000 Rwf
-        </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-  },
-
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-  },
-
-  info: {
-    flex: 1,
-    marginLeft: 10,
-  },
-
-  title: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-
-  button: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
+const styless = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
     height: "100%",
-    minWidth: "100%",
+    maxWidth: "100%",
     fontFamily: "notoSans",
   },
+  container: { flex: 1, flexDirection: "column", padding: 6 },
 
   mainTitle: {
     fontFamily: "Roboto-Extrabold",
-    fontSize: 24,
+    fontSize: 35,
     textAlign: "center",
   },
   PageHeaderTitle: {
@@ -139,6 +90,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-regular",
     fontSize: 12,
   },
+
   smallMVertical: {
     marginVertical: 8,
   },
@@ -170,16 +122,10 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  rowBtn: {
-    flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
   },
   column: {
     flexDirection: "column",
-    justifyContent: "space-evenly",
-    gap: 8,
   },
   whiteT: {
     color: "white",
@@ -191,17 +137,17 @@ const styles = StyleSheet.create({
     color: GlobalStyles.Primary_Green,
   },
   smallText: {
-    fontSize: 10,
+    fontSize: 18,
     fontFamily: "Roboto-Light",
   },
   whiteText: {
     color: GlobalStyles.Primary_Grey,
   },
-  yellowBg: {
-    backgroundColor: GlobalStyles.Primary_Yellow,
+  yellow: {
+    color: GlobalStyles.Primary_Yellow,
   },
   blackBg: {
-    backgroundColor: GlobalStyles.Black,
+    backgroundColor: "black",
   },
   cards: {
     alignSelf: "flex-end",
@@ -225,6 +171,8 @@ const styles = StyleSheet.create({
   },
 
   headerCard: {
+    backgroundColor: GlobalStyles.Primary_Grey,
+
     margin: 6,
     borderWidth: 1,
 
@@ -254,6 +202,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingBottom: 4,
   },
+  paddingLg: {
+    padding: 8,
+  },
   sectionTitle: {
     fontFamily: "Roboto-Extrabold",
     fontSize: 22,
@@ -262,13 +213,14 @@ const styles = StyleSheet.create({
   },
 
   bigText: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Roboto-Light",
     marginRight: 20,
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 20,
+    fontSize: 16,
+    fontWeight: 700,
   },
   button: {
     alignSelf: "start",
@@ -276,16 +228,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 4,
   },
-
+  blackBg: {
+    backgroundColor: GlobalStyles.Black,
+  },
   bordeR: {
-    borderRadius: 6,
+    borderRadius: 12,
     overflow: "hidden",
-  },
-  paddingSm: {
-    padding: 4,
-  },
-  paddingLg: {
-    padding: 8,
   },
   button: {
     backgroundColor: GlobalStyles.Primary_Green,

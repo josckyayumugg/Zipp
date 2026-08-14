@@ -43,27 +43,17 @@ import {
 import { useEditProduct } from "../_CustomHooks/ProductServices";
 import { containsContactInfo } from "../Helpers";
 
-import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import {
+  useGetCurrentProfile,
+  useGetCurrentUser,
+} from "../_CustomHooks/Authentication";
 import { useCreateProductDeal } from "../_CustomHooks/ProductServices";
 import { isAuthRefreshDiscardedError } from "@supabase/supabase-js";
 
-export default function CreateDealModal({
-  visible,
-  setIsVisible,
-  EditingId,
-  isEditing,
-}) {
+export default function CreateDealModal({ visible, setIsVisible }) {
   // State definitions for your filter metrics
-  console.log("iimyuga", EditingId, isEditing);
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [isEditingDeal, setIsEditingDeal] = useState(false);
 
-  const {
-    data: EditingProduct,
-    isPending,
-    isError,
-    error,
-  } = useGetSingleProductDeal(EditingId);
+  const [openDropdown, setOpenDropdown] = useState(false);
 
   const {
     control,
@@ -87,22 +77,6 @@ export default function CreateDealModal({
     },
   });
 
-  useEffect(() => {
-    if (EditingProduct) {
-      reset({
-        images: EditingProduct.images,
-        name: EditingProduct.name,
-        year: EditingProduct.year,
-        model: EditingProduct.model,
-        description: EditingProduct.description,
-        currency: EditingProduct.currency,
-        more: EditingProduct.more,
-        brand: EditingProduct.brand,
-        price: EditingProduct.price,
-        createdBy: EditingProduct.createdBy,
-      });
-    }
-  }, [EditingProduct]);
   /////////////
   const [currencyItems, setCurrencyItems] = useState([
     { label: "RWF 🇷🇼", value: "RWF" },
@@ -112,25 +86,12 @@ export default function CreateDealModal({
   ]);
 
   const {
-    mutate: mutationEditing,
-    isPending: isWaitingEditing,
-    isError: isErrorEditing,
-    error: EditingError,
-  } = useEditProductDeal(EditingId);
-  const {
     mutate: mutationDeal,
     isPending: isPendingDeal,
     isError: isErrorDeal,
     error: errorDeal,
   } = useCreateProductDeal();
-  useEffect(() => {
-    console.log("dore ko", EditingProduct);
-    if (isEditing) {
-      setIsEditingDeal(true);
-      console.log("intengo", EditingProduct);
-      console.log("shem", isEditingDeal);
-    }
-  }, [isEditing, EditingProduct]);
+
   // About the  user
   const currentUser = supabase.auth.user ? supabase.auth.user() : null;
   // Note: If using newer Supabase V2 JS libraries, use:da
@@ -141,6 +102,7 @@ export default function CreateDealModal({
   } = useGetCurrentUser();
 
   const userId = user?.id;
+ 
 
   // Pull out the active array state in real time
   const capturedImages = watch("images") || [];
@@ -197,35 +159,6 @@ export default function CreateDealModal({
   }
 
   function submitHandler(data) {
-    if (isEditingDeal) {
-      return mutationEditing(
-        { ...data, id: EditingId },
-        {
-          onSuccess: () => {
-            Toast.show({
-              type: "success",
-              text1: "Success 👋",
-              text2: "Edit was successful!",
-              position: "top", // or "bottom"
-              visibilityTime: 3000,
-            });
-            reset({
-              name: "",
-              brand: "",
-              model: "",
-              year: "",
-              details: "",
-              currency: "RWF",
-              price: "",
-            });
-            queryClient.invalidateQueries("allDeals");
-            setIsEditingDeal(false);
-            setIsVisible(false);
-          },
-        },
-      );
-    }
-
     mutationDeal(
       { ...data, userId },
       {
@@ -237,20 +170,28 @@ export default function CreateDealModal({
             position: "top", // or "bottom"
             visibilityTime: 3000,
           });
-          reset();
+          reset({
+            name: "",
+            brand: "",
+            model: "",
+            year: "",
+            details: "",
+            currency: "RWF",
+            price: "",
+          });
           setIsVisible(false);
+          queryClient.invalidateQueries("allDeals");
         },
       },
     );
   }
-  // if (isWaitingEditing) return <LoadingPaging />;
+
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       style={{ marginTop: 10, backgroundColor: "white" }}
-      onRequestClose={() => {}}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -692,7 +633,7 @@ export default function CreateDealModal({
                   setIsVisible(false);
                 }}
                 content="Cancel"
-                disable={isPendingDeal || isWaitingEditing}
+                disable={isPendingDeal}
                 styles={[
                   styles.bordeR,
                   styles.paddingLg,
@@ -709,7 +650,7 @@ export default function CreateDealModal({
               <Button
                 onPress={handleSubmit(submitHandler)}
                 // disable={isPending}
-                disable={isPendingDeal || isWaitingEditing}
+                disable={isPendingDeal}
                 content="Submit "
                 styles={[
                   {
