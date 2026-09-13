@@ -16,12 +16,10 @@ import { useState } from "react";
 import { useDeleteProductDeal } from "../_CustomHooks/ProductServices";
 import ErrorPage from "./ErrorPage";
 import Toast from "react-native-toast-message";
-import SeeAllScreen from "../screens/SeeAllScreen";
-import { SceneStyleInterpolators } from "@react-navigation/bottom-tabs";
-import { queryClient } from "../App";
+
+import { queryClient } from "../_lib/queryClient";
 import LoadingPaging from "./LoadingPaging";
 import { useActivateProductDeal } from "../_CustomHooks/ProductServices";
-import { QueryClientContext } from "@tanstack/react-query";
 
 export default function DealProfileRow({ Data, setIsEditId, setIsVisible }) {
   const navigation = useNavigation();
@@ -86,7 +84,7 @@ export default function DealProfileRow({ Data, setIsEditId, setIsVisible }) {
       onError: (err) => {
         Toast.show({
           type: "error",
-          text1: "Delete failed",
+          text1: "activate failed",
           text2: err?.message || "Something went wrong.",
           position: "top",
           visibilityTime: 4000,
@@ -94,15 +92,6 @@ export default function DealProfileRow({ Data, setIsEditId, setIsVisible }) {
       },
     });
   };
-  if (isPending) {
-    <LoadingPaging />;
-  }
-  if (isError) {
-    <ErrorPage message={error.message} />;
-  }
-  if (isErrorActivate) {
-    <ErrorPage message={errorActivate.message} />;
-  }
 
   return (
     <View
@@ -178,14 +167,14 @@ export default function DealProfileRow({ Data, setIsEditId, setIsVisible }) {
               styles.bordeR,
               styles.paddingSm,
             ]}
-            content={<Text>Delete</Text>}
+            content={<Text>{isPending ? "Deleting..." : "Delete"}</Text>}
           />
         </View>
         {activate ? (
           <Pressable
             disabled={isPendingActivate}
             onPress={() => {
-              handleActivateDeal(Data.id);
+              handleActivateDeal(Data?.id);
             }}
             style={({ pressed }) => [
               pressed && styles.pressed,
@@ -212,7 +201,9 @@ export default function DealProfileRow({ Data, setIsEditId, setIsVisible }) {
                 }}
               >
                 <Ionicons name={"refresh"} size={12} />
-                <Text style={styles.smallText}>Activate</Text>
+                <Text style={styles.smallText}>
+                  {isPendingActivate ? "Activating..." : "Activate"}
+                </Text>
               </View>
             )}
           </Pressable>
@@ -284,7 +275,8 @@ const styles = StyleSheet.create({
   },
   PageHeaderTitle: {
     fontFamily: "Roboto-Extrabold",
-    fontSize: 25,
+    fontSize: 25
+    ,
     textAlign: "center",
   },
   Views: {

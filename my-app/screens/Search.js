@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,9 +14,9 @@ import { useGetAllProducts } from "../_CustomHooks/ProductServices";
 import Button from "../Components/Button";
 import ProductCard from "../Components/ProductCard";
 import { useRoute } from "@react-navigation/native";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import NoProductsProfile from "../Components/NoProductsProfile";
-import LargeSpinner from "../Components/LargSpinner";
+
 import {
   useGetCurrentUser,
   useGetCurrentProfile,
@@ -45,7 +45,6 @@ export default function Search() {
   });
   const [appliedFilter, setAppliedFilter] = useState({});
 
-  // Fetch hook
   const {
     data,
     isPending,
@@ -135,7 +134,7 @@ export default function Search() {
               }
               setIsInputQuery(value);
             }}
-            styles={[styles.bordeR, styles.paddingSm, { width: "70%" }]}
+            styled={[styles.bordeR, styles.paddingSm, { width: "70%" }]}
           />
 
           <Button
@@ -236,16 +235,36 @@ export default function Search() {
           <Text style={[styles.smallText]}>
             Your search results will appear here
           </Text>
-          <Button
-            content={"Start to Filter"}
-            styles={[
-              { backgroundColor: GlobalStyles.Primary_Yellow, height: 30 },
+          <Pressable
+            style={[
+              {
+                backgroundColor: GlobalStyles.Primary_Yellow,
+
+                height: 30,
+              },
               styles.paddingSm,
               styles.bordeR,
               styles.smallMTop,
             ]}
-            onPress={() => setIsFilterOpen(true)}
-          />
+            onPress={() => {
+              setIsFilterOpen(true);
+            }}
+          >
+            <Text
+              style={[
+                {
+                  alignItems: "center",
+                  alignSelf: "center",
+                  marginVertical: "auto",
+                  paddingHorizontal: 8,
+                  fontWeight: 700,
+                },
+                styles.smallText,
+              ]}
+            >
+              start filtering
+            </Text>
+          </Pressable>
         </View>
       )}
 
@@ -257,7 +276,10 @@ export default function Search() {
       )} */}
 
       {/* ✅ FIX 3: Empty State - Only show when NOT fetching AND products list is genuinely empty */}
-      {searchedData <= 0 && shouldSearch && hasSearched && !isFetching ? (
+      {searchedData.length <= 0 &&
+      shouldSearch &&
+      hasSearched &&
+      !isFetching ? (
         <NoProductsProfile
           message={"No products were found"}
           ButtonContent={"Try again"}
@@ -291,7 +313,7 @@ export default function Search() {
         )}
         // Lock pagination: only increment page if not currently fetching & last batch had a full page of 15
         onEndReached={() => {
-          if (hasNextPage && !isFetching) {
+          if (hasNextPage && !isFetchingNextPage) {
             fetchNextPage();
           }
         }}

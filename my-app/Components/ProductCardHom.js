@@ -8,7 +8,6 @@ import { ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { formatNumber } from "../Helpers";
-import LargeSpinner from "./LargSpinner";
 
 export default function ProductCardHome({
   Stylesy,
@@ -19,18 +18,20 @@ export default function ProductCardHome({
 }) {
   const navigator = useNavigation();
 
-  const seller = {
-    directions: "Kigali/Gatsata/av2019",
-  };
-
   const sellerId = data?.profileId;
   const {
-    // data: seller,
+    data: seller,
     isPending,
     isError,
     error,
   } = useGetCurrentProfile(sellerId);
-
+  if (error) {
+    return (
+      <View>
+        <Text>{error?.message}</Text>
+      </View>
+    );
+  }
   return (
     <View
       style={[
@@ -39,6 +40,8 @@ export default function ProductCardHome({
           borderColor: GlobalStyles.Primary_Grey,
           borderWidth: 1,
           padding: 4,
+          borderBottomColor: GlobalStyles.Primary_Green,
+          borderBottomWidth: 5,
 
           shadowColor: "#000",
           shadowOffset: {
@@ -56,7 +59,7 @@ export default function ProductCardHome({
         styles.smallMVertical,
       ]}
     >
-      <View style={[styles.bordeR, { paddingTop: 4 }]}>
+      <View style={[styles.bordeR, { paddingTop: 4, paddingVertical: 4 }]}>
         <View>
           {!isImageLoaded ? (
             <ActivityIndicator
@@ -122,7 +125,7 @@ export default function ProductCardHome({
               styles.bordeR,
             ]}
           >
-            <Text style={styles.paragraph}>
+            <Text style={styles.smallT}>
               {data?.status ? "Active" : "Not-active"}
             </Text>
           </View>
@@ -133,8 +136,8 @@ export default function ProductCardHome({
             style={[
               {
                 position: "absolute",
-                top: 4,
-                left: 50,
+                top: 1,
+                left: 45,
                 borderRadius: 2,
                 flexDirection: "row",
                 gap: 2,
@@ -170,7 +173,7 @@ export default function ProductCardHome({
             {
               flexWrap: "wrap",
               width: "100%",
-              gap: 12,
+              gap: 8,
               paddingHorizontal: 4,
             },
           ]}
@@ -178,7 +181,7 @@ export default function ProductCardHome({
           {data?.brand ? (
             <Text
               style={[
-                styles.paragraph,
+                styles.smalling,
                 styles.bordeRSmall,
                 styles.paddingSm,
 
@@ -191,7 +194,7 @@ export default function ProductCardHome({
           {data?.model ? (
             <Text
               style={[
-                styles.paragraph,
+                styles.smalling,
                 styles.bordeRSmall,
                 styles.paddingSm,
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
@@ -203,7 +206,7 @@ export default function ProductCardHome({
           {data?.year ? (
             <Text
               style={[
-                styles.paragraph,
+                styles.smalling,
                 styles.bordeRSmall,
                 styles.paddingSm,
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
@@ -215,7 +218,7 @@ export default function ProductCardHome({
           {data?.more ? (
             <Text
               style={[
-                styles.paragraph,
+                styles.smalling,
                 styles.bordeRSmall,
                 styles.paddingSm,
                 { borderWidth: 1, marginVertical: 4, paddingHorizontal: 2 },
@@ -247,6 +250,9 @@ export default function ProductCardHome({
                 color: GlobalStyles.Primary_Green,
                 flexDirection: "row",
                 alignContent: "center",
+                borderBottomColor: GlobalStyles.Primary_Grey,
+                borderBottomWidth: 1,
+                paddingBottom: 12,
               },
             ]}
           >
@@ -256,7 +262,9 @@ export default function ProductCardHome({
               style={{ alignSelf: "flex-end" }}
               color={GlobalStyles.Primary_Grey2}
             />
-            <Text style={[{ alignSelf: "flex-end" }, styles.paragraph]}>
+            <Text
+              style={[{ alignSelf: "flex-end" }, styles.paragraph, styles.bold]}
+            >
               {seller?.directions}
             </Text>
           </View>
@@ -265,7 +273,7 @@ export default function ProductCardHome({
           style={[
             {
               backgroundColor: GlobalStyles.Primary_Yellow,
-              width: "90%",
+              width: "100%",
               alignSelf: "center",
               borderRadius: 4,
             },
@@ -276,6 +284,9 @@ export default function ProductCardHome({
           <Button
             onPress={() => {
               navigator.navigate("Product", { productId: data?.id });
+            }}
+            styles={{
+              paddingVertical: 4,
             }}
             content={<Text style={{ alignSelf: "center" }}>View Details</Text>}
           />
@@ -309,6 +320,7 @@ const styles = StyleSheet.create({
   icon: {
     marginHorizontal: 8,
   },
+
   smallT: {
     fontFamily: "Roboto-regular",
     fontSize: 12,
@@ -331,7 +343,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -430,7 +442,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-semibold",
     fontSize: 18,
     paddingBottom: 4,
-    fontWeight:700,
+    fontWeight: "700",
   },
   sectionTitle: {
     fontFamily: "Roboto-Extrabold",
@@ -441,14 +453,18 @@ const styles = StyleSheet.create({
 
   bigText: {
     fontSize: 22,
-    fontWeight: 800,
+    fontWeight: "800",
     fontFamily: "Roboto-bold",
     marginRight: 20,
   },
   paragraph: {
     fontFamily: "Roboto-Light",
     fontSize: 16,
-    lineHeight: 16,
+  },
+  smalling: {
+    fontFamily: "Roboto-Light",
+    fontSize: 12,
+    fontWeight: "700",
   },
   button: {
     alignSelf: "start",

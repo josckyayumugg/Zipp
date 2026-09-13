@@ -13,7 +13,7 @@ import ErrorPage from "./ErrorPage";
 import Toast from "react-native-toast-message";
 import SeeAllScreen from "../screens/SeeAllScreen";
 import { SceneStyleInterpolators } from "@react-navigation/bottom-tabs";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import LoadingPaging from "./LoadingPaging";
 import { useDeleteResponses } from "../_CustomHooks/ResponseServices";
 import { useGetSingleRequest } from "../_CustomHooks/RequestServices";
@@ -64,17 +64,13 @@ export default function ProfileResponseRow({ Data, itemIndex }) {
       },
     });
   };
-  if (isPending) {
-    <LoadingPaging />;
-  }
-  if (isError) {
-    <ErrorPage message={error.message} />;
-  }
-  if (isErrorRequest) {
-    <ErrorPage message={errorRequest.message} />;
-  }
-  if (isError) {
-    <ErrorPage message={error.message} />;
+
+  if (errorRequest) {
+    return (
+      <View style={{ alignContent: "center", flexDirection: "column" }}>
+        <Text style={styles.smallText}>{errorRequest.message}</Text>
+      </View>
+    );
   }
 
   return (

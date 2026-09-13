@@ -1,92 +1,18 @@
-import { useState } from "react";
-import {
-  ScrollView,
-  Text,
-  View,
-  StyleSheet,
-  TextInput,
-  Pressable,
-} from "react-native";
+import { ScrollView, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
-import Button from "../Components/Button";
-
-const CATEGORIES = [
-  "General Inquiry",
-  "Account Issue",
-  "Verification Issue",
-  "Bug Report",
-  "Feature Request",
-  "Other",
-];
+import { formatPhone } from "../Helpers";
 
 export default function ContactUs() {
-  const [selectedCategory, setSelectedCategory] = useState("General Inquiry");
-
-  const [message, setMessage] = useState("");
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Contact Us</Text>
 
       <Text style={styles.subtitle}>
-        Need help? Send us a message and our team will get back to you.
+        Need help? Contact us through any of the platforms below.
       </Text>
 
-      {/* Category */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Category</Text>
-
-        {CATEGORIES.map((item) => (
-          <Pressable
-            key={item}
-            style={styles.optionRow}
-            onPress={() => setSelectedCategory(item)}
-          >
-            <Text style={styles.optionText}>{item}</Text>
-
-            <Ionicons
-              name={
-                selectedCategory === item
-                  ? "radio-button-on"
-                  : "radio-button-off"
-              }
-              size={20}
-              color={GlobalStyles.Primary_Green}
-            />
-          </Pressable>
-        ))}
-      </View>
-
-      {/* Message */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Message</Text>
-
-        <TextInput
-          multiline
-          value={message}
-          onChangeText={setMessage}
-          placeholder="Describe your issue or question..."
-          style={styles.textArea}
-        />
-      </View>
-
-      {/* Attachment */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Attachment</Text>
-
-        <Pressable style={styles.uploadBox}>
-          <Ionicons
-            name="cloud-upload-outline"
-            size={28}
-            color={GlobalStyles.Primary_Grey}
-          />
-
-          <Text style={styles.uploadText}>Upload Screenshot (Optional)</Text>
-        </Pressable>
-      </View>
-
-      {/* Support Details */}
+      {/* SUPPORT INFORMATION */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Support Information</Text>
 
@@ -96,7 +22,48 @@ export default function ContactUs() {
             size={18}
             color={GlobalStyles.Primary_Green}
           />
-          <Text style={styles.infoText}>support@yourapp.com</Text>
+          <Text style={styles.infoText}>ksmartingauto@gmail.com</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons
+            name="logo-instagram"
+            size={18}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.infoText}>Ksmartingauto</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons
+            name="logo-whatsapp"
+            size={18}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.infoText}>(+250) 780 136 214 / 784 450 897</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons
+            name="logo-facebook"
+            size={18}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.infoText}>Ksmartingauto</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons
+            name="logo-youtube"
+            size={18}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.infoText}>Ksmartingauto</Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons name="call" size={18} color={GlobalStyles.Primary_Green} />
+          <Text style={styles.infoText}>(+250) 780 136 214 / 784 450 897</Text>
         </View>
 
         <View style={styles.infoRow}>
@@ -109,16 +76,105 @@ export default function ContactUs() {
         </View>
       </View>
 
-      <Button
-        content="Send Message"
-        styles={styles.submitBtn}
-        onPress={() => {
-          console.log({
-            category: selectedCategory,
-            message,
-          });
-        }}
-      />
+      {/* SELLER GUIDELINES */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Seller Guidelines</Text>
+
+        <Text style={styles.languageTitle}>English</Text>
+
+        <View style={styles.ruleRow}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.ruleText}>
+            Sellers can add prices to requests posted by buyers.
+          </Text>
+        </View>
+
+        <View style={styles.ruleRow}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.ruleText}>
+            Sellers can create and publish products in the system.
+          </Text>
+        </View>
+
+        <View style={styles.ruleRow}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.ruleText}>
+            Only garages can add deals in the Deals section.
+          </Text>
+        </View>
+
+        <Text style={styles.languageTitle}>Kinyarwanda</Text>
+
+        <View style={styles.ruleRow}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.ruleText}>
+            Abagurisha bashobora kongera ibiciro ku byo abaguzi basabye.
+          </Text>
+        </View>
+
+        <View style={styles.ruleRow}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.ruleText}>
+            Abagurisha bashobora gushyira ibicuruzwa byabo muri sisitemu.
+          </Text>
+        </View>
+
+        <View style={styles.ruleRow}>
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={GlobalStyles.Primary_Green}
+          />
+          <Text style={styles.ruleText}>
+            Amagaraji nabacuruzi ni bo bonyine bashobora kongeraho deals(diru)
+            mu gice cya Deals.
+          </Text>
+        </View>
+      </View>
+
+      {/* CHANGE ACCOUNT TYPE */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Changing Your Account Type</Text>
+
+        <Text style={styles.paragraph}>English</Text>
+
+        <Text style={styles.descriptionText}>
+          If you want to change your account type or who you are registered as
+          in the system, please contact us using the support contacts above.
+        </Text>
+
+        <Text style={styles.paragraph}>Kinyarwanda</Text>
+
+        <Text style={styles.descriptionText}>
+          Niba ushaka guhindura ubwoko bwa konti yawe cyangwa ibyo
+          wiyandikishijeho muri sisitemu, hamagara ubuyobozi ukoresheje nimero
+          cyangwa aderesi byatanzwe haruguru.
+        </Text>
+      </View>
+
+      <Text style={styles.connectText}>
+        Connect with us through all our platforms
+      </Text>
     </ScrollView>
   );
 }
@@ -149,45 +205,9 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: "Roboto-semibold",
-    marginBottom: 10,
-  },
-
-  optionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-
-  optionText: {
-    fontFamily: "Roboto-Light",
-  },
-
-  textArea: {
-    minHeight: 120,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 10,
-    textAlignVertical: "top",
-  },
-
-  uploadBox: {
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: GlobalStyles.Primary_Grey,
-    borderRadius: 8,
-    paddingVertical: 30,
-    alignItems: "center",
-  },
-
-  uploadText: {
-    marginTop: 10,
-    color: GlobalStyles.Primary_Grey,
+    marginBottom: 14,
   },
 
   infoRow: {
@@ -199,9 +219,48 @@ const styles = StyleSheet.create({
 
   infoText: {
     fontFamily: "Roboto-Light",
+    flex: 1,
   },
 
-  submitBtn: {
-    height: 50,
+  languageTitle: {
+    fontSize: 15,
+    fontFamily: "Roboto-semibold",
+    marginTop: 6,
+    marginBottom: 10,
+  },
+
+  ruleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    marginBottom: 12,
+  },
+
+  ruleText: {
+    flex: 1,
+    fontFamily: "Roboto-Light",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+
+  paragraph: {
+    fontFamily: "Roboto-semibold",
+    marginTop: 6,
+    marginBottom: 6,
+  },
+
+  descriptionText: {
+    fontFamily: "Roboto-Light",
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: 10,
+  },
+
+  connectText: {
+    fontFamily: "Roboto-semibold",
+    textAlign: "center",
+    color: GlobalStyles.Primary_Green,
+    marginTop: 4,
+    marginBottom: 20,
   },
 });

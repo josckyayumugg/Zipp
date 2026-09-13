@@ -7,103 +7,235 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
+import { useGetCurrentUser, useLogin } from "../_CustomHooks/Authentication";
+import { useUpdateUser } from "../_CustomHooks/Authentication";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
+import { Controller, useForm } from "react-hook-form";
+import InputText from "../Components/TextInput";
+import ErrorPage from "../Components/ErrorPage";
+import LoadingPaging from "../Components/LoadingPaging";
+import Toast from "react-native-toast-message";
 
 export default function ChangePassword() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(true);
+  const [showNewP, setShowNewP] = useState(true);
+  const [showConfirm, setConfirm] = useState(true);
 
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const {
+    isPendingUser,
+    data: user,
+    isError: isErrorUser,
+    error: errorUser,
+  } = useGetCurrentUser();
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
 
-  const handleChangePassword = () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-    if (newPassword.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters");
-      return;
-    }
+  const {
+    mutate: mutateLogin,
+    isPending: isPendingLogin,
+    isError: isErrorLogin,
 
-    if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "New passwords do not match");
-      return;
-    }
+    error: errorLogin,
+  } = useLogin();
 
-    // Supabase password update here
+  const {
+    mutate: mutateUpdate,
+    isPending: isPendingUpdate,
+    isError: isErrorUpdate,
+    error: errorUpdate,
+  } = useUpdateUser();
 
-    Alert.alert("Success", "Password changed successfully");
-  };
-
-  const PasswordField = ({
-    label,
-    value,
-    onChangeText,
-    secureTextEntry,
-    toggleVisibility,
-  }) => (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.label}>{label}</Text>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          secureTextEntry={secureTextEntry}
-          style={styles.input}
-          placeholder={label}
-        />
-
-        <Pressable onPress={toggleVisibility}>
-          <Ionicons
-            name={secureTextEntry ? "eye-outline" : "eye-off-outline"}
-            size={22}
-            color="#888"
-          />
-        </Pressable>
-      </View>
-    </View>
-  );
+  if (isErrorUser) {
+    return <ErrorPage message={errorUser.message} />;
+  }
+  if (isPendingUser) {
+    return <LoadingPaging />;
+  }
+  function submitHandler(data) {
+    mutateLogin(
+      { email: user?.email, password: data.currentPassword },
+      {
+        onSuccess: async () => {
+          mutateUpdate(
+            { email: user?.email, password: data?.newPassword },
+            {
+              onSuccess: () => {
+                Toast.show({
+                  type: "success",
+                  text1: "Success 👋",
+                  text2: "Password Updated successfully!",
+                  position: "top", // or "bottom"
+                  visibilityTime: 3000,
+                });
+                reset();
+              },
+            },
+          );
+        },
+      },
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Change Password</Text>
+      <View>
+        <Text style={styles.label}>Current Password</Text>
 
-      <PasswordField
-        label="Current Password"
-        value={currentPassword}
-        onChangeText={setCurrentPassword}
-        secureTextEntry={!showCurrent}
-        toggleVisibility={() => setShowCurrent(!showCurrent)}
-      />
-
-      <PasswordField
-        label="New Password"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry={!showNew}
-        toggleVisibility={() => setShowNew(!showNew)}
-      />
-
-      <PasswordField
-        label="Confirm New Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry={!showConfirm}
-        toggleVisibility={() => setShowConfirm(!showConfirm)}
-      />
-
-      <Text style={styles.note}>
-        Password must be at least 8 characters long.
-      </Text>
-
-      <Pressable style={styles.button} onPress={handleChangePassword}>
-        <Text style={styles.buttonText}>Save Changes</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Controller
+            control={control}
+            rules={{
+              maxLength: 60,
+              required: "Please  put current password",
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputText
+                styled={styles.input}
+                onBlur={onBlur}
+                placeholder={"**********"}
+                maxLength={50}
+                placeholderTextColor={GlobalStyles.Primary_Grey}
+                value={value}
+                onChange={onChange}
+                secure={showCurrent}
+              />
+            )}
+            name="currentPassword"
+          />
+          <Pressable
+            onPress={() => {
+              setShowCurrent((val) => !val);
+            }}
+          >
+            <Ionicons
+              style={{ alignSelf: "center", marginVertical: 8 }}
+              name={showCurrent ? "eye-off" : "eye"}
+              color={"grey"}
+              size={18}
+            />
+          </Pressable>
+        </View>
+        {isErrorLogin && (
+          <Text style={[{ color: "red" }, styles.label]}>
+            {"Wrong password please use correct password"}
+          </Text>
+        )}
+        {errors?.currentPassword && (
+          <Text style={[{ color: "red", fontSize: 12 }]}>
+            {errors?.currentPassword?.message}
+          </Text>
+        )}
+      </View>
+      <View>
+        <Text style={styles.label}>New Password</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Controller
+            control={control}
+            rules={{
+              maxLength: 60,
+              required: "New password is required",
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputText
+                styled={styles.input}
+                onBlur={onBlur}
+                placeholder={"**********"}
+                maxLength={50}
+                placeholderTextColor={GlobalStyles.Primary_Grey}
+                value={value}
+                onChange={onChange}
+                secure={showNewP}
+              />
+            )}
+            name="newPassword"
+          />
+          <Pressable
+            style={{ alignSelf: "center" }}
+            onPress={() => {
+              setShowNewP((val) => !val);
+            }}
+          >
+            <Ionicons
+              name={showNewP ? "eye-off" : "eye"}
+              size={14}
+              color={"grey"}
+              style={{ marginVertical: "auto" }}
+            />
+          </Pressable>
+        </View>
+        {errors?.newPassword && (
+          <Text style={[{ color: "red", fontSize: 12 }]}>
+            {errors?.newPassword?.message}
+          </Text>
+        )}
+      </View>
+      <View>
+        <Text style={styles.label}>Confirm Password</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Controller
+            control={control}
+            rules={{
+              required: "please confirm your new password",
+              maxLength: 60,
+              validate: (value) =>
+                value === watch("newPassword") || "Passwords do not match",
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <InputText
+                styled={styles.input}
+                onBlur={onBlur}
+                placeholder={"**********"}
+                maxLength={50}
+                placeholderTextColor={GlobalStyles.Primary_Grey}
+                value={value}
+                onChange={onChange}
+                secure={showConfirm}
+              />
+            )}
+            name="confirmPassword"
+          />
+          <Pressable
+            onPress={() => setConfirm((val) => !val)}
+            style={{ alignSelf: "center" }}
+          >
+            <Ionicons
+              name={showConfirm ? "eye-off" : "eye"}
+              size={16}
+              color={"grey"}
+            />
+          </Pressable>
+        </View>
+        {errors?.confirmPassword && (
+          <Text style={{ color: "red" }}>
+            {errors.confirmPassword?.message}
+          </Text>
+        )}
+      </View>
+      {isErrorUpdate ? (
+        <Text style={{ color: "red" }}>{errorUpdate.message}</Text>
+      ) : null}
+      <Pressable
+        style={styles.button}
+        onPress={handleSubmit(submitHandler)}
+        disabled={isPendingUpdate}
+      >
+        <Text style={styles.buttonText}>
+          {isPendingUpdate ? "Saving Changes..." : "Save Changes"}
+        </Text>
       </Pressable>
     </View>
   );

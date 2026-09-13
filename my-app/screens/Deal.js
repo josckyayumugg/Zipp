@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { GlobalStyles } from "../Constants";
 import LoadingPaging from "../Components/LoadingPaging";
+import ErrorPage from "../Components/ErrorPage";
 
 const { width } = Dimensions.get("window");
 const SLIDER_WIDTH = width - 24; // Width of the image container accounting for screen padding
@@ -29,7 +30,7 @@ export default function DealPage() {
 
   const {
     isPending: isPendingDeal,
-    isError: isErrorDeal,
+    error: errorDeal,
     data: dataDeal,
   } = useGetSingleProductDeal(dealId);
 
@@ -48,7 +49,9 @@ export default function DealPage() {
   }
 
   const images = dataDeal?.images || [];
-
+  if (errorDeal) {
+    return <ErrorPage message={errorDeal.message} />;
+  }
   return (
     <View style={{ flex: 1, backgroundColor: "#f8f9fa" }}>
       <ScrollView style={{ flexDirection: "column", padding: 12 }}>
@@ -151,25 +154,6 @@ export default function DealPage() {
           </View>
         </View>
 
-        {/* PRICE */}
-        {dataDeal?.budget && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.headerTitle}>Budget</Text>
-            <Text
-              style={[
-                styles.priceText,
-                styles.bordeR,
-                {
-                  backgroundColor: GlobalStyles.Primary_Green2 || "#e1f5fe",
-                  color: GlobalStyles.Primary_Green || "#007ecc",
-                },
-              ]}
-            >
-              {dataDeal?.budget}Kigali
-            </Text>
-          </View>
-        )}
-
         {/* DESCRIPTION */}
         <View style={styles.sectionContainer}>
           {dataDeal?.description && (
@@ -271,7 +255,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-semibold",
     fontWeight: "700",
     paddingVertical: 6,
-    paddingHorizontal: 12,
+
     alignSelf: "flex-start",
   },
   locationBadge: {

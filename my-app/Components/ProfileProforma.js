@@ -7,10 +7,7 @@ import { useGetAllMyProductDealsWithInvisible } from "../_CustomHooks/ProductSer
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import { useGetAllMyResponses } from "../_CustomHooks/ResponseServices";
-import {
-  useGetAllMyRequests,
-  useGetAllRequests,
-} from "../_CustomHooks/RequestServices";
+
 import { useRoute } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ActivityIndicator } from "react-native";
@@ -48,7 +45,9 @@ export default function ProformaRows({ Data }) {
     fetchNextPage,
     isFetchingNextPage,
   } = useGetAllMyResponses(dataUser?.id);
-
+  if (isPendingUser) {
+    <LoadingPaging />;
+  }
   const AllMyResponses = dataMyResponses?.pages?.flat() ?? [];
 
   if (isErrorResponses) {
@@ -63,12 +62,12 @@ export default function ProformaRows({ Data }) {
       <NoProductsProfile message={"You have no Proforma(Responses) yet!"} />
     );
   }
-  console.log("Urukundo", AllMyResponses);
+
   return (
     <View style={{ padding: 8, flex: 1 }}>
       <FlatList
         data={AllMyResponses}
-        keyExtractor={(item) => item.id?.toString()}
+        keyExtractor={(item) => item?.id?.toString()}
         ListHeaderComponent={
           <ProfileFlatListHeader
             message={'Ibiciro Washyize kuri "REQUEST"  Zitandukanye'}
@@ -77,14 +76,12 @@ export default function ProformaRows({ Data }) {
         renderItem={({ item, index }) => (
           <ProfileResponseRow Data={item} itemIndex={index + 1} />
         )}
-        // Lock pagination: only increment page if not currently fetching & last batch had a full page of 15
         onEndReached={() => {
           if (hasNextPage && !isFetching) {
             fetchNextPage();
           }
         }}
         onEndReachedThreshold={0.4}
-        // Small activity spinner at the bottom when fetching page 2, 3, 4...
         ListFooterComponent={
           isFetching && page > 1 ? (
             <ActivityIndicator

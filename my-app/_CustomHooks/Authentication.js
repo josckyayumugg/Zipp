@@ -1,21 +1,14 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
-export async function login({ email, password }) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
 
-  if (error) throw new Error(error.message);
-
-  return data;
-}
-
-// this function will look into the computer memory and look at the avalibal session and then after usere load the app without login he can still be logged in :
 export async function getCurrentUser() {
   const { data: session } = await supabase.auth.getSession();
   if (!session.session) return null;
-  const { data, error } = await supabase.auth.getUser();
+  const { data, errorUser } = await supabase.auth.getUser();
+
+  if (errorUser) {
+    throw errorUser;
+  }
 
   return data?.user;
 }
@@ -23,7 +16,7 @@ export async function getCurrentUser() {
 export function useSignUp() {
   return useMutation({
     mutationFn: async ({ email, password }) => {
-      let { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
@@ -38,11 +31,9 @@ export function useSignUp() {
 }
 export function useSignedUpData() {
   return useQuery({
-    queryFn: async ({ email, password }) => {
-      const {
-        data: { user, error },
-      } = await supabase.auth.getUser();
-
+    queryKey: ["signedUp"],
+    queryFn: async () => {
+      const { user, error } = await supabase.auth.getUser();
       if (error) {
         throw error;
       }
@@ -50,7 +41,23 @@ export function useSignedUpData() {
     },
   });
 }
+
+export function useGetCurrentUser() {
+  return useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return null;
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return data.user;
+    },
+    retry: false,
+  });
+}
+
 export function useLogin() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ email, password }) => {
       let { data, error } = await supabase.auth.signInWithPassword({
@@ -62,9 +69,13 @@ export function useLogin() {
       }
       return true;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    },
   });
 }
 export function useLogout() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       let { error } = await supabase.auth.signOut();
@@ -72,32 +83,35 @@ export function useLogout() {
         throw error;
       }
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    },
   });
 }
 
-export async function updateUser({ email, password }) {
+export function useUpdateUser() {
   return useMutation({
-    mutationFn: async (data) => {
-      let { spaData, error } = await supabase.auth.updateUser({
-        email: data.email,
-        password: data.password,
+    mutationFn: async (updateData) => {
+      let { data, error } = await supabase.auth.updateUser({
+        password: updateData.password,
       });
+      if (error) {
+        throw error;
+      }
+      return data;
     },
   });
 }
 export function useUpdateProfile() {
   return useMutation({
     mutationFn: async ({ id, ...dataToUpdate }) => {
-      console.log(id, dataToUpdate);
       let { data, error } = await supabase
         .from("Profiles")
-
         .update(dataToUpdate)
         .eq("id", id)
         .select()
         .single();
       if (error) {
-        console.log("ereri", error);
         throw error;
       }
       return data;
@@ -108,7 +122,8 @@ export function useUpdateProfile() {
 export function useCreateProfile() {
   return useMutation({
     mutationFn: async (data) => {
-      let { spData, error } = await supabase
+      
+      let { data: spData, error } = await supabase
         .from("Profiles")
         .insert([
           {
@@ -124,30 +139,13 @@ export function useCreateProfile() {
           },
         ])
         .select()
-        .single(); // 👈 returns one object instead of array
+        .single();
 
       if (error) {
         throw error;
       }
 
       return spData;
-    },
-  });
-}
-
-export function useGetCurrentUser() {
-  return useQuery({
-    queryKey: ["currentUser"],
-    queryFn: async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) throw error;
-
-      // This returns the user object (containing the id) out of the async block safely
-      return user;
     },
   });
 }
@@ -163,8 +161,49 @@ export function useGetCurrentProfile(id) {
         .single();
       if (error) throw error;
       return data;
-      // throw new Error("Nyirandari ndari");
     },
     enabled: !!id,
+  });
+}
+
+export function useConfirm() {
+  return useMutation({
+    mutationFn: async ({ email, token }) => {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: token,
+        type: "email",
+      });
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+  });
+}
+export function useConfirmPassword() {
+  return useMutation({
+    mutationFn: async ({ email, token }) => {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: token,
+        type: "recovery",
+      });
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+  });
+}
+export function useRequireToken() {
+  return useMutation({
+    mutationFn: async ({ email }) => {
+      const { error, data } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
   });
 }

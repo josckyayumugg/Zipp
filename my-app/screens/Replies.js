@@ -1,118 +1,79 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Image,
-  Pressable,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
-import { Ionicons } from "@expo/vector-icons";
-import Span from "../Components/Span";
-import { Alert } from "react-native";
-import { useGetAllResponses } from "../_CustomHooks/RequestServices";
+
 import { useGetReqResponses } from "../_CustomHooks/ResponseServices";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
-import ErrorPaging from "../Components/ErrorPage";
+
 import NoProductsProfile from "../Components/NoProductsProfile";
 import { useNavigation } from "@react-navigation/native";
 import ErrorPage from "../Components/ErrorPage";
 
+import { FlatList } from "react-native";
+import Reply from "../Components/Reply";
+import { useGetSingleRequest } from "../_CustomHooks/RequestServices";
 export default function ViewReplies({ route, navigation }) {
   // Fallback test variables f context route params aren't passed yet
   const navigator = useNavigation();
   const requestName = route?.params?.requestName;
+  const relatedRequestId = route?.params?.relatedId;
+
   const {
     data: Responses,
     isError: isErrorResponse,
+    hasNextPage,
+    isFetching,
+    fetchNextPage,
+
     isPending: isPendingResponses,
     error: errorResponse,
-  } = useGetReqResponses(route.params?.requestId);
+  } = useGetReqResponses(route?.params?.requestId || relatedRequestId);
 
   const {
-    data: SellerData,
-    isError: isErrorSeller,
-    error: errorSeller,
-    isPending: isPendingSeller,
-  } = useGetCurrentProfile(Responses?.createdBy);
+    data: responseToReply,
+    isError: isErrorTo,
+    error: errorTo,
+    isPending: isPendingTo,
+  } = useGetSingleRequest(relatedRequestId);
 
   if (isErrorResponse) {
     return <ErrorPage message={errorResponse.message} />;
   }
-  if (isErrorSeller) {
-    return <ErrorPage message={errorSeller.message} />;
+
+  if (isErrorTo) {
+    return <ErrorPage message={errorTo.message} />;
   }
-  if (Responses <= 0) {
-    return <NoProductsProfile message={"No Replies yet for this request"} />;
-  }
+
+  let dataResponses = Responses?.pages?.flat() ?? [];
   return (
     <View style={styles.screenWrapper}>
       {/* Active Context Bar */}
 
       <View style={styles.topAlertBar}>
         <Text style={styles.contextSubText}>
-          <Text style={{ marginHorizontal: 8 }}>{Responses?.length}</Text>
+          <Text style={{ marginHorizontal: 8 }}>{dataResponses?.length}</Text>
           available Replies for:
         </Text>
-        <Text style={styles.contextTitleText}>{requestName}</Text>
+        <Text style={styles.contextTitleText}>
+          {requestName || responseToReply?.name}
+        </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {Responses?.map((response) => (
-          <View key={response.id} style={styles.offerCard}>
-            {/* Header info strip inside offer card layout */}
-            <View style={styles.rowBtn}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.shopNameText}>
-                  {response?.businessNames}
-                </Text>
-                <View style={[styles.row, { gap: 4, marginTop: 2 }]}>
-                  <Ionicons
-                    name="location"
-                    size={14}
-                    color={GlobalStyles.Primary_Grey}
-                  />
-                  <Text style={styles.locationText}>{response?.location}</Text>
-                </View>
-              </View>
-              <Span
-                content={response?.condition}
-                styles={[styles.bordeR, styles.conditionBadge]}
-              />
-            </View>
-
-            {/* Middle body section detailing comments */}
-            <Text style={styles.notesText}>"{response?.note}"</Text>
-
-            {/* Pricing Summary and Contact Row Actions Layout */}
-            <View style={[styles.rowBtn, styles.borderTopSection]}>
-              <View>
-                <Text style={styles.priceLabel}>Offered Price</Text>
-                <View style={{ flexDirection: "row", gap: 2 }}>
-                  <Text style={styles.priceValue}>{response?.price}</Text>
-                  <Text style={styles.priceValue}>{response?.currency}</Text>
-                </View>
-              </View>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.callButton,
-                  pressed && { opacity: 0.8 },
-                ]}
-                onPress={() => {
-                  navigator.navigate("Reply Contacts", {
-                    responseId: response?.id,
-                  });
-                }}
-              >
-                <Ionicons name="eye-outline" size={16} color="black" />
-                <Text style={styles.callButtonText}>Contact Seller</Text>
-              </Pressable>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+      {dataResponses?.length <= 0 ? (
+        <NoProductsProfile message={"No Replies yet"} />
+      ) : (
+        <FlatList
+          data={dataResponses}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => <Reply response={item} />}
+          onEndReached={() => {
+            if (hasNextPage && !isFetching) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.4}
+        />
+      )}
     </View>
   );
 }

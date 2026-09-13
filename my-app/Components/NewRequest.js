@@ -6,23 +6,19 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  ScrollView,
   KeyboardAvoidingView,
 } from "react-native";
 import InputText from "./TextInput";
-import Picked from "./Picker";
+
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
-
-import Span from "./Span";
 import Toast from "react-native-toast-message";
-import { supabase } from "../_lib/supabase";
 import { useForm, Controller } from "react-hook-form";
 import { useCreateRequest } from "../_CustomHooks/RequestServices";
-import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import { containsContactInfo } from "../Helpers";
-import LoadingPaging from "./LoadingPaging";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import AppDropdown from "./Dropdown";
 export default function NewRequestModal({
   isCreateModalOpen,
@@ -30,7 +26,7 @@ export default function NewRequestModal({
   setRequestType,
   user,
 }) {
-  //get User
+  const [isOpen, setIsOpen] = useState(false);
 
   const {
     control,
@@ -57,9 +53,9 @@ export default function NewRequestModal({
 
   const { isPending, isError, error, mutate } = useCreateRequest();
   function submitHandler(data) {
-    
+    const budget = data.budget === "" ? null : Number(data.budget);
     mutate(
-      { ...data, createdBy: user?.id },
+      { ...data, budget, createdBy: user?.id },
       {
         onSuccess: () => {
           Toast.show({
@@ -105,376 +101,369 @@ export default function NewRequestModal({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1, backgroundColor: "#fff" }}
+        style={{ flex: 1 }}
       >
-        <View style={[styles.overlay]}>
-          <View style={[styles.modal, { paddingVertical: 20 }]}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                elevation: 999,
-              }}
-            >
-              {/* <Button
-                  styles={{ alignSelf: "flex-end" }}
-                  content={
-                    <Span
-                      styles={[
-                        {
-                          backgroundColor: GlobalStyles.Primary_Yellow,
-                        },
-                        styles.bordeR,
-                        styles.paddingLg,
-                      ]}
-                      content={
-                        <Ionicons name={"close"} size={40} color={"black"} />
-                      }
-                    />
-                  }
-                  onPress={() => {
-                    setIsVisible(false);
-                  }}
-                /> */}
-            </View>
-
-            <View>
-              <Text style={[styles.sectionTitle, styles.smallMVertical]}>
-                Post New Request
-              </Text>
-              <View style={styles.smallMTop}>
-                <Text style={[styles.paragraph, styles.smallMVertical]}>
-                  Title (what are you looking for)?
-                </Text>
-
-                <Controller
-                  control={control}
-                  rules={{
-                    maxLength: 50,
-                    required: "name is required",
-                    validate: (value) =>
-                      !containsContactInfo(value) ||
-                      "Do not include phone numbers, email addresses, social media accounts, or links.",
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <InputText
-                      placeholder={"Rav4 Transmission"}
-                      onBlur={onBlur}
-                      placeholderTextColor={GlobalStyles.Primary_Grey}
-                      value={value}
-                      maxLength={50}
-                      onChange={onChange}
-                      styled={[
-                        {
-                          borderColor: GlobalStyles.Primary_Grey,
-                          borderWidth: 1,
-                        },
-                        styles.paddingLg,
-                      ]}
-                    />
-                  )}
-                  name="name"
-                />
-                {errors.name && (
-                  <Text style={{ color: "red", marginBottom: 10 }}>
-                    {errors.name.message}
-                  </Text>
-                )}
-              </View>
-              <View style={styles.smallMTop}>
-                <Text style={[styles.paragraph, styles.smallMVertical]}>
-                  Descriptions
-                </Text>
-
-                <Controller
-                  control={control}
-                  rules={{
-                    maxLength: 300,
-                    required: "Description is required",
-                    validate: (value) =>
-                      !containsContactInfo(value) ||
-                      "Do not include phone numbers, email addresses, social media accounts, or links.",
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <InputText
-                      placeholder={
-                        "Dukeneye Transimission ya Rav4 ya okaziyo cyangwa nshyashya"
-                      }
-                      onBlur={onBlur}
-                      placeholderTextColor={GlobalStyles.Primary_Grey}
-                      value={value}
-                      maxLength={300}
-                      onChange={onChange}
-                      styled={[
-                        {
-                          borderColor: GlobalStyles.Primary_Grey,
-                          borderWidth: 1,
-                          height: 60,
-                        },
-                        styles.paddingLg,
-                      ]}
-                    />
-                  )}
-                  name="description"
-                />
-                {errors.description && (
-                  <Text style={{ color: "red", marginBottom: 10 }}>
-                    {errors.description.message}
-                  </Text>
-                )}
-              </View>
-              <View
-                style={[
-                  {
-                    alignItems: "flex-start",
-                    flexDirection: "column",
-                    gap: 18,
-
-                    marginTop: 10,
-                  },
-                ]}
-              >
-                <View style={[styles.rowBtn, { width: "100%" }]}>
-                  <View style={{ width: "32%" }}>
-                    <Text style={[styles.smallT]}>Brand</Text>
-
-                    <Controller
-                      control={control}
-                      rules={{
-                        maxLength: 30,
-                        required: "Brand  is required",
-                        validate: (value) =>
-                          !containsContactInfo(value) ||
-                          "Do not include phone numbers, email addresses, social media accounts, or links.",
-                      }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <InputText
-                          placeholder={"Toyota"}
-                          onChange={onChange}
-                          onBlur={onBlur}
-                          maxLength={30}
-                          value={value}
-                          styled={{
-                            borderWidth: 1,
-                            borderColor: GlobalStyles.Primary_Grey,
-                          }}
-                        />
-                      )}
-                      name="brand"
-                    />
-                    {errors.brand && (
-                      <Text style={{ color: "red", marginBottom: 10 }}>
-                        {errors.brand.message}
-                      </Text>
-                    )}
-                  </View>
-
-                  <View style={{ width: "32%" }}>
-                    <Text style={[styles.smallT]}>Modal</Text>
-
-                    <Controller
-                      control={control}
-                      rules={{
-                        maxLength: 40,
-                        required: "modal is required",
-                        validate: (value) =>
-                          !containsContactInfo(value) ||
-                          "Do not include phone numbers, email addresses, social media accounts, or links.",
-                      }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <InputText
-                          placeholder={"Rav4"}
-                          onChange={onChange}
-                          value={value}
-                          maxLength={40}
-                          onBlur={onBlur}
-                          styled={{
-                            borderWidth: 1,
-                            borderColor: GlobalStyles.Primary_Grey,
-                          }}
-                        />
-                      )}
-                      name="modal"
-                    />
-                    {errors.modal && (
-                      <Text style={{ color: "red", marginBottom: 10 }}>
-                        {errors.modal.message}
-                      </Text>
-                    )}
-                  </View>
-                  <View style={{ width: "48%" }}>
-                    <Text style={[styles.smallT]}>Year</Text>
-
-                    <Controller
-                      control={control}
-                      rules={{
-                        maxLength: 40,
-                        required: "Year is required",
-                        validate: (value) =>
-                          !containsContactInfo(value) ||
-                          "Do not include phone numbers, email addresses, social media accounts, or links.",
-                      }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <InputText
-                          placeholder={"2019"}
-                          onChange={onChange}
-                          value={value}
-                          maxLength={40}
-                          onBlur={onBlur}
-                          styled={{
-                            borderWidth: 1,
-                            borderColor: GlobalStyles.Primary_Grey,
-                          }}
-                        />
-                      )}
-                      name="year"
-                    />
-                    {errors.year && (
-                      <Text style={{ color: "red", marginBottom: 10 }}>
-                        {errors.year.message}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-
-                <View style={[styles.rowBtn, { width: "100%" }]}>
-                  <View style={{ width: "48%" }}>
-                    <Text style={[styles.smallT]}>
-                      More Specification(optional)
-                    </Text>
-
-                    <Controller
-                      control={control}
-                      rules={{
-                        maxLength: 30,
-                        validate: (value) =>
-                          !containsContactInfo(value) ||
-                          "Do not include phone numbers, email addresses, social media accounts, or links.",
-                      }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <InputText
-                          placeholder={"hybrid"}
-                          onChange={onChange}
-                          value={value}
-                          maxLength={40}
-                          styled={{
-                            borderWidth: 1,
-                            borderColor: GlobalStyles.Primary_Grey,
-                          }}
-                        />
-                      )}
-                      name="more"
-                    />
-                  </View>
-                </View>
+        <ScrollView
+          contentContainerStyle={{
+            flex: 1,
+            paddingBottom: 50,
+          }}
+        >
+          <View style={[styles.overlay]}>
+            <View style={[styles.modal, { paddingTop: 20 }]}>
+              <View>
                 <View
                   style={{
                     flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignContent: "center",
                   }}
                 >
-                  <View style={{ width: "70%" }}>
-                    <Text style={[styles.smallT]}>Budget(optional) </Text>
+                  <Text style={[styles.sectionTitle, styles.smallMVertical]}>
+                    Post New Request
+                  </Text>
+                  <Pressable
+                    style={[
+                      styles.bordeR,
+                      {
+                        borderColor: GlobalStyles.Primary_Grey,
+                        backgroundColor: GlobalStyles.Primary_Green,
+                        width: 30,
 
-                    <Controller
-                      control={control}
-                      rules={{
-                        maxLength: 50,
-                      }}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <InputText
-                          placeholder={"300,0000"}
-                          onChange={onChange}
-                          onBlur={onBlur}
-                          value={value}
-                          keyBoardType={"numeric"}
-                          keyBoard
-                          maxLength={30}
-                          styled={{
-                            borderWidth: 1,
+                        borderWidth: 1,
+                        height: 30,
+                        alignSelf: "center",
+                      },
+                    ]}
+                    onPress={() => {
+                      setIsCreateModalOpen(false);
+                    }}
+                  >
+                    <Ionicons
+                      name={"close"}
+                      size={20}
+                      style={{ margin: "auto" }}
+                    />
+                  </Pressable>
+                </View>
+                <View style={styles.smallMTop}>
+                  <Text style={[styles.paragraph, styles.smallMVertical]}>
+                    Title (Izina rya Igishakwa)?
+                  </Text>
+
+                  <Controller
+                    control={control}
+                    rules={{
+                      maxLength: 50,
+                      required: "name is required",
+                      validate: (value) =>
+                        !containsContactInfo(value) ||
+                        "Do not include phone numbers, email addresses, social media accounts, or links.",
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <InputText
+                        placeholder={"Rav4 Transmission"}
+                        onBlur={onBlur}
+                        placeholderTextColor={GlobalStyles.Primary_Grey}
+                        value={value}
+                        maxLength={50}
+                        onChange={onChange}
+                        styled={[
+                          {
                             borderColor: GlobalStyles.Primary_Grey,
-                          }}
-                        />
-                      )}
-                      name="budget"
-                    />
-                  </View>
-                  <View style={{ alignSelf: "flex-end",height:50,width:90 }}>
-                    <Controller
-                      control={control}
-                      name="currency"
-                      render={({ field: { onChange, value } }) => (
-                        <AppDropdown
-                          value={value}
-                          items={currencyItems}
-                          setItems={setCurrencyItems}
-                          setValue={(callback) => {
-                            const newValue =
-                              typeof callback === "function"
-                                ? callback(value)
-                                : callback;
+                            borderWidth: 1,
+                          },
+                          styles.paddingLg,
+                        ]}
+                      />
+                    )}
+                    name="name"
+                  />
+                  {errors.name && (
+                    <Text style={{ color: "red", marginBottom: 10 }}>
+                      {errors.name.message}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.smallMTop}>
+                  <Text style={[styles.paragraph, styles.smallMVertical]}>
+                    Descriptions
+                  </Text>
 
-                            onChange(newValue);
-                          }}
-                        />
+                  <Controller
+                    control={control}
+                    rules={{
+                      maxLength: 300,
+                      required: "Description is required",
+                      validate: (value) =>
+                        !containsContactInfo(value) ||
+                        "Do not include phone numbers, email addresses, social media accounts, or links.",
+                    }}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <InputText
+                        placeholder={
+                          "Dukeneye Transimission ya Rav4 ya okaziyo cyangwa nshyashya"
+                        }
+                        onBlur={onBlur}
+                        placeholderTextColor={GlobalStyles.Primary_Grey}
+                        value={value}
+                        maxLength={300}
+                        onChange={onChange}
+                        styled={[
+                          {
+                            borderColor: GlobalStyles.Primary_Grey,
+                            borderWidth: 1,
+                            height: 60,
+                          },
+                          styles.paddingLg,
+                        ]}
+                      />
+                    )}
+                    name="description"
+                  />
+                  {errors.description && (
+                    <Text style={{ color: "red", marginBottom: 10 }}>
+                      {errors.description.message}
+                    </Text>
+                  )}
+                </View>
+                <View
+                  style={[
+                    {
+                      alignItems: "flex-start",
+                      flexDirection: "column",
+                      gap: 18,
+
+                      marginTop: 10,
+                    },
+                  ]}
+                >
+                  <View style={[styles.rowBtn, { width: "100%" }]}>
+                    <View style={{ width: "32%" }}>
+                      <Text style={[styles.smallT]}>Brand</Text>
+
+                      <Controller
+                        control={control}
+                        rules={{
+                          maxLength: 30,
+                          required: "Brand  is required",
+                          validate: (value) =>
+                            !containsContactInfo(value) ||
+                            "Do not include phone numbers, email addresses, social media accounts, or links.",
+                        }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                          <InputText
+                            placeholder={"Toyota"}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            maxLength={30}
+                            value={value}
+                            styled={{
+                              borderWidth: 1,
+                              borderColor: GlobalStyles.Primary_Grey,
+                            }}
+                          />
+                        )}
+                        name="brand"
+                      />
+                      {errors.brand && (
+                        <Text style={{ color: "red", marginBottom: 10 }}>
+                          {errors.brand.message}
+                        </Text>
                       )}
-                    />
+                    </View>
+
+                    <View style={{ width: "32%" }}>
+                      <Text style={[styles.smallT]}>Modal</Text>
+
+                      <Controller
+                        control={control}
+                        rules={{
+                          maxLength: 40,
+                          required: "modal is required",
+                          validate: (value) =>
+                            !containsContactInfo(value) ||
+                            "Do not include phone numbers, email addresses, social media accounts, or links.",
+                        }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                          <InputText
+                            placeholder={"Rav4"}
+                            onChange={onChange}
+                            value={value}
+                            maxLength={40}
+                            onBlur={onBlur}
+                            styled={{
+                              borderWidth: 1,
+                              borderColor: GlobalStyles.Primary_Grey,
+                            }}
+                          />
+                        )}
+                        name="modal"
+                      />
+                      {errors.modal && (
+                        <Text style={{ color: "red", marginBottom: 10 }}>
+                          {errors.modal.message}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={{ width: "48%" }}>
+                      <Text style={[styles.smallT]}>Year</Text>
+
+                      <Controller
+                        control={control}
+                        rules={{
+                          maxLength: 40,
+                          required: "Year is required",
+                          validate: (value) =>
+                            !containsContactInfo(value) ||
+                            "Do not include phone numbers, email addresses, social media accounts, or links.",
+                        }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                          <InputText
+                            placeholder={"2019"}
+                            onChange={onChange}
+                            value={value}
+                            maxLength={40}
+                            onBlur={onBlur}
+                            styled={{
+                              borderWidth: 1,
+                              borderColor: GlobalStyles.Primary_Grey,
+                            }}
+                          />
+                        )}
+                        name="year"
+                      />
+                      {errors.year && (
+                        <Text style={{ color: "red", marginBottom: 10 }}>
+                          {errors.year.message}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+
+                  <View style={[styles.rowBtn, { width: "100%" }]}>
+                    <View style={{ width: "48%" }}>
+                      <Text style={[styles.smallT]}>
+                        More Specification(optional)
+                      </Text>
+
+                      <Controller
+                        control={control}
+                        rules={{
+                          maxLength: 30,
+                          validate: (value) =>
+                            !containsContactInfo(value) ||
+                            "Do not include phone numbers, email addresses, social media accounts, or links.",
+                        }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                          <InputText
+                            placeholder={"hybrid"}
+                            onChange={onChange}
+                            value={value}
+                            maxLength={40}
+                            styled={{
+                              borderWidth: 1,
+                              borderColor: GlobalStyles.Primary_Grey,
+                            }}
+                          />
+                        )}
+                        name="more"
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                    }}
+                  >
+                    <View style={{ width: "70%" }}>
+                      <Text style={[styles.smallT]}>Budget(optional) </Text>
+
+                      <Controller
+                        control={control}
+                        rules={{
+                          maxLength: 50,
+                        }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                          <InputText
+                            placeholder={"300,0000-500,000"}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            value={value === "" ? "" : value}
+                            keyBoardType={"numeric"}
+                            keyBoard
+                            maxLength={30}
+                            styled={{
+                              borderWidth: 1,
+                              borderColor: GlobalStyles.Primary_Grey,
+                            }}
+                          />
+                        )}
+                        name="budget"
+                      />
+                    </View>
+                    <View
+                      style={{ alignSelf: "flex-end", height: 50, width: 90 }}
+                    >
+                      <Controller
+                        control={control}
+                        name="currency"
+                        render={({ field: { onChange, value } }) => (
+                          <AppDropdown
+                            value={value}
+                            items={currencyItems}
+                            open={isOpen}
+                            setOpen={setIsOpen}
+                            setItems={setCurrencyItems}
+                            setValue={(callback) => {
+                              const newValue =
+                                typeof callback === "function"
+                                  ? callback(value)
+                                  : callback;
+
+                              onChange(newValue);
+                            }}
+                          />
+                        )}
+                      />
+                    </View>
                   </View>
                 </View>
-              </View>
-              <View>
-                {isError && (
-                  <Text style={[{ color: "red" }, styles.paragraph]}>
-                    {error.message}
-                  </Text>
-                )}
-              </View>
-              <View style={{ height: 85 }}>
-                <Button
-                  disable={isPending}
-                  content={isPending ? "...creating request" : "Post request"}
-                  onPress={handleSubmit(submitHandler)}
-                  styles={[
-                    {
-                      backgroundColor: GlobalStyles.Primary_Yellow,
-                      height: 35,
-                      marginTop: 20,
-                    },
-                    styles.paddingLg,
-                    styles.whiteT,
+                <View>
+                  {isError && (
+                    <Text style={[{ color: "red" }, styles.paragraph]}>
+                      {error.message}
+                    </Text>
+                  )}
+                </View>
+                <View style={{ height: 60 }}>
+                  <Button
+                    disable={isPending}
+                    content={isPending ? "...creating request" : "Post request"}
+                    onPress={handleSubmit(submitHandler)}
+                    styles={[
+                      {
+                        backgroundColor: GlobalStyles.Primary_Yellow,
+                        height: 35,
+                        marginTop: 20,
+                      },
+                      styles.paddingLg,
+                      styles.whiteT,
 
-                    styles.bordeR,
-                  ]}
-                />
-                <Button
-                  styles={[
-                    styles.bordeR,
-                    {
-                      borderColor: GlobalStyles.Primary_Grey,
-                      borderWidth: 1,
-                      height: 30,
-                      marginTop: 20,
-                    },
-                  ]}
-                  content={<Text>close</Text>}
-                  onPress={() => {
-                    setIsCreateModalOpen(false);
-                  }}
-                />
+                      styles.bordeR,
+                    ]}
+                  />
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   overlay: {
     flex: 1,
     flexDirection: "column",
@@ -489,19 +478,14 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
   },
-  button: {
-    marginTop: 16,
 
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: "white",
-    textAlign: "center",
-  },
   container: {
     flex: 1,
     flexDirection: "column",
     height: "100%",
+
+    justifyContent: "center",
+    alignItems: "center",
     minWidth: "100%",
     fontFamily: "notoSans",
   },
@@ -545,7 +529,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -555,11 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 10,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+
   rowBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -660,7 +640,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    alignSelf: "start",
+    alignSelf: "flex-start",
     paddingHorizontal: 8,
     marginVertical: 10,
     borderRadius: 4,

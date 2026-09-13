@@ -9,26 +9,32 @@ import { useLogout } from "../_CustomHooks/Authentication";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { openWebsite } from "../Helpers";
 import ErrorPage from "./ErrorPage";
+import Toast from "react-native-toast-message";
+import { queryClient } from "../_lib/queryClient";
 
 export default function ProfileOverView({ profileId }) {
   const navigation = useNavigation();
   const { mutate, isPending, error, isError } = useLogout();
 
   const {
-    isPendingProfile,
-    isErrorProfile,
-    errorProfile,
+    isPending: isPendingProfile,
+    isError: isErrorProfile,
+    error: errorProfile,
     data: dataProfile,
   } = useGetCurrentProfile(profileId);
 
   if (isError) {
     return <ErrorPage message={errorProfile.message} />;
   }
-
+  if (errorProfile) {
+    <View>
+      <Text>{errorProfile?.message}</Text>
+    </View>;
+  }
   function LogoutHandler() {
     mutate(undefined, {
       onSuccess: () => {
-        navigation.navigate("login");
+        queryClient.invalidateQueries("currentUser");
       },
       onError: (error) => {
         Toast.show({
@@ -59,11 +65,20 @@ export default function ProfileOverView({ profileId }) {
           styles.bordeR,
         ]}
       >
-        <Text style={[styles.bigText, styles.bold, styles.smallMVertical]}>
+        <View style={[styles.bigText, styles.bold, styles.row]}>
           <Ionicons name="document" size={18} />
-          Verification Status
-        </Text>
-        <View style={{ flexDirection: "column", gap: 12, padding: 8 }}>
+          <Text style={[styles.bigText, styles.bold, styles.smallMVertical]}>
+            Verification Status
+          </Text>
+        </View>
+        <View
+          style={{
+            flexDirection: "column",
+            gap: 12,
+            padding: 8,
+            backgroundColor: GlobalStyles.Primary_Grey3,
+          }}
+        >
           <VerificationRow title={"Tin Number"} data={dataProfile?.tin} />
           <VerificationRow
             title={"Id Number"}
@@ -91,11 +106,26 @@ export default function ProfileOverView({ profileId }) {
           styles.smallMVertical,
         ]}
       >
-        <Text style={[styles.bigText, styles.bold, styles.smallMVertical]}>
-          <Ionicons name="folder" size={18} />
-          contact information
-        </Text>
-        <View style={styles.column}>
+        <View style={[styles.row, { alignContent: "center" }]}>
+          <Ionicons
+            name="folder"
+            size={18}
+            style={{ alignSelf: "center", marginVertical: "auto" }}
+          />
+          <Text style={[styles.bigText, styles.bold, { marginBottom: 8 }]}>
+            contact information
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.column,
+            {
+              padding: 8,
+              backgroundColor: GlobalStyles.Primary_Grey3,
+              borderRadius: 8,
+            },
+          ]}
+        >
           <Text>
             <Ionicons name="send-sharp" size={13} />
             {dataProfile?.businessEmail}
@@ -134,7 +164,8 @@ export default function ProfileOverView({ profileId }) {
             elevation: 8,
 
             paddingVertical: 8,
-
+            backgroundColor: GlobalStyles.Primary_Grey3,
+            borderRadius: 8,
             flexDirection: "column",
             gap: 4,
           },
@@ -327,12 +358,6 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-Light",
     fontSize: 16,
     lineHeight: 16,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

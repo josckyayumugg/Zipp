@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
-import { ImageBackground } from "react-native";
+
 import { GlobalStyles } from "../Constants";
 
 export default function InputText({
@@ -11,6 +11,7 @@ export default function InputText({
   value,
   maxLength,
   keyBoardType,
+  secure,
 }) {
   return (
     <TextInput
@@ -27,7 +28,9 @@ export default function InputText({
       onBlur={onBlur}
       onChangeText={onChange}
       value={value}
+      secure
       maxLength={maxLength}
+      secureTextEntry={secure}
       placeholderTextColor={GlobalStyles.Primary_Grey}
     />
   );
@@ -80,7 +83,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",

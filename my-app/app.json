@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "my-app",
+    "scheme": "ksmartingauto",
     "slug": "my-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,11 +21,13 @@
       }
     },
     "android": {
+      "googleServicesFile": "k-smarting-auto-firebase-adminsdk-fbsvc-cd8b518137.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.josckyexpo.myapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

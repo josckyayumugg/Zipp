@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
-import { useGetSingleProduct } from "../_CustomHooks/ProductServices";
+import {
+  useGetSingleProduct,
+  useReportProduct,
+} from "../_CustomHooks/ProductServices";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import LoadingPaging from "../Components/LoadingPaging";
 import { Pressable } from "react-native";
@@ -19,33 +22,42 @@ import { getInitials, formatPhone } from "../Helpers";
 import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
 import Button from "../Components/Button";
+import ConfirmReportProduct from "../Components/ConfirmReport";
+import ErrorPage from "../Components/ErrorPage";
 
 export default function ProductContacts({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
   const productId = route.params?.productId;
+  const [isVisible, setIsVisible] = useState(false);
 
   const {
     data: product,
     isPending,
-    isError,
+
     error,
   } = useGetSingleProduct(productId);
   const {
     data: seller,
     isPending: isPendingSeller,
-    isError: isErrorSeller,
+
     error: errorSeller,
   } = useGetCurrentProfile(product?.profileId);
 
   const {
     data: sellerProductsNumber,
-    isPendingProducts,
-    isErrorProducts,
-    errorProducts,
+    isPending: isPendingProducts,
+
+    error: errorProducts,
   } = useCountProducts(seller?.profileId);
+  const {
+    mutate,
+    isPending: isPendingReport,
+
+    error: errorReport,
+  } = useReportProduct();
 
   const handleEmail = () => {
-    Linking.openURL(`mailto:${seller?.email}`).catch(() => {
+    Linking.openURL(`mailto:${seller?.businessEmail}`).catch(() => {
       Alert.alert("Error", "Unable to open email client");
     });
   };
@@ -82,7 +94,18 @@ export default function ProductContacts({ route, navigation }) {
       Alert.alert("Error", "Unable to open WhatsApp");
     });
   };
-
+  if (errorProducts) {
+    <ErrorPage message={errorProducts?.message} />;
+  }
+  if (errorReport) {
+    <ErrorPage message={errorReport?.message} />;
+  }
+  if (errorSeller) {
+    <ErrorPage message={errorSeller?.message} />;
+  }
+  if (error) {
+    <ErrorPage message={error?.message} />;
+  }
   return (
     <ScrollView
       style={styles.container}
@@ -214,19 +237,21 @@ export default function ProductContacts({ route, navigation }) {
         >
           <View
             style={[styles.infoIconContainer, { backgroundColor: "#f3e5f5" }]}
-          ></View>
+          >
+            <Ionicons name={"globe-outline"} size={20} />
+          </View>
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Website</Text>
-            <Text style={[styles.infoValue, styles.linkText]}>
-              <Pressable
-                style={[styles.infoValue, styles.linkText, styles.row]}
-                onPress={() => openWebsite(seller?.website)}
-              >
+            <Pressable
+              style={[styles.infoValue, styles.linkText]}
+              onPress={() => openWebsite(seller?.website)}
+            >
+              <Text style={[styles.infoValue, styles.linkText, styles.row]}>
                 <Text style={[styles.infoValue, styles.linkText]}>
                   {seller?.website}
                 </Text>
-              </Pressable>
-            </Text>
+              </Text>
+            </Pressable>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#aaa" />
         </TouchableOpacity>
@@ -270,17 +295,43 @@ export default function ProductContacts({ route, navigation }) {
         </View>
         <View style={{ justifyContent: "center", marginHorizontal: "auto" }}>
           <View>
-            <Text>Usanze umucuruzi ntayo afite kanda hano</Text>
-            <Text>If the product is sold out  report it here</Text>
+            <Text
+              style={{
+                fontSize: 16,
+                marginVertical: 4,
+                fontFamily: "Roboto-Light",
+              }}
+            >
+              Umucuruzi ntagicuruzwa afite? tumenyeshe{" "}
+            </Text>
           </View>
           <Button
             content={
-              <Text style={{ color: "red", textDecoration: "underline" }}>
-                "report no product"
+              <Text
+                style={[
+                  {
+                    color: "red",
+                    textDecoration: "underline",
+                    fontFamily: "Roboto-Light",
+                  },
+                ]}
+              >
+                Report seller has no product
               </Text>
             }
+            onPress={() => {
+              setIsVisible(true);
+            }}
           />
         </View>
+        {isVisible && (
+          <ConfirmReportProduct
+            setIsDeleteVisible={setIsVisible}
+            isDeleteVisible={isVisible}
+            item={product?.name}
+            id={product?.id}
+          />
+        )}
       </View>
     </ScrollView>
   );

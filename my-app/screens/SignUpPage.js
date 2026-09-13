@@ -15,6 +15,8 @@ import Button from "../Components/Button";
 import { useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
+import { StatusBar } from "expo-status-bar";
+import ErrorPage from "../Components/ErrorPage";
 
 export default function SignUp() {
   const Navigation = useNavigation();
@@ -29,13 +31,12 @@ export default function SignUp() {
   });
   const { mutate, isError, isPending, error, isSuccess } = useSignUp();
 
-  // 2. Submit handler matching your login structure
   function signUpHandler(data) {
     mutate(data, {
-      onSuccess: (spData) => {
-        Navigation.navigate("Configuration", {
-          userId: spData.user.id,
-          email: spData.user.email,
+      onSuccess: (data) => {
+        Navigation.navigate("Confirm", {
+          userId: data?.user?.id,
+          email: data?.user?.email,
         });
       },
     });
@@ -46,6 +47,7 @@ export default function SignUp() {
       style={styles.keyboardContainer}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <StatusBar style="light" backgroundColor="white" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -66,37 +68,6 @@ export default function SignUp() {
         {/* Input Form Fields Box */}
         <View style={styles.formContainer}>
           {/* FULL NAME INPUT FIELD */}
-          <View style={styles.inputWrapper}>
-            <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
-              FULL NAME
-            </Text>
-            <View style={[styles.row, styles.bordeR, styles.inputFieldOuter]}>
-              <Ionicons
-                name="person-outline"
-                size={18}
-                color={GlobalStyles.Primary_Grey}
-                style={styles.iconSpacer}
-              />
-              <Controller
-                control={control}
-                rules={{ required: "Invalid name" }}
-                name="name"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <InputText
-                    placeholder={"John Doe"}
-                    placeholderTextColor={GlobalStyles.Primary_Grey}
-                    onBlur={onBlur}
-                    onChange={onChange}
-                    value={value}
-                    styled={[{ width: "90%" }]}
-                  />
-                )}
-              />
-            </View>
-            {errors.name && (
-              <Text style={styles.errorText}>{errors.name.message}</Text>
-            )}
-          </View>
 
           {/* EMAIL ADDRESS INPUT FIELD */}
           <View style={styles.inputWrapper}>
@@ -178,9 +149,13 @@ export default function SignUp() {
               <Text style={styles.errorText}>{errors.password.message}</Text>
             )}
           </View>
-          {isError && (
-            <Text style={{ color: "red", marginTop: 10 }}>{error.message}</Text>
-          )}
+          {error ? (
+            <View>
+              <Text style={{ color: "red", fontSize: 14 }}>
+                {error?.message}
+              </Text>
+            </View>
+          ) : null}
           {/* Core Submit Button */}
           <Button
             disable={isPending}

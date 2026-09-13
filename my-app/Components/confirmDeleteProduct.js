@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Modal, View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
-import Button from "./Button";
-import { useDeleteProduct } from "../_CustomHooks/ProductServices";
 
+import { useDeleteProduct } from "../_CustomHooks/ProductServices";
+import Toast from "react-native-toast-message";
 export default function ConfirmDeleteProduct({
   setIsDeleteVisible,
   isDeleteVisible,
@@ -13,7 +13,7 @@ export default function ConfirmDeleteProduct({
   productId,
 }) {
   const closeModal = () => setIsDeleteVisible(false);
-
+  const [isDeleting, setIsDeleting] = useState(false);
   return (
     <Modal
       visible={isDeleteVisible}
@@ -53,46 +53,70 @@ export default function ConfirmDeleteProduct({
           {/* Action Row Grid utilizing your layout classes */}
           <View style={[styles.row, styles.actionContainer]}>
             {/* Cancel Button */}
-            <Button
+            <Pressable
               onPress={closeModal}
-              styles={[
+              style={[
                 styles.bordeR,
-                styles.paddingLg,
+
                 styles.flexButton,
                 { backgroundColor: GlobalStyles.Primary_Grey3 || "#E0E0E0" },
               ]}
-              content={
-                <Text style={[styles.Roboto, styles.bold, styles.centerText]}>
+            >
+              {
+                <Text
+                  style={[
+                    styles.Roboto,
+                    styles.bold,
+                    styles.centerText,
+                    { color: "black" },
+                  ]}
+                >
                   Cancel
                 </Text>
               }
-            />
+            </Pressable>
 
             {/* Confirm Delete Button */}
-            <Button
+            <Pressable
+              disabled={isDeleting}
               onPress={() => {
-                if (onConfirm) onConfirm();
-                closeModal();
+                if (!onConfirm) return;
+                setIsDeleting(true);
+                onConfirm(productId, {
+                  onSuccess: () => {
+                    setIsDeleting(false);
+                    closeModal();
+                  },
+                  onError: (error) => {
+                    setIsDeleting(false);
+                    Toast.show({
+                      type: "error",
+                      text1: "Delete failed",
+                      text2: error?.message || "Something went wrong.",
+                      position: "top",
+                      visibilityTime: 3000,
+                    });
+                  },
+                });
               }}
-              styles={[
+              style={[
                 styles.bordeR,
-                styles.paddingLg,
+
                 styles.flexButton,
                 { backgroundColor: GlobalStyles.Black },
               ]}
-              content={
-                <Text
-                  style={[
-                    styles.bold,
-                    styles.whiteT,
-                    styles.centerText,
-                    styles.paragraph,
-                  ]}
-                >
-                  Delete
-                </Text>
-              }
-            />
+            >
+              <Text
+                style={[
+                  styles.bold,
+                  styles.whiteT,
+                  styles.centerText,
+                  { color: "white" },
+                ]}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Pressable>
@@ -154,7 +178,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 16,
+    fontSize: 14,
     color: "#555555",
   },
   bold: {

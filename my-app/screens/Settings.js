@@ -5,16 +5,16 @@ import { GlobalStyles } from "../Constants";
 import { useNavigation } from "@react-navigation/native";
 import { useLogout } from "../_CustomHooks/Authentication";
 import Button from "../Components/Button";
+import { queryClient } from "../_lib/queryClient";
 
 export default function SettingsPage() {
   const navigation = useNavigation();
-  const { mutate, isError, isPending } = useLogout();
+  const { mutate, error, isPending } = useLogout();
 
   function LogoutHandler() {
     mutate(undefined, {
       onSuccess: () => {
-        
-        navigation.navigate("login");
+        queryClient.invalidateQueries("currentUser");
       },
     });
   }
@@ -75,16 +75,6 @@ export default function SettingsPage() {
         }}
       />
 
-      <Text style={styles.section}>Preferences</Text>
-
-      <SettingItem
-        icon="notifications-outline"
-        title="Notifications"
-        onPress={() => {
-          navigation.navigate("NotificationsSettings");
-        }}
-      />
-
       <Text style={styles.section}>Support</Text>
 
       <SettingItem
@@ -128,11 +118,10 @@ export default function SettingsPage() {
           navigation.navigate("Privacy");
         }}
       />
-
+      {error ? <Text style={{ color: "red" }}>{error?.message}</Text> : null}
       <Button
         styles={styles.logout}
         onPress={() => {
-          console.log("logout pressed");
           LogoutHandler();
         }}
         content={

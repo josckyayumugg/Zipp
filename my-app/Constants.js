@@ -7,7 +7,9 @@ export const GlobalStyles = {
   Primary_Green: "#2f6f2f",
   orange_primary: "#FB6107",
   gold: "#FFB300",
-  Kn_orange: "#e30f0f",
+  goldLight: "#ffb3001b",
+  Kn_orange: "#fa6a0a",
+  red: "#f115159f",
 
   Primary_Green2: "#c8f2c8ec",
   Primary_Grey: "#DADAE6",

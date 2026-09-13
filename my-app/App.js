@@ -17,17 +17,20 @@ import SettingsPage from "./screens/Settings";
 import ReportScreen from "./screens/Report";
 import ContactUs from "./screens/ContactUs";
 import ContactsReply from "./screens/ContactsReplies";
-import { registerForPushNotifications } from "./_lib/Notification";
-import { useGetCurrentUser } from "./_CustomHooks/Authentication";
+import LoadingPaging from "./Components/LoadingPaging";
+import {
+  useGetCurrentProfile,
+  useGetCurrentUser,
+} from "./_CustomHooks/Authentication";
+import { useState } from "react";
 import { useEffect } from "react";
 import {
   useQuery,
   useMutation,
   useQueryClient,
-  QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-
+import { queryClient } from "./_lib/queryClient";
 import { useFonts } from "expo-font";
 
 import {
@@ -48,7 +51,7 @@ import RespondToRequest from "./screens/Replying";
 import NotificationsPage from "./screens/Notifications";
 import HelpCenterPage from "./screens/Help";
 import EditProfile from "./screens/ProfileEditint";
-import NotificationsSettings from "./screens/NotificationsSettings";
+
 import Login from "./screens/Login";
 import SignUp from "./screens/SignUpPage";
 import ProductContacts from "./screens/ProductContacts";
@@ -56,145 +59,147 @@ import DealPage from "./screens/Deal";
 import ProfileRows from "./Components/ProfileRows";
 import DealsRow from "./Components/ProfileDeals";
 import ProformaRows from "./Components/ProfileProforma";
+import * as Notifications from "expo-notifications";
+import { registerAndSaveToken } from "./_lib/ProductsNotification";
+import { registerForPushNotificationsAsync } from "./_lib/ProductsNotification";
+import ForgotPassword from "./screens/ForgotPassword";
+
+import ConfirmEmail from "./screens/Confirmation";
+
+import PasswordTokenPage from "./screens/PasswordTokenPage";
+import ChangeForgottenPassword from "./screens/ChangePasswordForgot";
+import ErrorPage from "./Components/ErrorPage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-export const queryClient = new QueryClient();
+
 function Tabs() {
   const navigation = useNavigation();
 
-  const { data: user } = useGetCurrentUser();
-
-  useEffect(() => {
-    if (user?.id) {
-      console.log("dunda", user?.id);
-      registerForPushNotifications(user?.id);
-    }
-  }, [user?.id]);
-
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        // 1. Keep the header visible globally
-        headerShown: true,
-
-        // 2. Style the background of the header bar
-        headerStyle: {
-          backgroundColor: GlobalStyles.Black || "black",
-          borderBottomWidth: 1,
-          borderBottomColor: "#222", // Subtle separator line under the header
-        },
-
-        // 3. Style the Title text directly (Color, Sizes, and your Custom Fonts)
-        headerTitleStyle: {
-          fontFamily: "Roboto-bold",
-          fontSize: 22,
-          color: "white",
-        },
-
-        // 4. Center the title text (true for iOS style, false for Android left-align)
-        headerTitleAlign: "left",
-
-        // 5. Add universal icons or buttons to the right side of EVERY header screen
-        headerRight: () => (
-          <View style={{ flexDirection: "row", paddingRight: 16 }}>
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color="white"
-              style={{ marginRight: 14 }}
-              onPress={() => navigation.navigate("Notifications")}
-            />
-
-            <Ionicons
-              name="settings-outline"
-              size={22}
-              color="white"
-              onPress={() => navigation.navigate("Settings")}
-            />
-          </View>
-        ),
-        headerLeft: () => (
-          <View style={{ flexDirection: "row", paddingRight: 16 }}></View>
-        ),
-
-        // 6. Style your Bottom Tab Nav Bar values so the whole theme matches
-        tabBarActiveTintColor: GlobalStyles.Primary_Yellow,
-        tabBarInactiveTintColor: "gray",
-        tabBarStyle: {
-          backgroundColor: "black",
-          borderTopColor: "#222",
-        },
-      })}
-    >
-      <Tab.Screen
-        name="Home"
-        component={Home}
-        options={{
+    <>
+      <StatusBar style="light" backgroundColor="white" />
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
           headerShown: true,
 
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          headerStyle: {
+            backgroundColor: "black",
+            borderBottomWidth: 1,
+            borderBottomColor: "#222", // Subtle separator line under the header
+          },
+
+          // 3. Style the Title text directly (Color, Sizes, and your Custom Fonts)
+          headerTitleStyle: {
+            fontFamily: "Roboto-bold",
+            fontSize: 22,
+            color: "white",
+          },
+
+          // 4. Center the title text (true for iOS style, false for Android left-align)
+          headerTitleAlign: "left",
+
+          // 5. Add universal icons or buttons to the right side of EVERY header screen
+          headerRight: () => (
+            <View style={{ flexDirection: "row", paddingRight: 16 }}>
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color="white"
+                style={{ marginRight: 14 }}
+                onPress={() => navigation.navigate("Notifications")}
+              />
+
+              <Ionicons
+                name="settings-outline"
+                size={22}
+                color="white"
+                onPress={() => navigation.navigate("Settings")}
+              />
+            </View>
           ),
-        }}
-      />
-      <Tab.Screen
-        name="Search"
-        component={Search}
-        options={{
-          headerShown: true,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
+          headerLeft: () => (
+            <View style={{ flexDirection: "row", paddingRight: 16 }}></View>
           ),
-        }}
-      />
-      <Tab.Screen
-        name="Upload"
-        component={AddProduct}
-        options={{
-          headerShown: true,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="add-circle-outline"
-              size={30}
-              color={color}
-              style={[
-                {
-                  backgroundColor: GlobalStyles.Secondary_Yellow,
-                  height: 30,
-                  width: 30,
-                  borderRadius: 999,
-                },
-              ]}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Request"
-        component={Request}
-        options={{
-          headerShown: true,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="folder" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={Profile}
-        options={{
-          headerShown: true,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+
+          // 6. Style your Bottom Tab Nav Bar values so the whole theme matches
+          tabBarActiveTintColor: GlobalStyles.Primary_Yellow,
+          tabBarInactiveTintColor: "gray",
+          tabBarStyle: {
+            backgroundColor: "black",
+            borderTopColor: "#222",
+          },
+        })}
+      >
+        <Tab.Screen
+          name="Home"
+          component={Home}
+          options={{
+            headerShown: true,
+
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="home" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Search"
+          component={Search}
+          options={{
+            headerShown: true,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="search" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Upload"
+          component={AddProduct}
+          options={{
+            headerShown: true,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons
+                name="add-circle-outline"
+                size={30}
+                color={color}
+                style={[
+                  {
+                    backgroundColor: GlobalStyles.Secondary_Yellow,
+                    height: 30,
+                    width: 30,
+                    borderRadius: 999,
+                  },
+                ]}
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Request"
+          component={Request}
+          options={{
+            headerShown: true,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="folder" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={Profile}
+          options={{
+            headerShown: true,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </>
   );
 }
 
-export default function App() {
+function AppContent() {
   const [loaded, error] = useFonts({
     "Roboto-Light": require("./assets/fonts/Roboto-Light.ttf"),
     "Roboto-bold": require("./assets/fonts/Roboto-Bold.ttf"),
@@ -203,27 +208,109 @@ export default function App() {
     "Roboto-extrabold": require("./assets/fonts/Roboto-ExtraBold.ttf"),
     "Roboto-italic": require("./assets/fonts/Roboto-Italic.ttf"),
   });
+  const [notification, setNotification] = useState(undefined);
+  const {
+    data: user,
+    isPending: isCheckingSession,
+    error: errorUser,
+  } = useGetCurrentUser();
+  const {
+    data: profile,
+    isPending: isPendingProfile,
+    error: errorProfile,
+  } = useGetCurrentProfile(user?.id);
+  async function scheduleNotificationHandler() {
+    try {
+      const id = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "What's new",
+          sound: "default",
+          body: "Check new Products,Deals,Requests and Responses from buyers and sellers today",
+          data: { userName: "KSmartingAuto" },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
+          hour: 9,
+          // one-shot for testing; see note below on repeats+seconds
+        },
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+  useEffect(() => {
+    if (user?.id) {
+      registerForPushNotificationsAsync();
+      registerAndSaveToken(user?.id);
 
-  return (
-    <QueryClientProvider client={queryClient}>
+      scheduleNotificationHandler();
+
+      const responseListener =
+        Notifications.addNotificationResponseReceivedListener((response) => {});
+
+      const notificationListener =
+        Notifications.addNotificationReceivedListener((notification) => {
+          setNotification(notification);
+        });
+      return () => {
+        notificationListener.remove();
+        responseListener.remove();
+      };
+    }
+  }, [user?.id]);
+  if (!loaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "black",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <LoadingPaging />
+      </View>
+    );
+  }
+  if (errorUser) {
+    return (
       <NavigationContainer>
         <Stack.Navigator>
+          <Stack.Screen
+            name="error"
+            component={ErrorPage}
+            options={{
+              headerShown: false,
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
+  if (!user) {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen
             name="login"
             component={Login}
             options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
+              headerShown: false,
               headerTintColor: "#fff", // back button and title color
             }}
           />
           <Stack.Screen
-            name="Tabs"
-            component={Tabs}
-            options={{ headerShown: false }}
+            name="forgot"
+            component={ForgotPassword}
+            options={{
+              headerShown: true,
+              title: "Reset your Password",
+              headerTintColor: "white",
+              headerStyle: { backgroundColor: "black" },
+            }}
           />
-
           <Stack.Screen
             name="signUp"
             component={SignUp}
@@ -232,249 +319,22 @@ export default function App() {
             }}
           />
           <Stack.Screen
-            name="Configuration"
-            component={ConfigureProfile}
+            name="Confirm"
+            component={ConfirmEmail}
             options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-
-          <Stack.Screen
-            name="SeeAllScreen"
-            component={SeeAllScreen}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
+              headerShown: false,
             }}
           />
           <Stack.Screen
-            name="Replies"
-            component={ViewReplies}
+            name="PasswordTokenPage"
+            component={PasswordTokenPage}
             options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
+              headerShown: false,
             }}
           />
           <Stack.Screen
-            name="Respond"
-            component={RespondToRequest}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Product"
-            component={Product}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Deal"
-            component={DealPage}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="DealsContacts"
-            component={DealContacts}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Product Contacts"
-            component={ProductContacts}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="My Products"
-            component={ProfileRows}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="My Deals"
-            component={DealsRow}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="My Responses"
-            component={ProformaRows}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          {/* <Stack.Screen
-            name="My Responses"
-            component={ProformaRows}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }} */}
-          {/* /> */}
-          {/* <Stack.Screen
-            name="My Requests"
-            component={RequestRows}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          /> */}
-          <Stack.Screen
-            name="Reply Contacts"
-            component={ContactsReply}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Notifications"
-            component={NotificationsPage}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsPage}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Help"
-            component={HelpCenterPage}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="EditProfile"
-            component={EditProfile}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Report"
-            component={ReportScreen}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="EditAddress"
-            component={EditAddress}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="TermsAndConditions"
-            component={TermsAndConditions}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="Privacy"
-            component={PrivacyPolicy}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="ContactUs"
-            component={ContactUs}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="NotificationsSettings"
-            component={NotificationsSettings}
-            options={{
-              headerStyle: {
-                backgroundColor: GlobalStyles.Black,
-              },
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-          <Stack.Screen
-            name="ChangePassword"
-            component={ChangePassword}
+            name="ChangeForgottenPassword"
+            component={ChangeForgottenPassword}
             options={{
               headerStyle: {
                 backgroundColor: GlobalStyles.Black,
@@ -484,6 +344,254 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
+    );
+  }
+  if (!profile) {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen
+            name="Configuration"
+            component={ConfigureProfile}
+            options={{
+              headerShown: false,
+              headerTintColor: "#fff", // back button and title color
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Tabs"
+          component={Tabs}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="SeeAllScreen"
+          component={SeeAllScreen}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Replies"
+          component={ViewReplies}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Respond"
+          component={RespondToRequest}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Product"
+          component={Product}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Deal"
+          component={DealPage}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="DealsContacts"
+          component={DealContacts}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Product Contacts"
+          component={ProductContacts}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="My Products"
+          component={ProfileRows}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="My Deals"
+          component={DealsRow}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="My Responses"
+          component={ProformaRows}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+
+        <Stack.Screen
+          name="Reply Contacts"
+          component={ContactsReply}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Notifications"
+          component={NotificationsPage}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsPage}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Help"
+          component={HelpCenterPage}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfile}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Report"
+          component={ReportScreen}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="EditAddress"
+          component={EditAddress}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="TermsAndConditions"
+          component={TermsAndConditions}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="Privacy"
+          component={PrivacyPolicy}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+        <Stack.Screen
+          name="ContactUs"
+          component={ContactUs}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePassword}
+          options={{
+            headerStyle: {
+              backgroundColor: GlobalStyles.Black,
+            },
+            headerTintColor: "#fff", // back button and title color
+          }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+
       <Toast topOffset={60} />
     </QueryClientProvider>
   );

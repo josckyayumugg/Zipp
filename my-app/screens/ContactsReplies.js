@@ -23,7 +23,7 @@ import ErrorPage from "../Components/ErrorPage";
 
 export default function ContactsReply({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
-  console.log("ReplyContacts params:", route?.params);
+
   const {
     data: reply,
     isPending,
@@ -34,24 +34,23 @@ export default function ContactsReply({ route, navigation }) {
   const {
     data: seller,
     isPending: isPendingSeller,
-    isError: isErrorSeller,
+
     error: errorSeller,
   } = useGetCurrentProfile(reply?.createdBy);
 
   const {
     data: sellerProductsNumber,
-    isPendingReply,
-    isErrorPNumber,
-    errorPNumber,
+    isPending: isPendingProductNumber,
+    error: errorPNumber,
   } = useCountProducts(seller?.profileId);
 
   if (isError) {
     return <ErrorPage message={error?.message} />;
   }
-  if (isErrorPNumber) {
+  if (errorPNumber) {
     return <ErrorPage message={errorPNumber?.message} />;
   }
-  if (isErrorSeller) {
+  if (errorSeller) {
     return <ErrorPage message={errorSeller?.message} />;
   }
 
@@ -222,7 +221,9 @@ export default function ContactsReply({ route, navigation }) {
         >
           <View
             style={[styles.infoIconContainer, { backgroundColor: "#f3e5f5" }]}
-          ></View>
+          >
+            <Ionicons name={"globe-outline"} size={20} />
+          </View>
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Website</Text>
             <Text style={[styles.infoValue, styles.linkText]}>

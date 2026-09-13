@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 export default function BecomeButton({
   styles,
   content,
@@ -9,10 +10,13 @@ export default function BecomeButton({
   disable = false,
   styling,
 }) {
+  const navigator = useNavigation();
   return (
     <Pressable
       disabled={disable}
-      onPress={onPress}
+      onPress={() => {
+        navigator.navigate("ContactUs");
+      }}
       style={({ pressed }) => [
         pressed && styless.pressed,
         { flex: 1 },
@@ -67,8 +71,8 @@ const styless = StyleSheet.create({
     height: "100%",
     maxWidth: "100%",
     fontFamily: "notoSans",
+    padding: 6,
   },
-  container: { flex: 1, flexDirection: "column", padding: 6 },
 
   mainTitle: {
     fontFamily: "Roboto-Extrabold",

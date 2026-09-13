@@ -1,5 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
+
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
 
@@ -16,13 +16,12 @@ export default function Picked({
       onValueChange={onValueChange}
       style={[
         style,
-       
 
         styles.paragraph,
 
         {
           borderRadius: 4,
-          
+
           borderColor: GlobalStyles.Primary_Yellow,
         },
       ]}
@@ -158,8 +157,6 @@ const styles = StyleSheet.create({
 
     margin: 6,
     borderWidth: 1,
-
-    backgroundColor: GlobalStyles.Primary_Grey,
   },
   rowView: {
     flexDirection: "row",
@@ -199,8 +196,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 4,
-    
+    fontSize: 14,
   },
   button: {
     alignSelf: "start",

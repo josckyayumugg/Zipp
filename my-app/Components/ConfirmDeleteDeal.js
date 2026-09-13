@@ -2,12 +2,9 @@ import React from "react";
 import { Modal, View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
-import Button from "./Button";
-import { useDeleteProductDeal } from "../_CustomHooks/ProductServices";
 
-import { queryClient } from "../App";
-import LoadingPaging from "./LoadingPaging";
-import { getLoadedFonts } from "expo-font";
+import Toast from "react-native-toast-message";
+import { queryClient } from "../_lib/queryClient";
 
 export default function ConfirmDeleteDeal({
   setIsDeleteVisible,
@@ -18,9 +15,7 @@ export default function ConfirmDeleteDeal({
   dealId,
 }) {
   const closeModal = () => setIsDeleteVisible(false);
-  if (isPending) {
-    return <LoadingPaging />;
-  }
+
   return (
     <Modal
       visible={isDeleteVisible}
@@ -60,37 +55,66 @@ export default function ConfirmDeleteDeal({
           {/* Action Row Grid utilizing your layout classes */}
           <View style={[styles.row, styles.actionContainer]}>
             {/* Cancel Button */}
-            <Button
+            <Pressable
               onPress={closeModal}
-              content={"Cancel"}
-              styles={[
+              style={[
                 styles.bordeR,
                 {
-                  borderWidth: 1,
-                  borderColor: GlobalStyles.Primary_Yellow,
+                  width: "50%",
+                  height: 40,
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  backgroundColor: GlobalStyles.Primary_Grey3,
                 },
               ]}
-            />
+            >
+              <Text style={{ alignSelf: "center", color: "black" }}>
+                cancel
+              </Text>
+            </Pressable>
 
             {/* Confirm Delete Button */}
-            <Button
+            <Pressable
               onPress={() => {
                 if (dealId) {
-                  (onConfirm(dealId),
-                    queryClient.invalidateQueries("allDeals"),
-                    closeModal());
+                  onConfirm(dealId, {
+                    onSuccess: () => {
+                      queryClient.invalidateQueries("allDeals");
+                      closeModal();
+                    },
+                    onError: (error) => {
+                      Toast.show({
+                        type: "error",
+                        text1: "Delete failed",
+                        text2:
+                          error?.message ||
+                          "Something went wrong. Please try again.",
+                        position: "top",
+                        visibilityTime: 3000,
+                      });
+                    },
+                  });
                 }
               }}
-              styles={[
+              style={[
                 styles.bordeR,
                 {
                   borderWidth: 1,
-                  borderColor: GlobalStyles.Primary_Yellow,
-                  backgroundColor: GlobalStyles.Primary_Yellow2,
+                  height: 40,
+                  width: "50%",
+
+                  flexDirection: "row",
+                  justifyContent: "center",
+
+                  borderColor: "white",
+                  backgroundColor: "black",
                 },
               ]}
-              content={"Delete"}
-            />
+            >
+              <Text style={{ alignSelf: "center", color: "white" }}>
+                {isPending ? "Deleting..." : "Delete"}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </View>
@@ -130,7 +154,7 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     width: "100%",
-    justifyContent: "space-between",
+
     gap: 12,
     marginTop: 24,
   },

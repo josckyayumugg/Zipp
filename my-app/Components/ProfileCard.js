@@ -31,7 +31,7 @@ export default function ProfileCard({ data, label }) {
           },
         ]}
       >
-        {data ? data : null}
+        {data}
       </Text>
       <Text
         style={[
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -209,12 +209,6 @@ const styles = StyleSheet.create({
   paragraph: {
     fontFamily: "Roboto-Light",
     fontSize: 16,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

@@ -8,15 +8,7 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
-import Button from "./Button";
-import { useNavigation } from "@react-navigation/native";
-import Span from "./Span";
-import { formatNumber, getTimeRemaining } from "../Helpers";
-import NoProductsProfile from "./NoProductsProfile";
-import { queryClient } from "../App";
 import { ActivityIndicator } from "react-native";
 import ProductCardHome from "./ProductCardHom";
 
@@ -26,13 +18,10 @@ export default function HomeFlatList({
   hasNextPageHomeProducts,
   fetchNextPageHomeProducts,
 }) {
-  console.log(20, homeData);
-
   return (
     <FlatList
-    
       data={homeData}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={(item) => item?.id.toString()}
       // columnWrapperStyle={{ marginBottom: 10 }}
       contentContainerStyle={{ padding: 8 }}
       renderItem={({ item }) => (

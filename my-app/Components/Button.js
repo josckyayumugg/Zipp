@@ -42,8 +42,8 @@ const styless = StyleSheet.create({
     height: "100%",
     maxWidth: "100%",
     fontFamily: "notoSans",
+    padding: 6,
   },
-  container: { flex: 1, flexDirection: "column", padding: 6 },
 
   mainTitle: {
     fontFamily: "Roboto-Extrabold",
@@ -120,9 +120,7 @@ const styless = StyleSheet.create({
   yellow: {
     color: GlobalStyles.Primary_Yellow,
   },
-  blackBg: {
-    backgroundColor: "black",
-  },
+
   cards: {
     alignSelf: "flex-end",
     flexDirection: "row",
@@ -198,6 +196,10 @@ const styless = StyleSheet.create({
     paddingHorizontal: 8,
     marginVertical: 10,
     borderRadius: 4,
+    backgroundColor: GlobalStyles.Primary_Green,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
   },
   blackBg: {
     backgroundColor: GlobalStyles.Black,
@@ -206,12 +208,7 @@ const styless = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
   },
-  button: {
-    backgroundColor: GlobalStyles.Primary_Green,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-  },
+
   pressed: {
     opacity: 0.7,
     transform: [{ scale: 0.97 }],

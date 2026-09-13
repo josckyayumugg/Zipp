@@ -3,11 +3,8 @@ import { Modal, View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
-import { useDeleteProductDeal } from "../_CustomHooks/ProductServices";
 
-import { queryClient } from "../App";
 import LoadingPaging from "./LoadingPaging";
-import { getLoadedFonts } from "expo-font";
 
 export default function ConfirmDeleteResponse({
   setIsDeleteVisible,
@@ -18,9 +15,7 @@ export default function ConfirmDeleteResponse({
   responseId,
 }) {
   const closeModal = () => setIsDeleteVisible(false);
-  if (isPending) {
-    return <LoadingPaging />;
-  }
+
   return (
     <Modal
       visible={isDeleteVisible}
@@ -53,7 +48,9 @@ export default function ConfirmDeleteResponse({
 
           <Text style={[styles.paragraph, styles.centerText]}>
             Are you sure you want to delete your
-            <Text style={{ textDecoration: "underline" }}> Response  </Text> for<Text style={styles.bold}> "{item}" </Text>?. This action cannot be
+            <Text style={{ textDecorationLine: "underline" }}> Response </Text>
+            for
+            <Text style={styles.bold}> "{item}" </Text>?. This action cannot be
             undone.
           </Text>
 
@@ -76,7 +73,20 @@ export default function ConfirmDeleteResponse({
             <Button
               onPress={() => {
                 if (responseId) {
-                  (onConfirm(responseId), closeModal());
+                  onConfirm(responseId, {
+                    onSuccess: () => {
+                      closeModal();
+                    },
+                    onError: (error) => {
+                      Toast.show({
+                        type: "error",
+                        text1: "Couldn't delete response",
+                        text2: error?.message || "Please try again later.",
+                        position: "top",
+                        visibilityTime: 3000,
+                      });
+                    },
+                  });
                 }
               }}
               styles={[
@@ -87,7 +97,7 @@ export default function ConfirmDeleteResponse({
                   backgroundColor: GlobalStyles.Primary_Yellow2,
                 },
               ]}
-              content={"Delete"}
+              content={isPending ? "Deleting..." : "Delete"}
             />
           </View>
         </View>

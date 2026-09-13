@@ -1,15 +1,27 @@
 import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
-import Button from "./Button";
+
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import RowMenu from "./RowMenu";
 import { formatDateTime } from "../Helpers";
-import { ActivityIndicator } from "react-native";
+
+import Toast from "react-native-toast-message";
+import { useReportProduct } from "../_CustomHooks/ProductServices";
+
+import { queryClient } from "../_lib/queryClient";
 
 export default function ProductProfileRow({ Data }) {
   const navigation = useNavigation();
+  const { mutate, isPending, isError, error } = useReportProduct();
 
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center" }}>
+        <Text style={styles.smallText}>{error?.message}</Text>
+      </View>
+    );
+  }
   const creationDate = formatDateTime(Data?.createdAt);
   return (
     <View
@@ -22,7 +34,7 @@ export default function ProductProfileRow({ Data }) {
       ]}
     >
       <View style={[styles.info]}>
-        <Text style={[styles.smallText, styles.bold]}>{Data.name}</Text>
+        <Text style={[styles.smallText, styles.bold]}>{Data?.name}</Text>
         <View
           style={{
             flexDirection: "column",
@@ -33,7 +45,7 @@ export default function ProductProfileRow({ Data }) {
         ></View>
 
         <Text style={styles.smallT}>
-          Product reports:{Data.reports ? Data.reports : 0}
+          Product reports: {Data?.reports ? Data?.reports : 0}
         </Text>
         <Text style={styles.smallT}>{creationDate}</Text>
       </View>
@@ -43,20 +55,54 @@ export default function ProductProfileRow({ Data }) {
           flexDirection: "column",
         }}
       >
-        {Data?.reported > 1 ? (
-          <Button
-            styles={[
+        <RowMenu productId={Data?.id} item={Data?.name} />
+        {Data?.reported ? (
+          <Pressable
+            onPress={() => {
+              mutate(
+                { id: Data?.id, reported: false },
+                {
+                  onSuccess: () => {
+                    Toast.show({
+                      type: "success",
+                      text1: "Success 👋",
+                      text2: "Product updated successfully!",
+                      position: "top", // or "bottom"
+                      visibilityTime: 3000,
+                    });
+
+                    queryClient.invalidateQueries("homeProducts");
+                  },
+                },
+              );
+            }}
+            disabled={isPending}
+            style={({ pressed }) => [
+              pressed && styles.pressed,
+              { flex: 1 },
+
               {
-                backgroundColor: GlobalStyles.Primary_Yellow,
+                backgroundColor: GlobalStyles.Primary_Green2,
                 marginVertical: 8,
+                flexDirection: "row",
+                height: 24,
+                justifyContent: "center",
               },
               styles.bordeR,
-              styles.paddingSm,
             ]}
-            content={<Text>Activate</Text>}
-          />
+          >
+            <Ionicons name={"lock-open"} size={16} />
+            <Text
+              style={{
+                alignSelf: "center",
+                marginVertical: "auto",
+                alignItems: "center",
+              }}
+            >
+              unLock
+            </Text>
+          </Pressable>
         ) : null}
-        <RowMenu productId={Data.id} item={Data.name} />
       </View>
     </View>
   );
@@ -69,6 +115,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderColor: "#ddd",
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   image: {
@@ -84,12 +132,6 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: "bold",
     fontSize: 16,
-  },
-
-  button: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
   },
 
   buttonText: {
@@ -142,7 +184,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700"
   },
   graph: {
     alignSelf: "center",
@@ -152,10 +194,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 10,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+
   rowBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -254,12 +293,6 @@ const styles = StyleSheet.create({
   paragraph: {
     fontFamily: "Roboto-Light",
     fontSize: 20,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

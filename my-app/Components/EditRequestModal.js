@@ -9,16 +9,16 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import InputText from "./TextInput";
-import Picked from "./Picker";
+
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
-import Span from "./Span";
-import { useEffect } from "react";
+
 import Toast from "react-native-toast-message";
 import { useForm, Controller } from "react-hook-form";
 import { useEditRequest } from "../_CustomHooks/RequestServices";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
+import { ScrollView } from "react-native";
 
 export default function EditRequestModal({
   item: product,
@@ -26,10 +26,8 @@ export default function EditRequestModal({
   isEditModalVisible,
   setIsEditModalVisible,
 }) {
-  //getProduct
+  const { isPending, mutate } = useEditRequest(product?.id);
 
-  const { isPending, isError, error, mutate } = useEditRequest(product.id);
-  // const item=request with the item Id the edit  and the data got will be the default value
   const {
     control,
     handleSubmit,
@@ -42,19 +40,15 @@ export default function EditRequestModal({
       name: product.name,
 
       description: product.description,
-      modal: product.modal,
-      brand: product.modal,
-      more: product.more,
-      year: product.year,
-      budget: product.budget,
+      modal: product?.modal,
+      brand: product?.brand,
+      more: product?.more,
+      year: product?.year,
+      budget: product?.budget,
     },
   });
 
-  //filling he form
-
-
   function submitHandler(data) {
-   ;
     mutate(
       { id: product.id, ...data },
       {
@@ -75,12 +69,20 @@ export default function EditRequestModal({
             year: "",
             more: "",
             budget: "",
-            currency: "",
           });
           queryClient.invalidateQueries({
             queryKey: ["AllMyRequests"],
           });
           setIsEditModalVisible(false);
+        },
+        onError: (error) => {
+          Toast.show({
+            type: "error",
+            text1: "Couldn't edit request",
+            text2: error?.message || "Please try again.",
+            position: "top",
+            visibilityTime: 3000,
+          });
         },
       },
     );
@@ -99,40 +101,35 @@ export default function EditRequestModal({
       >
         <View style={[styles.overlay]}>
           <View style={[styles.modal, { paddingVertical: 20 }]}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-end",
-
-                elevation: 999,
-              }}
-            >
-              {/* <Button
-                  styles={{ alignSelf: "flex-end" }}
-                  content={
-                    <Span
-                      styles={[
-                        {
-                          backgroundColor: GlobalStyles.Primary_Yellow,
-                        },
-                        styles.bordeR,
-                        styles.paddingLg,
-                      ]}
-                      content={
-                        <Ionicons name={"close"} size={40} color={"black"} />
-                      }
-                    />
-                  }
-                  onPress={() => {
-                    setIsVisible(false);
-                  }}
-                /> */}
-            </View>
-
             <View>
-              <Text style={[styles.sectionTitle, styles.smallMVertical]}>
-                Edit Request
-              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={[styles.sectionTitle, styles.smallMVertical]}>
+                  Edit Request
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    setIsEditModalVisible(false);
+                  }}
+                >
+                  <Ionicons
+                    name={"close"}
+                    size={28}
+                    style={[
+                      {
+                        backgroundColor: GlobalStyles.Primary_Green,
+                        alignSelf: "center",
+                      },
+                      styles.bordeR,
+                    ]}
+                  />
+                </Pressable>
+              </View>
+
               <View style={styles.smallMTop}>
                 <Text style={[styles.paragraph, styles.smallMVertical]}>
                   Title?
@@ -162,9 +159,9 @@ export default function EditRequestModal({
                   )}
                   name="name"
                 />
-                {errors.title && (
+                {errors.name && (
                   <Text style={{ color: "red", marginBottom: 10 }}>
-                    {errors.title.message}
+                    {errors.name.message}
                   </Text>
                 )}
               </View>
@@ -219,7 +216,7 @@ export default function EditRequestModal({
               >
                 <View style={[styles.rowBtn, { width: "100%" }]}>
                   <View style={{ width: "32%" }}>
-                    <Text style={[styles.smallT]}>Brand(optional)</Text>
+                    <Text style={[styles.smallT]}>Brand</Text>
 
                     <Controller
                       control={control}

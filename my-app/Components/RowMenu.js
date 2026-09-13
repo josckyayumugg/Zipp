@@ -6,7 +6,7 @@ import { View, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ConfirmDeleteProduct from "./confirmDeleteProduct";
 import { useDeleteProduct } from "../_CustomHooks/ProductServices";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import Toast from "react-native-toast-message";
 
 export default function RowMenu({ styles, productId, item }) {
@@ -123,7 +123,7 @@ const styled = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -133,11 +133,7 @@ const styled = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 10,
   },
-  rowBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+
   row: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,11 +1,9 @@
 import React from "react";
-import { useState } from "react";
+
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import Button from "./Button";
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "react-native";
+
 import { GlobalStyles } from "../Constants";
-import { ActivityIndicator } from "react-native";
+
 import { useNavigation } from "@react-navigation/native";
 import Category from "./Category";
 export default function Categories() {
@@ -52,16 +50,11 @@ export default function Categories() {
           searchQuery={"suspension"}
         />
         <Category
-          name="Electrical"
+          name="electrical"
           icon="logo-electron"
           searchQuery={"electricity"}
         />
-        <Category
-          name="Others"
-          icon="car-outline"
-          searchQuery={"Others"}
-          
-        />
+        <Category name="Others" icon="car-outline" searchQuery={"others"} />
       </View>
     </View>
   );

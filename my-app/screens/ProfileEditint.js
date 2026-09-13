@@ -7,7 +7,7 @@ import InputText from "../Components/TextInput";
 import { useUpdateProfile } from "../_CustomHooks/Authentication";
 import { useEffect } from "react";
 import Toast from "react-native-toast-message";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import {
   useGetCurrentProfile,
   useGetCurrentUser,
@@ -55,29 +55,37 @@ export default function EditProfile() {
             type: "success",
             text1: "Success 👋",
             text2: "Profile Updated successfully!",
-            position: "top", // or "bottom"
+            position: "top",
             visibilityTime: 3000,
+          });
+          queryClient.invalidateQueries("profile");
+        },
+        onError: (error) => {
+          Toast.show({
+            type: "!error",
+            text1: "Update failed",
+            text2: error?.message || "Something went wrong. Please try again.",
+            position: "top",
+            visibilityTime: 4000,
           });
         },
       },
-      queryClient.invalidateQueries("profile"),
     );
   }
   useEffect(() => {
     if (profile) {
       reset({
-        sellerNames: profile.sellerNames,
-        directions: profile.directions,
-        tin: profile.tin,
+        sellerNames: profile?.sellerNames,
+        directions: profile?.directions,
+        tin: profile?.tin,
       });
     }
   }, [profile]);
 
-  if (isError) return <ErrorPage message={error.message} />;
-  if (isErrorProfile) return <ErrorPage message={errorProfile.message} />;
-  if (isErrorUser) return <ErrorPage message={isErrorUser.message} />;
+  if (errorProfile) return <ErrorPage message={errorProfile?.message} />;
+  if (errorUser) return <ErrorPage message={errorUser?.message} />;
 
-  if (isPendingUser) return <LoadingPaging />;
+  if (isPendingUser || isPendingProfile) return <LoadingPaging />;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -173,6 +181,7 @@ export default function EditProfile() {
       </View>
 
       <Button
+        disable={isPending}
         content="Save Changes"
         styles={styles.saveBtn}
         onPress={handleSubmit(submitHandler)}

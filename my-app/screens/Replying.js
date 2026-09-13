@@ -5,7 +5,7 @@ import {
   useCreateResponse,
   useEditResponse,
 } from "../_CustomHooks/ResponseServices";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import { useGetReqResponse } from "../_CustomHooks/ResponseServices";
@@ -56,12 +56,6 @@ export default function RespondToRequest() {
     isError: isErrorAuth,
     error: errorAuth,
   } = useGetCurrentUser();
-  const {
-    data: Responses,
-    isError: isErrorResponse,
-    isPending: isPendingResponses,
-    error: errorResponse,
-  } = useGetReqResponses();
 
   const {
     data: userData,
@@ -71,16 +65,11 @@ export default function RespondToRequest() {
   } = useGetCurrentProfile(user?.id);
   const {
     data: editData,
-    isError: isErrorGetResponse,
+
     error: errorGetResponse,
     isPending: isPendingGetResponse,
   } = useGetSingleResponse(editId);
-  const {
-    mutate: EditResponse,
-    isError: isErrorEditingResponse,
-    error: errorEditingResponse,
-    isPending: isPendingEditingResponse,
-  } = useEditResponse();
+  const { mutate: EditResponse } = useEditResponse();
 
   const {
     control,
@@ -94,7 +83,7 @@ export default function RespondToRequest() {
       price: "",
       condition: "",
       note: "",
-      currency: "",
+      currency: "RWF",
       location: "",
       businessNames: "",
     },
@@ -105,14 +94,14 @@ export default function RespondToRequest() {
       reset({
         price: editData?.price,
         condition: editData?.condition,
-        note:  editData?.note,
+        note: editData?.note,
         currency: editData?.currency,
         location: editData?.location,
         businessNames: editData?.businessName,
       });
     }
-  }, [editingMode, editData]);
-  const { request } = route?.params;
+  }, [editId, editData]);
+  const { request } = route?.params || {};
   const [conditionItem, setIsConditionItem] = useState([
     { label: "New(nshyashya)", value: "new" },
     { label: "used(okaziyo)", value: "used" },
@@ -137,11 +126,23 @@ export default function RespondToRequest() {
               price: "",
               condition: "",
               note: "",
-              currency: "",
+              currency: "RWF",
               location: "",
               businessNames: "",
             });
             setIsEditing(false);
+            queryClient.invalidateQueries("allResponses");
+          },
+          onError: (error) => {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2:
+                error?.message ||
+                "Something went wrong while editing. Please try again.",
+              position: "top",
+              visibilityTime: 3000,
+            });
           },
         },
       );
@@ -150,7 +151,7 @@ export default function RespondToRequest() {
       {
         ...data,
         createdBy: user?.id,
-        request: request.id,
+        request: request?.id,
         location: userData?.directions,
         businessNames: userData?.businessNames,
       },
@@ -177,6 +178,7 @@ export default function RespondToRequest() {
             queryKey: ["responses"],
           });
 
+          queryClient.invalidateQueries("related");
           navigation.goBack();
         },
 
@@ -193,41 +195,39 @@ export default function RespondToRequest() {
     );
   }
   /////creaeting the response//
-  console.log("umunsiwari", editData);
+
   if (isErrorAuth) {
-    return (
-      <ErrorPage message={"Couldn't verify your account. Please try again"} />
-    );
+    return <ErrorPage message={error.message} />;
+  }
+  if (errorUser) {
+    errorUser.message;
   }
 
-  if (isErrorResponse) {
-    return (
-      <View style={styles.centered}>
-        <Text>Couldn't load responses. Please try again.</Text>
-      </View>
-    );
-  }
-
-  if (isErrorUser) {
-    return (
-      <View style={styles.centered}>
-        <Text>Couldn't load your profile. Please try again.</Text>
-      </View>
-    );
+  if (errorGetResponse) {
+    return <ErrorPage message={errorGetResponse?.message} />;
   }
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1, backgroundColor: "#fff" }}
+      style={{ flex: 1 }}
     >
-      <ScrollView contentContainerStyle={styles.containerStyle}>
-        {/* Dynamic header detail section card */}
-        <View style={styles.requestOverviewCard}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          padding: 12,
+          paddingBottom: 100,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={[styles.requestOverviewCard]}>
           <Text style={styles.labelSubText}>
             You are providing an offer for:
           </Text>
           <Text style={styles.targetItemName}>{request?.name}</Text>
+          <Text style={[{ color: GlobalStyles.Kn_orange, marginTop: 4 }]}>
+            Shyira igiciro kugicuruzwa umuguzi akeneye
+          </Text>
         </View>
 
         {/* Form Container Structure */}
@@ -279,7 +279,7 @@ export default function RespondToRequest() {
               <View
                 style={{
                   height: 80,
-                  width: 100,
+                  width: 130,
                   marginTop: 8,
                   alignSelf: "flex-start",
                 }}
@@ -288,15 +288,6 @@ export default function RespondToRequest() {
                   control={control}
                   name="currency"
                   render={({ field: { onChange, value } }) => (
-                    // <Picked
-                    //   selectedValue={value}
-                    //   options={[
-                    //     { label: "RWF 🇷🇼", value: "RWF" },
-                    //     { label: "USD 🇺🇸", value: "USD" },
-                    //     { label: "EUR 🇪🇺", value: "EUR" },
-                    //     { label: "GBP 🇬🇧", value: "GBP" },
-                    //   ]}
-                    // />
                     <AppDropdown
                       value={value}
                       items={currencyItems}
@@ -322,7 +313,7 @@ export default function RespondToRequest() {
           </View>
 
           {/* Form Row 2: Condition Parameter Tag Box */}
-          <View>
+          <View style={{ height: "20%" }}>
             <Text style={styles.fieldLabelTitle}>Part Condition / Status</Text>
 
             <Controller
@@ -350,11 +341,6 @@ export default function RespondToRequest() {
                 />
               )}
             />
-            {errors.condition && (
-              <Text style={{ color: "red", marginBottom: 10 }}>
-                {errors.condition.message}
-              </Text>
-            )}
           </View>
 
           {/* Form Row 3: Additional details textarea entry block */}
@@ -384,7 +370,7 @@ export default function RespondToRequest() {
                     {
                       borderColor: GlobalStyles.Primary_Grey,
                       borderWidth: 1,
-                      height: "80",
+                      height: 80,
                     },
                     styles.paddingLg,
                   ]}
@@ -404,7 +390,7 @@ export default function RespondToRequest() {
         <View
           style={[
             styles.row,
-            { justifyContent: "space-between", marginTop: 40 },
+            { justifyContent: "space-between", marginVertical: 20 },
           ]}
         >
           <Button
@@ -416,7 +402,7 @@ export default function RespondToRequest() {
               {
                 borderColor: GlobalStyles.Primary_Grey,
                 borderWidth: 1,
-                width: "90%",
+                width: "95%",
                 alignItems: "center",
               },
             ]}
@@ -430,7 +416,7 @@ export default function RespondToRequest() {
               styles.bordeR,
               {
                 backgroundColor: GlobalStyles.Primary_Yellow,
-                width: "90%",
+                width: "95%",
 
                 alignItems: "center",
               },
@@ -445,6 +431,7 @@ export default function RespondToRequest() {
 const styles = StyleSheet.create({
   containerStyle: {
     padding: 16,
+    flex: 1,
   },
   requestOverviewCard: {
     backgroundColor: "#F9F9F9",
@@ -551,10 +538,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 10,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+
   rowBtn: {
     flexDirection: "row",
     alignItems: "center",

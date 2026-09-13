@@ -1,33 +1,20 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { GlobalStyles } from "../Constants";
-import Span from "./Span";
 import { formatDateTime } from "../Helpers";
 import Button from "./Button";
-import NewRequestModal from "./NewRequest";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  useNavigation,
-  useNavigationIndependentTree,
-} from "@react-navigation/native";
-import { useState } from "react";
-
-import ConfirmDeleteRequest from "./ConfirmDeleteRequest";
-import { useGetSingleProduct } from "../_CustomHooks/ProductServices";
-import LoadingPaging from "./LoadingPaging";
-
+import { useNavigation } from "@react-navigation/native";
+import { formatNumber } from "../Helpers";
 export default function ARequest({
-  requestType,
   user,
   onEdit,
   onDelete,
-
+  profileType,
+  stylee,
   Data,
+  id,
 }) {
   const Navigation = useNavigation();
-
-  // if (isPending || isError || error) {
-  //   return <LoadingPaging />;
-  // }
 
   return (
     <View
@@ -37,13 +24,15 @@ export default function ARequest({
         styles.paddingLg,
         styles.smallMTop,
         styles.smallMVertical,
+
         {
           shadowOffset: {
-            width: 0,
             height: 4,
           },
           shadowOpacity: 0.3,
+
           borderWidth: 1,
+
           margin: 4,
           marginVertical: 8,
           borderColor: GlobalStyles.Primary_Grey,
@@ -51,71 +40,80 @@ export default function ARequest({
           paddingVertical: 20,
           // Android shadow
           elevation: 8,
+          flexDirection: "column",
         },
+        stylee,
       ]}
     >
-      <View style={styles.rowBtn}>
+      <View style={[styles.rowBtn, { width: "100%" }]}>
         <View
           style={[
             styles.smallText,
+            styles.rowBtn,
+
             {
               color: styles.Primary_Grey3,
               flexDirection: "row",
+              width: "40%",
+
               alignItems: "center",
-              gap: 2,
             },
           ]}
         >
-          <Ionicons
-            name="calendar"
-            size={13}
-            color={GlobalStyles.Primary_Grey2}
-          />
-          <Text style={styles.smallT}>{formatDateTime(Data?.createdAt)}</Text>
+          <View style={{ flexDirection: "row", gap: 2 }}>
+            <Ionicons
+              name="calendar"
+              size={13}
+              color={GlobalStyles.Primary_Grey2}
+            />
+            <Text style={styles.smallT}>{formatDateTime(Data?.createdAt)}</Text>
+          </View>
         </View>
-        {requestType === "myRequest" && (
-          <View
-            style={[
-              styles.smallT,
-              styles.row,
 
-              { color: styles.Primary_Grey3, gap: 8, width: "40%" },
+        <View
+          style={[
+            styles.smallT,
+            styles.row,
+
+            {
+              color: styles.Primary_Grey3,
+              gap: 8,
+              width: "40%",
+            },
+          ]}
+        >
+          <Pressable
+            onPress={onEdit}
+            style={[
+              styles.bordeR,
+              styles.paddingSm,
+              {
+                borderWidth: 1,
+                borderColor: GlobalStyles.Primary_Grey,
+
+                width: "50%",
+              },
             ]}
           >
-            <Button
-              onPress={onEdit}
-              styles={[
-                styles.bordeR,
-                styles.paddingSm,
-                { borderWidth: 1, borderColor: GlobalStyles.Primary_Grey },
-              ]}
-              content={
-                <View style={styles.row}>
-                  <Ionicons name="pencil-outline" size={12} color={"black"} />
-                  <Text style={styles.smallT}>Edit</Text>
-                </View>
-              }
-            />
-            <Button
-              onPress={onDelete}
-              styles={[
-                styles.bordeR,
-                styles.paddingSm,
-                { borderWidth: 1, borderColor: GlobalStyles.Primary_Grey },
-              ]}
-              content={
-                <View style={styles.row}>
-                  <Ionicons
-                    name="trash-bin-outline"
-                    size={12}
-                    color={"black"}
-                  />
-                  <Text style={styles.smallT}>Delete</Text>
-                </View>
-              }
-            />
-          </View>
-        )}
+            <View style={styles.row}>
+              <Ionicons name="pencil-outline" size={12} color={"black"} />
+              <Text style={styles.smallT}>Edit</Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            style={[
+              styles.bordeR,
+              styles.paddingSm,
+              { borderWidth: 1, borderColor: GlobalStyles.Primary_Grey },
+            ]}
+          >
+            <View style={styles.row}>
+              <Ionicons name="trash-bin-outline" size={12} color={"black"} />
+              <Text style={styles.smallT}>Delete</Text>
+            </View>
+          </Pressable>
+        </View>
       </View>
       <View
         style={[
@@ -125,8 +123,7 @@ export default function ARequest({
             borderBottomColor: GlobalStyles.Primary_Grey3,
             borderBottomWidth: 1,
           },
-          styles.smallMVertical,
-          styles.smallMVertical,
+
           styles.paddingLg,
         ]}
       >
@@ -135,107 +132,88 @@ export default function ARequest({
           {`"${Data?.description}"`}
         </Text>
         <View style={[styles.row, { flexWrap: "wrap", gap: 8 }]}>
-          <Text
-            style={[
-              styles.bordeR,
-              { borderWidth: 1 },
-              styles.paddingSm,
-              styles.smallT,
-            ]}
-          >
-            {Data?.brand}
-          </Text>
-          <Text
-            style={[
-              styles.bordeR,
-              { borderWidth: 1 },
-              styles.paddingSm,
-              styles.smallT,
-            ]}
-          >
-            {Data?.modal}
-          </Text>
-          <Text
-            style={[
-              styles.bordeR,
-              { borderWidth: 1 },
-              styles.paddingSm,
-              styles.smallT,
-            ]}
-          >
-            {Data?.year}
-          </Text>
-          <Text
-            style={[
-              styles.bordeR,
-              { borderWidth: 1 },
-              styles.paddingSm,
-              styles.smallT,
-            ]}
-          >
-            {Data?.more}
-          </Text>
+          {Data?.brand ? (
+            <Text
+              style={[
+                styles.bordeR,
+                { borderWidth: 1 },
+                styles.paddingSm,
+                styles.smallT,
+              ]}
+            >
+              {Data?.brand}
+            </Text>
+          ) : null}
+          {Data?.modal ? (
+            <Text
+              style={[
+                styles.bordeR,
+                { borderWidth: 1 },
+                styles.paddingSm,
+                styles.smallT,
+              ]}
+            >
+              {Data?.modal}
+            </Text>
+          ) : null}
+          {Data?.year ? (
+            <Text
+              style={[
+                styles.bordeR,
+                { borderWidth: 1 },
+                styles.paddingSm,
+                styles.smallT,
+              ]}
+            >
+              {Data?.year}
+            </Text>
+          ) : null}
+          {Data?.more ? (
+            <Text
+              style={[
+                styles.bordeR,
+                { borderWidth: 1 },
+                styles.paddingSm,
+                styles.smallT,
+              ]}
+            >
+              {Data?.more}
+            </Text>
+          ) : null}
         </View>
-        <Text style={[styles.paragraph, styles.bold, styles.greenT]}>
-          {Data?.budget}({Data.currency})
-        </Text>
+        {Data?.budget ? (
+          <Text style={[styles.paragraph, styles.bold, styles.greenT]}>
+            {formatNumber(Data?.budget)}
+            {Data?.currency}
+          </Text>
+        ) : null}
       </View>
-      <View style={[styles.row, {}]}>
-        {requestType === "allRequests" && (
-          <Button
-            onPress={() =>
-              Navigation.navigate("Respond", {
-                user,
-                request: Data,
-              })
-            }
-            styles={[
-              styles.bordeR,
-              styles.paddingLg,
+      <View style={[styles.row]}>
+        <Button
+          onPress={() =>
+            Navigation.navigate("Replies", {
+              requestId: Data?.id,
+              requestName: Data?.name,
+            })
+          }
+          styles={[
+            styles.bordeR,
+            styles.paddingLg,
 
-              {
-                backgroundColor: GlobalStyles.Primary_Yellow,
-                borderColor: GlobalStyles.Primary_Yellow,
-                borderWidth: 1,
-              },
-            ]}
-            content={
-              <Text style={[{}, styles.bold]}>
-                <Ionicons name="chatbox-outline" size={18} />
-                Respond
-              </Text>
-            }
-          />
-        )}
-        {requestType === "myRequest" && (
-          <Button
-            onPress={() =>
-              Navigation.navigate("Replies", {
-                requestId: Data?.id,
-                requestName: Data?.name,
-              })
-            }
-            styles={[
-              styles.bordeR,
-              styles.paddingLg,
-
-              {
-                backgroundColor: GlobalStyles.Primary_Yellow,
-                borderColor: GlobalStyles.Primary_Yellow,
-                borderWidth: 1,
-              },
-            ]}
-            content={
-              <Text style={[{}, styles.bold]}>
-                <Ionicons name="chatbubble-outline" size={18} />
-                View Replies
-              </Text>
-            }
-          />
-        )}
+            {
+              backgroundColor: GlobalStyles.Primary_Yellow2,
+              borderColor: GlobalStyles.Primary_Yellow,
+              borderWidth: 1,
+            },
+          ]}
+          content={
+            <Text style={[{}, styles.bold]}>
+              <Ionicons name="chatbubble-outline" size={18} />
+              View Replies
+            </Text>
+          }
+        />
       </View>
-      {}
-      {}
     </View>
   );
 }

@@ -1,11 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Span from "../Components/Span";
-import Button from "../Components/Button";
-import {
-  useGetSingleProduct,
-  useGetSingleProductDeal,
-} from "../_CustomHooks/ProductServices";
+
+import { useGetSingleProduct } from "../_CustomHooks/ProductServices";
 import { useRoute } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -19,7 +16,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { GlobalStyles } from "../Constants";
-import LoadingPaging from "../Components/LoadingPaging";
+
+import ErrorPage from "../Components/ErrorPage";
 
 const { width } = Dimensions.get("window");
 const SLIDER_WIDTH = width - 24; // Width of the image container accounting for screen padding
@@ -30,7 +28,7 @@ export default function ProductPage() {
 
   const {
     isPending,
-    isError,
+
     error,
     data: product,
   } = useGetSingleProduct(route.params?.productId);
@@ -46,7 +44,9 @@ export default function ProductPage() {
   };
 
   let images = product?.images || [];
-
+  if (error) {
+    return <ErrorPage message={error.message} />;
+  }
   return (
     <View style={{ flex: 1, backgroundColor: "#f8f9fa" }}>
       <ScrollView style={{ flexDirection: "column", padding: 12 }}>
@@ -150,23 +150,6 @@ export default function ProductPage() {
         </View>
 
         {/* PRICE */}
-        {product?.budget && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.headerTitle}>Budget</Text>
-            <Text
-              style={[
-                styles.priceText,
-                styles.bordeR,
-                {
-                  backgroundColor: GlobalStyles.Primary_Green2 || "#e1f5fe",
-                  color: GlobalStyles.Primary_Green || "#007ecc",
-                },
-              ]}
-            >
-              {product?.budget}Kigali
-            </Text>
-          </View>
-        )}
 
         {/* DESCRIPTION */}
         <View style={styles.sectionContainer}>
@@ -189,6 +172,7 @@ export default function ProductPage() {
       <View style={styles.bottomStickyContainer}>
         <TouchableOpacity
           style={styles.yellowContactBtn}
+          disabled={isPending}
           // onPress={() => SetIsViewSeller((prev) => !prev)}
           onPress={() =>
             navigator.navigate("Product Contacts", {
@@ -267,7 +251,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-semibold",
     fontWeight: "700",
     paddingVertical: 6,
-    paddingHorizontal: 12,
+
     alignSelf: "flex-start",
   },
   locationBadge: {
@@ -297,10 +281,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bottomStickyContainer: {
-    bottom: 0,
-    left: 0,
-    right: 0,
-
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: "#e9ecef",

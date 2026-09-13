@@ -5,18 +5,18 @@ import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import Toast from "react-native-toast-message";
 import { useDeleteRequest } from "../_CustomHooks/RequestServices";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 
 export default function ConfirmDeleteRequest({
   isConfirmOpen,
   setIsConfirmDeleteOpen,
-  productName,
+
   item,
   id,
 }) {
   const { isError, error, mutate } = useDeleteRequest(item.id);
   function confirmDelete() {
-    mutate(item.id, {
+    mutate(item?.id, {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ["MyRequests"],
@@ -37,8 +37,6 @@ export default function ConfirmDeleteRequest({
       },
 
       onError: (error) => {
-        
-
         if (error.message?.toLowerCase().includes("jwt")) {
           Toast.show({
             type: "error",
@@ -106,43 +104,41 @@ export default function ConfirmDeleteRequest({
           {/* Action Row Grid utilizing your layout classes */}
           <View style={[styles.row, styles.actionContainer]}>
             {/* Cancel Button */}
-            <Button
+            <Pressable
               onPress={closeModal}
-              styles={[
+              style={[
                 styles.bordeR,
                 styles.paddingLg,
                 styles.flexButton,
                 { backgroundColor: GlobalStyles.Primary_Grey3 || "#E0E0E0" },
               ]}
-              content={
-                <Text style={[styles.Roboto, styles.bold, styles.centerText]}>
-                  Cancel
-                </Text>
-              }
-            />
+            >
+              <Text style={[styles.Roboto, styles.bold, styles.centerText]}>
+                Cancel
+              </Text>
+            </Pressable>
 
             {/* Confirm Delete Button */}
-            <Button
+            <Pressable
               onPress={confirmDelete}
-              styles={[
+              style={[
                 styles.bordeR,
                 styles.paddingLg,
                 styles.flexButton,
                 { backgroundColor: GlobalStyles.Black },
               ]}
-              content={
-                <Text
-                  style={[
-                    styles.bold,
-                    styles.whiteT,
-                    styles.centerText,
-                    styles.paragraph,
-                  ]}
-                >
-                  Delete
-                </Text>
-              }
-            />
+            >
+              <Text
+                style={[
+                  styles.bold,
+                  styles.whiteT,
+                  styles.centerText,
+                  styles.paragraph,
+                ]}
+              >
+                Delete
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Pressable>
@@ -204,7 +200,7 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontFamily: "Roboto-Light",
-    fontSize: 16,
+    fontSize: 14,
     color: "#555555",
   },
   bold: {

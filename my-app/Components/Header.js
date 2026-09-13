@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   smallT: {
-    fontFamily: "RRoboto-regular",
+    fontFamily: "Roboto-regular",
     fontSize: 12,
   },
   smallMVertical: {

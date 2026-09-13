@@ -1,31 +1,28 @@
 import { View, Text, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
-import { ScrollView } from "react-native-web";
+
 import { Ionicons } from "@expo/vector-icons";
 
 export default function VerificationRow({ title, data }) {
   return (
-    <View>
+    <View
+      style={[
+        { backgroundColor: GlobalStyles.Primary_Grey3 },
+        styles.bordeR,
+        styles.row,
+       
+        styles.paddingLg,
+        { gap: 8 },
+      ]}
+    >
+      <Ionicons
+        name="checkmark-outline"
+        size={14}
+        style={{ borderColor: "black", borderWidth: 1, borderRadius: 20 }}
+      />
       <View>
-        <View
-          style={[
-            { backgroundColor: GlobalStyles.Primary_Yellow2 },
-            styles.bordeR,
-            styles.row,
-
-            styles.paddingLg,
-            { gap: 8 },
-          ]}
-        >
-          <Ionicons
-            name="checkmark-outline"
-            style={{ borderColor: "black", borderWidth: 1, borderRadius: 20 }}
-          />
-          <View>
-            <Text style={[styles.paragraph, styles.bold]}>{title}</Text>
-            <Text style={[styles.paragraph]}>{data}</Text>
-          </View>
-        </View>
+        <Text style={[styles.paragraph, styles.bold]}>{title}</Text>
+        <Text style={[styles.paragraph]}>{data}</Text>
       </View>
     </View>
   );

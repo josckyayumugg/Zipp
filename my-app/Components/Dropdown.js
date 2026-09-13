@@ -13,6 +13,7 @@ export default function AppDropdown({
   zIndex = 1000, // Crucial for dropdown rendering order
   open,
   setOpen,
+  direction,
 }) {
   return (
     <View style={[styles.container, styles.zIndex, { zIndex }]}>
@@ -25,7 +26,7 @@ export default function AppDropdown({
         setOpen={setOpen}
         setValue={setValue}
         setItems={setItems}
-        dropDownDirection="TOP"
+        dropDownDirection={direction ? direction : "TOP"}
         placeholder={placeholder}
         style={[styles.dropdown, error ? styles.dropdownError : null]}
         dropDownContainerStyle={[styles.dropdownContainer]}

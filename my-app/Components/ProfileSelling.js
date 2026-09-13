@@ -47,32 +47,20 @@ export default function ProfileSelling({ profileId, creationYear }) {
   } = useCountMyResponses(profileId);
 
   const {
-    data: AllMyProducts,
-    isPending: isPendingProducts,
-    isError: isErrorProducts,
-    error: errorProducts,
-    isFetching,
-  } = useGetAllMyProducts(profileId);
-  const {
     data: requestNumber,
     isPending: isPendingRNumber,
-    isError: isErrorRNumber,
+
     error: errorRNumber,
   } = useCountMyRequests(profileId);
 
-  if (isErrorPNumber) {
+  if (errorPNumber) {
     return <ErrorPage message={errorPNumber?.message} />;
   }
-  if (isErrorDeals) {
+  if (errorDeals) {
     return <ErrorPage message={errorDeals?.message} />;
   }
-  if (isErrorReplies) {
-    return <ErrorPage message={errorDeals?.message} />;
-  }
-  if (isErrorPNumber) {
-    return <ErrorPage message={errorProducts?.message} />;
-  }
-  if (isErrorRNumber) {
+
+  if (errorRNumber) {
     return <ErrorPage message={errorRNumber?.message} />;
   }
 
@@ -158,7 +146,7 @@ export default function ProfileSelling({ profileId, creationYear }) {
           ]}
         >
           <Ionicons
-            name="cube-outline"
+            name="flash"
             style={[
               styles.bordeR,
               {
@@ -209,12 +197,14 @@ export default function ProfileSelling({ profileId, creationYear }) {
           ]}
         >
           <Ionicons
-            name="cube-outline"
+            name="pricetag-outline"
+            size={12}
             style={[
               styles.bordeR,
               {
                 borderRadius: 30,
-                padding: 4,
+                padding: 2,
+
                 borderColor: GlobalStyles.Primary_Grey2,
                 borderWidth: 1,
                 backgroundColor: GlobalStyles.Primary_Yellow2,
@@ -261,12 +251,13 @@ export default function ProfileSelling({ profileId, creationYear }) {
           ]}
         >
           <Ionicons
-            name="cube-outline"
+            name="git-pull-request-outline"
+            size={"12"}
             style={[
               styles.bordeR,
               {
                 borderRadius: 30,
-                padding: 4,
+                padding: 2,
                 borderColor: GlobalStyles.Primary_Grey2,
                 borderWidth: 1,
                 backgroundColor: GlobalStyles.Primary_Yellow2,
@@ -336,7 +327,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",

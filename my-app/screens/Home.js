@@ -1,35 +1,15 @@
-import {
-  FlatList,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Image,
-  useWindowDimensions,
-} from "react-native";
+import { FlatList, View, StyleSheet, Pressable } from "react-native";
 
 import { GlobalStyles } from "../Constants";
-import AutoMarqueeList from "../Components/AutoMarqueeList";
-import Header from "../Components/Header";
-import InputText from "../Components/TextInput";
 import { Ionicons } from "@expo/vector-icons";
-import Stats from "../Components/Stats";
-import SpecialOffer from "../Components/SpecialOffer";
-import Category from "../Components/Category";
-import { ScrollView } from "react-native";
-import Button from "../Components/Button";
-import ProductCard from "../Components/ProductCard";
-import SeeAll from "../Components/Seeall";
-import { ActivityIndicator } from "react-native";
 import { useEffect, useState, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
-import StoryItem from "../Components/FullCard";
 import FullWidthStoryCard from "../Components/FullCard";
 import ProductCardHome from "../Components/ProductCardHom";
 import Categories from "../Components/Categories";
 import CreateDealModal from "../Components/CreateDealModal";
+
 import {
-  useGetAllNewProducts,
   useGetAllProductDeals,
   useGetNewProductsHome,
 } from "../_CustomHooks/ProductServices";
@@ -39,18 +19,11 @@ import LoadingPaging from "../Components/LoadingPaging";
 
 export default function Home({ route }) {
   const Navigation = useNavigation();
-  const isCreateDeal = route.params?.isCreateDealOpen;
-  const isEditing = route.params?.isCreateDealOpen;
-  const EditingId = route.params?.dealId;
 
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isCreateDealOpen, setIsCreateDealOpen] = useState(false);
   const flatListRef = useRef(null);
   const [isCurrentDeal, setIsCurrentDeal] = useState(0);
-
-  useEffect(() => {
-    setIsCreateDealOpen(isCreateDeal);
-  }, [isCreateDeal]);
 
   const scrollToTop = () => {
     flatListRef.current?.scrollToOffset({
@@ -58,8 +31,6 @@ export default function Home({ route }) {
       animated: true,
     });
   };
-
-  //about the single deals card
 
   const {
     data,
@@ -91,8 +62,6 @@ export default function Home({ route }) {
     if (dataDeals.length === 0) return;
     setIsCurrentDeal((prev) => (prev === 0 ? dataDeals.length - 1 : prev - 1));
   };
-  //////////////////////////////////////////////////////////////////
-  //about get new product for home page
 
   const {
     data: dataHome,
@@ -105,7 +74,7 @@ export default function Home({ route }) {
   } = useGetNewProductsHome();
   const homeData = dataHome ? dataHome?.pages.flatMap((page) => page) : [];
   const activeProduct = dataDeals?.[isCurrentDeal];
-  //single deals today productsconst
+
   if (pendingHomeProducts) return <LoadingPaging />;
 
   return (
@@ -115,7 +84,6 @@ export default function Home({ route }) {
         data={homeData}
         ref={flatListRef}
         keyExtractor={(item) => item.id.toString()}
-        // columnWrapperStyle={{ marginBottom: 10 }}
         onEndReached={() => {
           if (!isFetchingNextPageHomeProducts && hasNextPageHomeProducts) {
             fetchNextPageHomeProducts();
@@ -124,8 +92,6 @@ export default function Home({ route }) {
         contentContainerStyle={{ padding: 2 }}
         renderItem={({ item }) => (
           <ProductCardHome
-            isCreateDealOpen={isCreateDealOpen}
-            setIsCreateDealOpen={isCreateDealOpen}
             Stylesy={{
               width: "85%",
               marginHorizontal: "auto",
@@ -133,8 +99,6 @@ export default function Home({ route }) {
             product={item}
             setIsImageLoaded={setIsImageLoaded}
             isImageLoaded={isImageLoaded}
-            // isImageLoaded={isImageLoaded}
-            // setIsImageLoaded={setIsImageLoaded}
             isFetchingNextPageHomeProducts={isFetchingNextPageHomeProducts}
             hasNextPageHomeProducts={hasNextPageHomeProducts}
             fetchNextPageHomeProducts={fetchNextPageHomeProducts}
@@ -146,8 +110,6 @@ export default function Home({ route }) {
             {isCreateDealOpen && (
               <CreateDealModal
                 visible={isCreateDealOpen}
-                isEditing={isEditing}
-                EditingId={EditingId}
                 setIsVisible={setIsCreateDealOpen}
               />
             )}
@@ -195,6 +157,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
+
     height: "100%",
     minWidth: "100%",
     fontFamily: "notoSans",
@@ -316,8 +279,6 @@ const styles = StyleSheet.create({
 
     margin: 6,
     borderWidth: 1,
-
-    backgroundColor: GlobalStyles.Primary_Grey,
   },
   rowView: {
     flexDirection: "row",
@@ -357,12 +318,6 @@ const styles = StyleSheet.create({
   paragraph: {
     fontFamily: "Roboto-Light",
     fontSize: 16,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

@@ -10,22 +10,13 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
-import { SafeAreaView } from "react-native";
+
+import { KeyboardAvoidingView } from "react-native";
+import { Platform } from "react-native";
 
 export default function ProductFilterModal({
   visible,
   setIsFilterOpen,
-  onApply,
-  // selectedCategory,
-  // selectedCondition,
-  // setSelectedCategory,
-  // setSelectedCondition,
-  // setBrand,
-  // setModel,
-  // setYear,
-  // brand,
-  // model,
-  // year,
   setIsTempFilter,
   isTempFilter,
   setAppliedFilter,
@@ -56,12 +47,10 @@ export default function ProductFilterModal({
       year: "",
       category: "",
       condition: "",
-      search: "",
     });
   };
 
   const handleApply = () => {
-    console.log(isTempFilter);
     setIsFilterOpen(false);
     setAppliedFilter(isTempFilter);
     setShouldSearch(true);
@@ -78,241 +67,251 @@ export default function ProductFilterModal({
         setIsFilterOpen(false);
       }}
     >
-      <View style={modalStyles.modalOverlay}>
-        <View style={[styles.container, modalStyles.modalContent]}>
-          {/* Header Section */}
-          <View style={[styles.row, modalStyles.headerBorder]}>
-            <Text style={styles.sectionTitle}>Filter Products</Text>
-            <Pressable
-              onPress={() => {
-                setIsFilterOpen(false);
-              }}
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <Ionicons name="close" size={24} color={GlobalStyles.Black} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            style={{ flex: 1, marginTop: 12 }}
-          >
-            {/* 1. Category / Component Type Options */}
-            <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
-              Component Type
-            </Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, margin: 8, backgroundColor: "#fff" }}
+      >
+        <View style={modalStyles.modalOverlay}>
+          <View style={[styles.container, modalStyles.modalContent]}>
+            {/* Header Section */}
             <View
               style={[
                 styles.row,
-                { flexWrap: "wrap", justifyContent: "flex-start", gap: 8 },
-                styles.smallMVertical,
+                modalStyles.headerBorder,
+                { justifyContent: "space-between" },
               ]}
             >
-              {categories.map((category) => {
-                const isSelected = isTempFilter.category === category.state;
-                return (
-                  <Pressable
-                    key={category.state}
-                    onPress={() =>
-                      setIsTempFilter((prev) => ({
-                        ...prev,
-                        category: category.state,
-                      }))
-                    }
-                    style={[
-                      styles.padding,
-                      styles.bordeR,
-                      {
-                        borderWidth: 1,
-                        borderColor: isSelected
-                          ? GlobalStyles.Primary_Yellow
-                          : GlobalStyles.Primary_Grey,
-                        backgroundColor: isSelected
-                          ? GlobalStyles.Primary_Yellow
-                          : "transparent",
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.smallT, isSelected && styles.bold]}>
-                      {category.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+              <Text style={styles.sectionTitle}>Filter Products</Text>
+              <Pressable
+                onPress={() => {
+                  setIsFilterOpen(false);
+                }}
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <Ionicons name="close" size={24} color={GlobalStyles.Black} />
+              </Pressable>
             </View>
 
-            {/* 2. Condition Badges */}
-            <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
-              Condition Status
-            </Text>
-            <View
-              style={[
-                styles.row,
-                { flexWrap: "wrap", justifyContent: "flex-start", gap: 8 },
-                styles.smallMVertical,
-              ]}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{ flex: 1, marginTop: 12 }}
             >
-              {conditions.map((condition) => {
-                const isSelected = isTempFilter.condition === condition.state;
-                return (
-                  <Pressable
-                    key={condition.state}
-                    onPress={() =>
-                      setIsTempFilter((prev) => ({
-                        ...prev,
-                        condition: condition.state,
-                      }))
-                    }
-                    style={[
-                      styles.padding,
-                      styles.bordeR,
-                      {
-                        borderWidth: 1,
-                        borderColor: isSelected
-                          ? GlobalStyles.Primary_Yellow
-                          : GlobalStyles.Primary_Grey,
-                        backgroundColor: isSelected
-                          ? GlobalStyles.Primary_Yellow
-                          : "transparent",
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.smallT, isSelected && styles.bold]}>
-                      {condition.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+              {/* 1. Category / Component Type Options */}
+              <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
+                Component Type
+              </Text>
+              <View
+                style={[
+                  styles.row,
+                  { flexWrap: "wrap", justifyContent: "flex-start", gap: 8 },
+                  styles.smallMVertical,
+                ]}
+              >
+                {categories.map((category) => {
+                  const isSelected = isTempFilter.category === category.state;
+                  return (
+                    <Pressable
+                      key={category.state}
+                      onPress={() =>
+                        setIsTempFilter((prev) => ({
+                          ...prev,
+                          category: category.state,
+                        }))
+                      }
+                      style={[
+                        styles.padding,
+                        styles.bordeR,
+                        {
+                          borderWidth: 1,
+                          borderColor: isSelected
+                            ? GlobalStyles.Primary_Yellow
+                            : GlobalStyles.Primary_Grey,
+                          backgroundColor: isSelected
+                            ? GlobalStyles.Primary_Yellow
+                            : "transparent",
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.smallT, isSelected && styles.bold]}>
+                        {category.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
 
-            {/* 3. Text Specifications Group */}
-            <Text
-              style={[
-                styles.paragraph,
-                styles.bold,
-                { marginTop: 16, marginBottom: 4 },
-              ]}
-            >
-              Vehicle Requirements
-            </Text>
+              {/* 2. Condition Badges */}
+              <Text style={[styles.paragraph, styles.bold, styles.smallMTop]}>
+                Condition Status
+              </Text>
+              <View
+                style={[
+                  styles.row,
+                  { flexWrap: "wrap", justifyContent: "flex-start", gap: 8 },
+                  styles.smallMVertical,
+                ]}
+              >
+                {conditions.map((condition) => {
+                  const isSelected = isTempFilter.condition === condition.state;
+                  return (
+                    <Pressable
+                      key={condition.state}
+                      onPress={() =>
+                        setIsTempFilter((prev) => ({
+                          ...prev,
+                          condition: condition.state,
+                        }))
+                      }
+                      style={[
+                        styles.padding,
+                        styles.bordeR,
+                        {
+                          borderWidth: 1,
+                          borderColor: isSelected
+                            ? GlobalStyles.Primary_Yellow
+                            : GlobalStyles.Primary_Grey,
+                          backgroundColor: isSelected
+                            ? GlobalStyles.Primary_Yellow
+                            : "transparent",
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.smallT, isSelected && styles.bold]}>
+                        {condition.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
 
-            <Text
-              style={[
-                styles.smallT,
-                { color: GlobalStyles.Primary_Grey2, marginTop: 6 },
-              ]}
-            >
-              Brand
-            </Text>
-            <TextInput
-              style={[
-                modalStyles.inputField,
-                styles.bordeR,
-                styles.smallMVertical,
-              ]}
-              placeholder="e.g., Toyota, Honda"
-              placeholderTextColor="#999"
-              value={isTempFilter.brand}
-              onChangeText={(value) =>
-                setIsTempFilter((prev) => ({
-                  ...prev,
-                  brand: value,
-                }))
-              }
-            />
+              <Text
+                style={[
+                  styles.paragraph,
+                  styles.bold,
+                  { marginTop: 16, marginBottom: 4 },
+                ]}
+              >
+                Vehicle Requirements
+              </Text>
 
-            <Text
-              style={[
-                styles.smallT,
-                { color: GlobalStyles.Primary_Grey2, marginTop: 6 },
-              ]}
-            >
-              Model
-            </Text>
-            <TextInput
-              style={[
-                modalStyles.inputField,
-                styles.bordeR,
-                styles.smallMVertical,
-              ]}
-              placeholder="e.g., Corolla, Civic"
-              placeholderTextColor="#999"
-              value={isTempFilter.model}
-              onChangeText={(value) =>
-                setIsTempFilter((prev) => ({
-                  ...prev,
-                  model: value,
-                }))
-              }
-            />
-
-            <Text
-              style={[
-                styles.smallT,
-                { color: GlobalStyles.Primary_Grey2, marginTop: 6 },
-              ]}
-            >
-              Year
-            </Text>
-            <TextInput
-              style={[
-                modalStyles.inputField,
-                styles.bordeR,
-                styles.smallMVertical,
-              ]}
-              placeholder="e.g., 2022"
-              placeholderTextColor="#999"
-              keyboardType="numeric"
-              maxLength={4}
-              value={isTempFilter.year}
-              onChangeText={(value) =>
-                setIsTempFilter((prev) => ({
-                  ...prev,
-                  year: value,
-                }))
-              }
-            />
-          </ScrollView>
-
-          {/* Action Footer Buttons */}
-          <View style={[styles.row, modalStyles.footerContainer]}>
-            <Pressable
-              onPress={handleClearAll}
-              style={[
-                modalStyles.actionButton,
-                modalStyles.clearButton,
-                styles.bordeR,
-              ]}
-            >
               <Text
                 style={[
                   styles.smallT,
-                  styles.bold,
-                  { color: GlobalStyles.Black },
+                  { color: GlobalStyles.Primary_Grey2, marginTop: 6 },
                 ]}
               >
-                Clear All
+                Brand
               </Text>
-            </Pressable>
+              <TextInput
+                style={[
+                  modalStyles.inputField,
+                  styles.bordeR,
+                  styles.smallMVertical,
+                ]}
+                placeholder="e.g., Toyota, Honda"
+                placeholderTextColor="#999"
+                value={isTempFilter.brand}
+                onChangeText={(value) =>
+                  setIsTempFilter((prev) => ({
+                    ...prev,
+                    brand: value,
+                  }))
+                }
+              />
 
-            <Pressable
-              onPress={handleApply}
-              style={[modalStyles.actionButton, styles.button, styles.bordeR]}
-            >
               <Text
                 style={[
                   styles.smallT,
-                  styles.bold,
-                  styles.whiteT,
-                  { textAlign: "center" },
+                  { color: GlobalStyles.Primary_Grey2, marginTop: 6 },
                 ]}
               >
-                Apply Filters
+                Model
               </Text>
-            </Pressable>
+              <TextInput
+                style={[
+                  modalStyles.inputField,
+                  styles.bordeR,
+                  styles.smallMVertical,
+                ]}
+                placeholder="e.g., Corolla, Civic"
+                placeholderTextColor="#999"
+                value={isTempFilter.model}
+                onChangeText={(value) =>
+                  setIsTempFilter((prev) => ({
+                    ...prev,
+                    model: value,
+                  }))
+                }
+              />
+
+              <Text
+                style={[
+                  styles.smallT,
+                  { color: GlobalStyles.Primary_Grey2, marginTop: 6 },
+                ]}
+              >
+                Year
+              </Text>
+              <TextInput
+                style={[
+                  modalStyles.inputField,
+                  styles.bordeR,
+                  styles.smallMVertical,
+                ]}
+                placeholder="e.g., 2022"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={4}
+                value={isTempFilter.year}
+                onChangeText={(value) =>
+                  setIsTempFilter((prev) => ({
+                    ...prev,
+                    year: value,
+                  }))
+                }
+              />
+            </ScrollView>
+
+            {/* Action Footer Buttons */}
+            <View style={[styles.row, modalStyles.footerContainer]}>
+              <Pressable
+                onPress={handleClearAll}
+                style={[
+                  modalStyles.actionButton,
+                  modalStyles.clearButton,
+                  styles.bordeR,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.smallT,
+                    styles.bold,
+                    { color: GlobalStyles.Black },
+                  ]}
+                >
+                  Clear All
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleApply}
+                style={[modalStyles.actionButton, styles.button, styles.bordeR]}
+              >
+                <Text
+                  style={[
+                    styles.smallT,
+                    styles.bold,
+                    styles.whiteT,
+                    { textAlign: "center" },
+                  ]}
+                >
+                  Apply Filters
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -337,7 +336,7 @@ const modalStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
     paddingBottom: 12,
-    justifyContent: "between",
+
     width: "100%",
   },
   inputField: {

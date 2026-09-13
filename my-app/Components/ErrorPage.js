@@ -15,13 +15,16 @@ export default function ErrorPage({ message, ButtonContent, onPress, style }) {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-
-          alignContent: "center",
         },
         style,
       ]}
     >
-      <Ionicons name="alert-circle-outline" size={30} color="red" />
+      <Ionicons
+        name="alert-circle-outline"
+        size={30}
+        color="red"
+        style={{ alignSelf: "center" }}
+      />
       <Text style={styles.smallT}>{message}</Text>
       {ButtonContent ? (
         <Button
@@ -32,6 +35,7 @@ export default function ErrorPage({ message, ButtonContent, onPress, style }) {
           styles={[
             { backgroundColor: GlobalStyles.Primary_Yellow },
             styles.paddingLg,
+
             styles.bordeR,
           ]}
         />

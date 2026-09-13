@@ -1,6 +1,5 @@
 import React from "react";
-import { useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+
 import {
   View,
   Text,
@@ -11,9 +10,9 @@ import {
   Image,
   Platform,
 } from "react-native";
-import * as ImageManipulator from "expo-image-manipulator";
+
 import { GlobalStyles } from "../Constants";
-import { supabase } from "../_lib/supabase";
+
 import { Ionicons } from "@expo/vector-icons";
 import InputText from "../Components/TextInput";
 import Button from "../Components/Button";
@@ -41,8 +40,9 @@ import {
   useGetCurrentProfile,
   useGetCurrentUser,
 } from "../_CustomHooks/Authentication";
-import { useCreateProductDeal } from "../_CustomHooks/ProductServices";
-import Profile from "./Profile";
+
+import ErrorPage from "../Components/ErrorPage";
+import { queryClient } from "../_lib/queryClient";
 
 export default function AddProduct({ route, navigation }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -57,6 +57,7 @@ export default function AddProduct({ route, navigation }) {
     control,
     handleSubmit,
     setValue,
+
     reset,
     watch,
 
@@ -70,7 +71,7 @@ export default function AddProduct({ route, navigation }) {
       more: "",
       details: "",
       condition: "",
-      type: "",
+      category: "",
       currency: "RWF",
       brand: "",
       price: "",
@@ -85,7 +86,7 @@ export default function AddProduct({ route, navigation }) {
     { label: "GBP 🇬🇧", value: "GBP" },
   ]);
   const [typeItems, setIsTypeItem] = useState([
-    { label: "Body part(ibice by'imodoka)", value: "RWF" },
+    { label: "Body part(ibice by'imodoka)", value: "body" },
     { label: "Engine(moteri)", value: "engine" },
     { label: "Electricity", value: "electricity" },
     { label: "Light(amatara)", value: "light" },
@@ -123,9 +124,11 @@ export default function AddProduct({ route, navigation }) {
       model: editProduct.model,
       year: editProduct.year,
       condition: editProduct.condition,
-      type: editProduct.type,
-      edit: editProduct.currency,
+      category: editProduct.category,
+      currency: editProduct.currency,
       details: editProduct.details,
+      more: editProduct.more,
+      images: editProduct.images || [],
       price: String(editProduct.price),
     });
   }, [editProduct, reset, isEditing]);
@@ -136,20 +139,15 @@ export default function AddProduct({ route, navigation }) {
     isError: isErrorEditing,
     error: EditingError,
   } = useEditProduct(productId);
-  const {
-    mutate: mutationDeal,
-    isPending: isPendingDeal,
-    isError: isErrorDeal,
-    error: errorDeal,
-  } = useCreateProductDeal();
 
   // About the  user
-  const currentUser = supabase.auth.user ? supabase.auth.user() : null;
+
   // Note: If using newer Supabase V2 JS libraries, use:da
   const {
     data: user,
     isPending: isLoadingUser,
     isError: isErrorUser,
+    error: errorUser,
   } = useGetCurrentUser();
 
   const userId = user?.id;
@@ -217,7 +215,6 @@ export default function AddProduct({ route, navigation }) {
   }
 
   function submitHandler(data) {
-    console.log(1234, data);
     if (isEditing) {
       return mutationEditing(
         { ...data, id: productId },
@@ -237,9 +234,11 @@ export default function AddProduct({ route, navigation }) {
               year: "",
               details: "",
               condition: "",
-              type: "",
+              more: "",
+              category: "",
               currency: "RWF",
               price: "",
+              images: [],
             });
             setIsEditing(false);
           },
@@ -257,12 +256,28 @@ export default function AddProduct({ route, navigation }) {
             position: "top", // or "bottom"
             visibilityTime: 3000,
           });
+          queryClient.invalidateQueries("getallProductspagination");
           reset();
         },
       },
     );
   }
+
   if (editPending || isWaitingEditing) return <LoadingPaging />;
+
+  if (isError) {
+    return <ErrorPage message={error.message} />;
+  }
+  if (isErrorUser) {
+    return <ErrorPage message={errorUser.message} />;
+  }
+  if (isErrorProfile) {
+    return <ErrorPage message={errorProfile.message} />;
+  }
+
+  if (isErrorEditing) {
+    return <ErrorPage message={EditingError.message} />;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -294,7 +309,7 @@ export default function AddProduct({ route, navigation }) {
                     { color: GlobalStyles.Primary_Green },
                   ]}
                 >
-                  Please provide different angles (Max 4)
+                  Please provide different angles (Max 3)
                 </Text>
               ) : (
                 <Text
@@ -304,7 +319,7 @@ export default function AddProduct({ route, navigation }) {
                     { color: GlobalStyles.Kn_orange },
                   ]}
                 >
-                  Iyi service ni iyabacuruzi gusa
+                  Iyi service ni iy'abacuruzi gusa
                 </Text>
               )}
             </View>
@@ -329,7 +344,11 @@ export default function AddProduct({ route, navigation }) {
                 />
                 <View style={styles.badgeIndex}>
                   <Text
-                    style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
+                    style={{
+                      color: "white",
+                      fontSize: 10,
+                      fontWeight: "bold",
+                    }}
                   >
                     {index + 1}
                   </Text>
@@ -339,62 +358,62 @@ export default function AddProduct({ route, navigation }) {
           </ScrollView>
         )}
         {/* Camera Target Trigger Anchor Panel */}
-        {!isEditing && (
-          <View
-            style={[
-              {
-                borderStyle: "dashed",
-                borderWidth: 1,
-                borderColor: GlobalStyles.Primary_Grey,
-                height: 60,
-                alignSelf: "center",
-                width: "60%",
-                flexDirection: "row",
-                backgroundColor: "#fafafa",
 
-                alignItems: "center",
+        <View
+          style={[
+            {
+              borderStyle: "dashed",
+              borderWidth: 1,
+              borderColor: GlobalStyles.Primary_Grey,
+              height: 60,
+              alignSelf: "center",
+              width: "60%",
+              flexDirection: "row",
+              backgroundColor: "#fafafa",
+
+              alignItems: "center",
+            },
+            styles.bordeR,
+            styles.smallMVertical,
+          ]}
+        >
+          <Controller
+            control={control}
+            name="images"
+            rules={{
+              required: "Images required",
+              validate: (value) => {
+                if (!value || value.length < 2) {
+                  return "At least 2 images are required";
+                }
+                if (value.length > 3) return "Maximum 3 images allowed";
+                return true;
               },
-              styles.bordeR,
-              styles.smallMVertical,
-            ]}
-          >
-            <Controller
-              control={control}
-              name="images"
-              rules={{
-                required: "Images required",
-                validate: (value) => {
-                  if (!value || value.length < 2) {
-                    return "At least 2 images are required";
-                  }
-                  if (value.length > 3) return "Maximum 3 images allowed";
-                  return true;
-                },
-              }}
-              render={() => null}
-            />
+            }}
+            render={() => null}
+          />
 
-            <Button
-              content={
-                <View
-                  style={{
-                    alignItems: "center",
-                    flexDirection: "row",
+          <Button
+            content={
+              <View
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
 
-                    gap: 8,
-                    alignSelf: "center",
-                  }}
-                >
-                  <Ionicons name="camera" size={24} color="black" />
-                  <Text style={{ fontWeight: "600" }}>
-                    Snap Photo ({capturedImages.length}/3)
-                  </Text>
-                </View>
-              }
-              onPress={takeImageHandler}
-            />
-          </View>
-        )}
+                  gap: 8,
+                  alignSelf: "center",
+                }}
+              >
+                <Ionicons name="camera" size={24} color="black" />
+                <Text style={{ fontWeight: "600" }}>
+                  Snap Photo ({capturedImages.length}/3)
+                </Text>
+              </View>
+            }
+            onPress={takeImageHandler}
+          />
+        </View>
+
         {errors.images && (
           <Text style={{ color: "red", marginBottom: 10 }}>
             {errors.images.message}
@@ -615,7 +634,7 @@ export default function AddProduct({ route, navigation }) {
             <Text style={styles.headerTitle}>Type</Text>
             <Controller
               control={control}
-              name="type"
+              name="category"
               rules={{ required: "Type is required" }}
               render={({ field: { onChange, value } }) => (
                 <AppDropdown
@@ -637,6 +656,9 @@ export default function AddProduct({ route, navigation }) {
                 />
               )}
             />
+            <Text style={[{ color: "red", fontSize: 11 }]}>
+              {errors?.category?.message}
+            </Text>
           </View>
           <View
             style={{
@@ -650,7 +672,7 @@ export default function AddProduct({ route, navigation }) {
             <Controller
               control={control}
               name="condition"
-              rules={{ required: "Type is required" }}
+              rules={{ required: "condition is required" }}
               render={({ field: { onChange, value } }) => (
                 <AppDropdown
                   value={value}
@@ -673,6 +695,9 @@ export default function AddProduct({ route, navigation }) {
                 />
               )}
             />
+            <Text style={[{ fontSize: 11, color: "red" }]}>
+              {errors?.condition?.message}
+            </Text>
           </View>
         </View>
 
@@ -689,7 +714,7 @@ export default function AddProduct({ route, navigation }) {
                   placeholderTextColor={GlobalStyles.Primary_Grey}
                   onChange={onChange}
                   keyBoardType={"numeric"}
-                  value={value}
+                  value={value ? value : ""}
                   styled={[
                     { borderColor: GlobalStyles.Primary_Grey, borderWidth: 1 },
                     styles.bordeR,
@@ -742,6 +767,19 @@ export default function AddProduct({ route, navigation }) {
           >
             <Button
               onPress={() => {
+                setIsEditing(false);
+                reset({
+                  name: "",
+                  brand: "",
+                  model: "",
+                  year: "",
+                  details: "",
+                  condition: "",
+                  category: "",
+                  currency: "RWF",
+                  price: "",
+                  images: [],
+                });
                 Navigation.goBack();
               }}
               content="Cancel"
@@ -758,8 +796,8 @@ export default function AddProduct({ route, navigation }) {
             />
             <Button
               onPress={handleSubmit(submitHandler)}
-              disable={isPending}
-              content="Submit "
+              disable={isPending || isWaitingEditing}
+              content={isPending ? "Submitting... " : "Submit"}
               styles={[
                 {
                   backgroundColor: GlobalStyles.Primary_Yellow,

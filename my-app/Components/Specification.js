@@ -11,7 +11,7 @@ export default function Specification({ label, data, icon }) {
           width: "48%",
 
           backgroundColor: GlobalStyles.Primary_Grey3,
-          alignContent: "center",
+
           gap: 4,
         },
         styles.paddingLg,

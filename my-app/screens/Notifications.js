@@ -1,131 +1,96 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 
+import {
+  useGetMyNotifications,
+  useMarkNotificationRead,
+} from "../_CustomHooks/NotificationServices";
+import { formatDateTime } from "../Helpers";
+import LoadingPaging from "../Components/LoadingPaging";
+import ErrorPage from "../Components/ErrorPage";
+import NoProductsProfile from "../Components/NoProductsProfile";
+import { useNavigation } from "@react-navigation/native";
 
 export default function NotificationsPage() {
-  const notifications = [
-    {
-      id: "1",
-      title: "Reservation Confirmed",
-      message: "Your Toyota bumper has been reserved for 30 minutes.",
-      icon: "time-outline",
-      time: "2 min ago",
-      unread: true,
-    },
-    {
-      id: "2",
-      title: "New Message",
-      message: "Auto Parts Rwanda replied to your inquiry.",
-      icon: "chatbubble-outline",
-      time: "10 min ago",
-      unread: true,
-    },
-    {
-      id: "3",
-      title: "Price Updated",
-      message: "Toyota Hilux Headlight dropped from 120,000 to 95,000 RWF.",
-      icon: "pricetag-outline",
-      time: "1 hour ago",
-      unread: false,
-    },
-    {
-      id: "4",
-      title: "Product Approved",
-      message: "Your listing is now visible to buyers.",
-      icon: "checkmark-circle-outline",
-      time: "Yesterday",
-      unread: false,
-    },
-  ];
+  const navigator = useNavigation();
+  const { data: user, isPending: isPendingUser } = useGetCurrentUser();
+
+  const {
+    data,
+    isPending,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetMyNotifications(user?.id);
+
+  const { mutate: markRead } = useMarkNotificationRead();
+
+  if (isPendingUser || isPending) return <LoadingPaging />;
+  if (isError) return <ErrorPage message={error?.message} />;
+
+  const notifications = data?.pages?.flat() ?? [];
+
+  if (notifications.length <= 0) {
+    return <NoProductsProfile message={"No notifications yet"} />;
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Notifications</Text>
-
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.notification,
-              item.unread && styles.unreadNotification,
-            ]}
-          >
-            <Ionicons
-              name={item.icon}
-              size={24}
-              color={GlobalStyles.Primary_Yellow}
-            />
-
-            <View style={styles.content}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.message}>{item.message}</Text>
-              <Text style={styles.time}>{item.time}</Text>
-            </View>
-
-            {item.unread && <View style={styles.dot} />}
-          </View>
-        )}
-      />
-    </View>
+    <FlatList
+      data={notifications}
+      keyExtractor={(item) => item.id.toString()}
+      contentContainerStyle={{ padding: 12 }}
+      renderItem={({ item }) => (
+        <Pressable
+          onPress={() => {
+            if (!item.isRead) markRead(item.id);
+            if (item.type === "new_request") {
+              navigator.navigate("Tabs", {
+                screen: "Request",
+                params: { type: "allRequests", RequestId: item?.relatedId },
+              });
+            }
+            if (item.type === "new_response") {
+              navigator.navigate("Replies", { relatedId: item?.relatedId });
+            }
+            // navigate somewhere based on item.type / item.relatedId if needed
+          }}
+          style={({ pressed }) => [
+            pressed && styles.pressed,
+            styles.card,
+            !item.isRead
+              ? { backgroundColor: "#FFF8E1" }
+              : { backgroundColor: GlobalStyles.Primary_Grey3 },
+          ]}
+        >
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.body}>{item.body}</Text>
+          <Text style={styles.date}>{formatDateTime(item.createdAt)}</Text>
+        </Pressable>
+      )}
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }}
+      onEndReachedThreshold={0.4}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 12,
-  },
-
-  header: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 16,
-  },
-
-  notification: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 12,
+  card: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: GlobalStyles.Primary_Grey,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
   },
-
-  unreadNotification: {
-    backgroundColor: "#fff9e8",
-  },
-
-  content: {
-    flex: 1,
-    marginLeft: 12,
-  },
-
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  message: {
-    marginTop: 4,
-    color: "#666",
-  },
-
-  time: {
-    marginTop: 6,
-    fontSize: 12,
-    color: "#999",
-  },
-
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#f4b400",
-    marginTop: 6,
+  title: { fontFamily: "Roboto-semibold", fontSize: 15 },
+  body: { fontFamily: "Roboto-Light", fontSize: 13, marginTop: 2 },
+  date: { fontSize: 11, color: GlobalStyles.Primary_Grey4, marginTop: 6 },
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
   },
 });

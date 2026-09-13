@@ -15,8 +15,12 @@ import { useNavigation } from "@react-navigation/native";
 import Span from "./Span";
 import { formatNumber, getTimeRemaining } from "../Helpers";
 import NoProductsProfile from "./NoProductsProfile";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import { ActivityIndicator } from "react-native";
+import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import LoadingPaging from "./LoadingPaging";
+import ErrorPage from "./ErrorPage";
 
 export default function FullWidthNoData({
   item,
@@ -26,7 +30,24 @@ export default function FullWidthNoData({
   isPending,
 }) {
   const navigator = useNavigation();
-  console.log(20, dataLength);
+  const {
+    data,
+    isPending: isPendingUser,
+    error: errorUser,
+  } = useGetCurrentUser();
+
+  const {
+    data: currentProfile,
+    error: error,
+    isPending: isPendingProfile,
+  } = useGetCurrentProfile(data?.id);
+
+  if (isPendingUser) {
+    return <LoadingPaging />;
+  }
+  if (error || errorUser) {
+    return <ErrorPage message={error?.message || errorUser?.message} />;
+  }
   const { hours, minutes } = getTimeRemaining(item?.createdAt);
   const numericAmount = formatNumber(item?.price);
   return (
@@ -56,7 +77,7 @@ export default function FullWidthNoData({
               marginHorizontal: "auto",
             }}
           >
-            !! No Deals Available
+            ! No Deals Available
           </Text>
           <Button
             content={
@@ -68,7 +89,6 @@ export default function FullWidthNoData({
               });
             }}
             styles={{
-              borderRadius: GlobalStyles.Primary_Yellow,
               borderWidth: 1,
               backgroundColor: GlobalStyles.Primary_Yellow,
               color: "white",
@@ -77,24 +97,27 @@ export default function FullWidthNoData({
               borderRadius: 4,
             }}
           />
-          <Button
-            content={
-              isLoading ? <ActivityIndicator size={"small"} /> : "+Add deal"
-            }
-            onPress={() => {
-              setIsVisible(true);
-            }}
-            styles={{
-              borderRadius: GlobalStyles.Primary_Yellow,
-              borderWidth: 1,
-              backgroundColor: GlobalStyles.Primary_Yellow,
-              color: "white",
-              padding: 4,
+          {currentProfile?.type === "seller" ||
+          currentProfile?.type === "garage" ? (
+            <Button
+              content={
+                isLoading ? <ActivityIndicator size={"small"} /> : "+Add deal"
+              }
+              onPress={() => {
+                setIsVisible(true);
+              }}
+              styles={{
+                borderRadius: GlobalStyles.Primary_Yellow,
+                borderWidth: 1,
+                backgroundColor: GlobalStyles.Primary_Yellow,
+                color: "white",
+                padding: 4,
 
-              borderRadius: 4,
-              alignSelf: "flex-end",
-            }}
-          />
+                borderRadius: 4,
+                alignSelf: "flex-end",
+              }}
+            />
+          ) : null}
         </View>
       </LinearGradient>
     </View>

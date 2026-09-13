@@ -21,10 +21,11 @@ import { openWebsite, toWhatsAppDigits } from "../Helpers";
 import { getInitials, formatPhone } from "../Helpers";
 import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
+import ErrorPage from "../Components/ErrorPage";
 
 export default function DealContacts({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
-  console.log("DealContacts params:", route?.params);
+
   const {
     data: deal,
     isPending,
@@ -41,13 +42,13 @@ export default function DealContacts({ route, navigation }) {
 
   const {
     data: sellerDealsNumber,
-    isPendingDeal,
-    isErrorDeal,
-    errorDeal,
+    isPending: isPendingDeal,
+
+    error: errorDeal,
   } = useCountProducts(seller?.profileId);
 
   const handleEmail = () => {
-    Linking.openURL(`mailto:${seller?.email}`).catch(() => {
+    Linking.openURL(`mailto:${seller?.businessEmail}`).catch(() => {
       Alert.alert("Error", "Unable to open email client");
     });
   };
@@ -69,7 +70,7 @@ export default function DealContacts({ route, navigation }) {
   );
 
   const handleCall = () => {
-    Linking.openURL(`tel:${formattedWhatsappNumber.replace(/\s+/g, "")}`).catch(
+    Linking.openURL(`tel:${formattedPhoneNumber.replace(/\s+/g, "")}`).catch(
       () => {
         Alert.alert("Error", "Unable to open phone dialer");
       },
@@ -82,6 +83,12 @@ export default function DealContacts({ route, navigation }) {
     });
   };
 
+  if (errorDeal) {
+    return <ErrorPage message={error.message} />;
+  }
+  if (errorSeller) {
+    return <ErrorPage message={errorSeller.message} />;
+  }
   return (
     <ScrollView
       style={styles.container}
@@ -213,18 +220,17 @@ export default function DealContacts({ route, navigation }) {
         >
           <View
             style={[styles.infoIconContainer, { backgroundColor: "#f3e5f5" }]}
-          ></View>
+          >
+            <Ionicons name={"globe-outline"} size={20} />
+          </View>
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Website</Text>
             <Text style={[styles.infoValue, styles.linkText]}>
-              <Pressable
-                style={[styles.infoValue, styles.linkText, styles.row]}
-                onPress={() => openWebsite(seller?.website)}
-              >
+              <Text style={[styles.infoValue, styles.linkText, styles.row]}>
                 <Text style={[styles.infoValue, styles.linkText]}>
                   {seller?.website}
                 </Text>
-              </Pressable>
+              </Text>
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#aaa" />
@@ -239,7 +245,7 @@ export default function DealContacts({ route, navigation }) {
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Available Hours</Text>
             <Text style={styles.infoValue}>
-              {seller?.openHours || "Mon - Sat, 8AM - 6PM"}
+              {seller?.openHours || "Open, 8AM - 7PM"}
             </Text>
           </View>
         </View>

@@ -44,12 +44,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  button: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-
   buttonText: {
     color: "white",
     fontWeight: "bold",
@@ -100,7 +94,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -211,12 +205,6 @@ const styles = StyleSheet.create({
   paragraph: {
     fontFamily: "Roboto-Light",
     fontSize: 20,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

@@ -23,13 +23,11 @@ import InputText from "../Components/TextInput";
 import Button from "../Components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
-import LoadingPaging from "../Components/LoadingPaging";
+
 import AppDropdown from "../Components/Dropdown";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import {
-  useCreateProduct,
   useEditProductDeal,
-  useGetSingleProduct,
   useGetSingleProductDeal,
 } from "../_CustomHooks/ProductServices";
 import Toast from "react-native-toast-message";
@@ -40,12 +38,11 @@ import {
   useCameraPermissions,
   PermissionStatus,
 } from "expo-image-picker";
-import { useEditProduct } from "../_CustomHooks/ProductServices";
+
 import { containsContactInfo } from "../Helpers";
 
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import { useCreateProductDeal } from "../_CustomHooks/ProductServices";
-import { isAuthRefreshDiscardedError } from "@supabase/supabase-js";
 
 export default function EditDealModal({ isVisible, setIsVisible, editId }) {
   // State definitions for your filter metrics
@@ -198,8 +195,9 @@ export default function EditDealModal({ isVisible, setIsVisible, editId }) {
             name: "",
             model: "",
             description: "",
-            currency: "",
+            currency: "RWF",
             more: "",
+            year: "",
             brand: "",
             price: "",
             createdBy: "",
@@ -714,6 +712,10 @@ const modalStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 30,
+  },
+  headerTitle: {
+    fontFamily: "Roboto-regular",
+    fontSize: 18,
   },
   headerBorder: {
     borderBottomWidth: 1,

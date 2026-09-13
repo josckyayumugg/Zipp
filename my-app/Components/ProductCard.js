@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { ActivityIndicator } from "react-native";
+import { useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import LargeSpinner from "./LargSpinner";
@@ -25,7 +26,9 @@ export default function ProductCard({
     isError,
     error,
   } = useGetCurrentProfile(sellerId);
-
+  useEffect(() => {
+    setIsImageLoaded(false);
+  }, [data?.images?.[0]]);
   return (
     <Pressable
       onPress={() => {
@@ -65,7 +68,7 @@ export default function ProductCard({
           <Image
             source={
               data?.images?.length > 0
-                ? { uri: data.images[0] }
+                ? { uri: data?.images[0] }
                 : require("../assets/images/noImage.jpg")
             }
             onLoad={() => setIsImageLoaded(true)}
@@ -114,7 +117,7 @@ export default function ProductCard({
                 gap: 2,
                 backgroundColor: GlobalStyles.Primary_Grey4,
                 alignContent: "center",
-                color: "white",
+
                 paddingHorizontal: 2,
               },
             ]}
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -388,12 +391,6 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-Light",
     fontSize: 16,
     lineHeight: 16,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

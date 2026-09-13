@@ -11,7 +11,6 @@ export function useCreateResponse(data) {
         .insert([data])
         .select();
       if (error) {
-        console.error("Error creating  request:", error.message);
         throw error;
       }
       return spData;
@@ -63,7 +62,6 @@ export function useGetAllResponses(id, query) {
 
         return data;
       } catch (error) {
-        console.error("Error fetching all requests:", error);
         throw error;
       }
     },
@@ -80,7 +78,7 @@ export function useGetAllMyResponses(id) {
 
     queryFn: async ({ pageParam }) => {
       let from = pageParam * pageSize;
-      let to = from + 14;
+      let to = from + pageSize - 1;
 
       const { data, error } = await supabase
         .from("Responses")
@@ -93,7 +91,6 @@ export function useGetAllMyResponses(id) {
         .range(from, to);
 
       if (error) {
-        console.log("inyungu", error);
         throw error;
       }
 
@@ -111,30 +108,61 @@ export function useGetAllMyResponses(id) {
   });
 }
 export function useGetReqResponses(id) {
-  return useQuery({
+  const pageSize = 15;
+  return useInfiniteQuery({
     queryKey: ["requests", id],
-    queryFn: async () => {
-      console.log("ingiga");
+    queryFn: async ({ pageParam }) => {
+      let from = pageParam * pageSize;
+      let to = from + pageSize - 1;
       const { data, error } = await supabase
         .from("Responses")
         .select("*")
-        .eq("request", id);
+        .eq("request", id)
+        .range(from, to)
+        .order("createdAt", {
+          ascending: false,
+        });
 
       if (error) {
-        console.log({ errorResponses: error });
         throw error;
       }
 
-      return data;
+      return data || [];
     },
+    getNextPageParam: (lastPage, allPages) => {
+      // If last fetched page had fewer items than pageSize, we hit the end
+      if (lastPage.length < pageSize) {
+        return undefined; // No more pages
+      }
+      return allPages.length; // Next page number (0, 1, 2...)
+    },
+    initialPageParam: 0,
     enabled: !!id,
+  });
+}
+export function useGetRelatedResponses(id) {
+  return useQuery({
+    queryKey: ["related", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Responses")
+        .select("*")
+        .eq("request", id)
+
+        .order("createdAt", {});
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    },
   });
 }
 export function useGetSingleResponse(id) {
   return useQuery({
     queryKey: ["response", id],
     queryFn: async () => {
-      console.log("doreko", "mwigize");
       const { data, error } = await supabase
         .from("Responses")
         .select("*")
@@ -142,7 +170,6 @@ export function useGetSingleResponse(id) {
         .single();
 
       if (error) {
-        console.log({ errorSingleResponse: error });
         throw error;
       }
 
@@ -151,29 +178,6 @@ export function useGetSingleResponse(id) {
     enabled: !!id,
   });
 }
-// export function useEditResponse() {
-//   return useMutation({
-//     mutationFn: async (updatedData) => {
-//       try {
-//         const { data, error } = await supabase
-//           .from("Responses")
-//           .update(updatedData)
-//           .eq("id", updatedData.id)
-//           .select()
-//           .single();
-
-//         if (error) {
-//           throw error;
-//         }
-
-//         return data;
-//       } catch (error) {
-//         console.error("Error updating request:", error);
-//         throw error;
-//       }
-//     },
-//   });
-// }
 
 export function useCountMyResponses(id) {
   return useQuery({
@@ -196,6 +200,27 @@ export function useCountMyResponses(id) {
     enabled: !!id,
   });
 }
+export function useCheckResponse(requestId, userId) {
+  return useQuery({
+    queryKey: ["hasResponded"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Responses")
+        .select("id")
+        .eq("request", requestId)
+        .eq("createdBy", userId)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    enabled: !!requestId && !!userId,
+
+    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+  });
+}
 // export function useDeleteResponse({ id }) {
 //   return useQuery({
 //     queryKey: ["deleteResponse"],
@@ -208,7 +233,6 @@ export function useCountMyResponses(id) {
 export function useEditResponse() {
   return useMutation({
     mutationFn: async (updatedData) => {
-      console.log("zunguzayi", updatedData);
       const { id, ...editFields } = updatedData;
       const { data, error } = await supabase
         .from("Responses")

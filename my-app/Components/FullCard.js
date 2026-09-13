@@ -36,18 +36,26 @@ export default function FullWidthStoryCard({
   const { data: dataUser, isPending, isError, error } = useGetCurrentUser();
   const {
     data: dataProfile,
-    isPendingProfile,
-    isErrorProfile,
-    errorProfile,
+    isPending: isPendingProfile,
+
+    error: errorProfile,
   } = useGetCurrentProfile(dataUser?.id);
 
-  const { hours, minutes } = getTimeRemaining(item?.created_at);
+  const { hours, minutes } = getTimeRemaining(item?.lastUpdatedAt);
   const numericAmount = formatNumber(item?.price);
 
-  if (isError) {
+  if (error) {
     return <ErrorPage message={error.message} />;
   }
+  if (errorProfile) {
+    return (
+      <View>
+        <Text>{errorProfile?.message}</Text>
+      </View>
+    );
+  }
   if (isPending || isPendingProfile) return <LoadingPaging />;
+
   return (
     <Pressable
       onPress={() => {
@@ -68,7 +76,7 @@ export default function FullWidthStoryCard({
       >
         <LinearGradient
           colors={["#8a5132", "#0c1322", "#0a0e1a"]}
-          locations={[0, 0.5, 1]}
+          locations={[0, 0.3, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[styles.cardGradient]}
@@ -86,7 +94,9 @@ export default function FullWidthStoryCard({
               <Ionicons name="flash" color={"orange"} size={20} />
               <Text style={styles.sectionT}>Deals</Text>
             </View>
-            {dataProfile?.type === "seller" ? (
+            {dataProfile?.type === "seller" ||
+            dataProfile?.type === "garage" ||
+            dataProfile?.type === "mechanic" ? (
               <Button
                 onPress={() => {
                   setIsCreateDealOpen(true);
@@ -113,14 +123,14 @@ export default function FullWidthStoryCard({
               <Image
                 source={
                   item?.images?.length > 0
-                    ? { uri: item.images[0] }
+                    ? { uri: item?.images[0] }
                     : require("../assets/images/noImage.jpg")
                 }
                 style={[styles.productImage]}
               />
             </View>
             <View style={{ flexDirection: "column", width: "50%" }}>
-              {item.description ? (
+              {item?.description ? (
                 <Text
                   style={[
                     styles.productTitle,

@@ -1,4 +1,4 @@
-import React, { useId } from "react";
+import React, { useId, useState } from "react";
 import {
   View,
   Text,
@@ -13,14 +13,37 @@ import InputText from "../Components/TextInput";
 import Button from "../Components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
+import AppDropdown from "../Components/Dropdown";
 import { useCreateProfile } from "../_CustomHooks/Authentication";
-
+import { StatusBar } from "expo-status-bar";
+import Toast from "react-native-toast-message";
+import { useGetCurrentUser } from "../_CustomHooks/Authentication";
+import { useSafeAreaFrame } from "react-native-safe-area-context";
+import LoadingPaging from "../Components/LoadingPaging";
+import ErrorPage from "../Components/ErrorPage";
+import { queryClient } from "../_lib/queryClient";
 export default function ConfigureProfile({ route, navigation }) {
   const Navigation = useNavigation();
-  const { userId } = route.params;
-  console.log(333, userId);
-
+  const userParams = route?.params?.userId;
+  const [open, setIsOpen] = useState(false);
   // 1. Setup form fields with clear validation hooks
+  const [typeItem, setTypeItem] = useState([
+    { label: "Garage(igaraje)", value: "garage" },
+    { label: "Buyer(umuguzi)", value: "buyer" },
+    { label: "Mechanic(umukanishi)", value: "mechanic" },
+  ]);
+
+  const {
+    data: userData,
+    error: errorUser,
+    isPending: isPendingUser,
+  } = useGetCurrentUser();
+
+  if (errorUser) {
+    return <ErrorPage message={errorUser?.message} />;
+  }
+  const userId = userParams || userData?.id;
+  console.log("gues me", userId);
   const {
     control,
     handleSubmit,
@@ -31,6 +54,7 @@ export default function ConfigureProfile({ route, navigation }) {
       ownerNames: "",
       whatsapp: "",
       email: "",
+      type: "",
       tin: "",
       website: "",
       directions: "",
@@ -52,7 +76,7 @@ export default function ConfigureProfile({ route, navigation }) {
             position: "top",
             visibilityTime: 3000,
           });
-          Navigation.navigate("Tabs");
+          queryClient.invalidateQueries("currentUser");
         },
         onError: (error) => {
           // Extract error message from API response or fall back to default
@@ -78,6 +102,7 @@ export default function ConfigureProfile({ route, navigation }) {
       style={styles.keyboardContainer}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <StatusBar style="dark" backgroundColor="black" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -166,8 +191,40 @@ export default function ConfigureProfile({ route, navigation }) {
               <Text style={styles.errorText}>{errors.ownerNames.message}</Text>
             )}
           </View>
+          <View style={[styles.inputWrapper, { height: "3.5%" }]}>
+            <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
+              TYPE*
+            </Text>
+
+            <Controller
+              control={control}
+              rules={{ required: "The type is required" }}
+              name="type"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <AppDropdown
+                  open={open}
+                  placeholder="Who are you"
+                  setOpen={setIsOpen}
+                  items={typeItem}
+                  value={value}
+                  setItems={setTypeItem}
+                  setValue={(callback) => {
+                    const newValue =
+                      typeof callback === "function"
+                        ? callback(value)
+                        : callback;
+                    onChange(newValue);
+                  }}
+                />
+              )}
+            />
+
+            {errors.type && (
+              <Text style={styles.errorText}>{errors.type.message}</Text>
+            )}
+          </View>
           {/* PHone Numbers */}
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, { marginTop: 30 }]}>
             <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
               PHONE NUMBER
             </Text>
@@ -202,7 +259,6 @@ export default function ConfigureProfile({ route, navigation }) {
                     maxLength={16}
                     keyBoardType={"phone-pad"}
                     value={value}
-                    keyboardType="phone-pad"
                     styled={[{ width: "90%" }]}
                   />
                 )}
@@ -335,7 +391,7 @@ export default function ConfigureProfile({ route, navigation }) {
           {/* WEBSITE LINK */}
           <View style={styles.inputWrapper}>
             <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
-              WEBSITE LINK (OPTIONAL)
+              WEBSITE LINK (sellers,garages)
             </Text>
             <View style={[styles.row, styles.bordeR, styles.inputFieldOuter]}>
               <Ionicons
@@ -412,14 +468,14 @@ export default function ConfigureProfile({ route, navigation }) {
           </View>
           <View>
             {isError && (
-              <Text style={[styles.paragraph, { text: "red" }]}>
+              <Text style={[styles.paragraph, { color: "red" }]}>
                 {error.message}
               </Text>
             )}
           </View>
-          <Text style={styles.paragraph}>
+          {/* <Text style={styles.paragraph}>
             Core Configuration Save Action Button
-          </Text>
+          </Text> */}
           <Button
             onPress={handleSubmit(saveProfileHandler)}
             styles={[

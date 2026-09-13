@@ -25,7 +25,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import LoadingPaging from "../Components/LoadingPaging";
 import AppDropdown from "../Components/Dropdown";
-import { queryClient } from "../App";
+import { queryClient } from "../_lib/queryClient";
 import {
   useCreateProduct,
   useEditProductDeal,
@@ -102,7 +102,6 @@ export default function CreateDealModal({ visible, setIsVisible }) {
   } = useGetCurrentUser();
 
   const userId = user?.id;
- 
 
   // Pull out the active array state in real time
   const capturedImages = watch("images") || [];
@@ -185,7 +184,6 @@ export default function CreateDealModal({ visible, setIsVisible }) {
       },
     );
   }
-
 
   return (
     <Modal
@@ -651,7 +649,7 @@ export default function CreateDealModal({ visible, setIsVisible }) {
                 onPress={handleSubmit(submitHandler)}
                 // disable={isPending}
                 disable={isPendingDeal}
-                content="Submit "
+                content={isPendingDeal ? "Submitting..." : "Submit"}
                 styles={[
                   {
                     backgroundColor: GlobalStyles.Primary_Yellow,
@@ -733,6 +731,10 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-regular",
     fontSize: 12,
   },
+  headerTitle: {
+    fontSize: 18,
+  },
+
   smallMVertical: {
     marginVertical: 8,
   },

@@ -1,44 +1,35 @@
-import {
-  useQuery,
-  mutationFn,
-  useMutation,
-  keepPreviousData,
-  useInfiniteQuery,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
-import { isEnabled } from "react-native/Libraries/Performance/Systrace";
-import { TouchableWithoutFeedbackBase } from "react-native";
 
-export function useGetAllProducts(filters, page) {
+export function useGetAllProducts(filters) {
   const pageSize = 15;
   return useInfiniteQuery({
-    queryKey: ["getallProductspagination", filters, page],
+    queryKey: ["getallProductspagination", filters],
     queryFn: async ({ pageParam }) => {
       const from = pageParam * pageSize;
       const to = from + pageSize - 1;
 
       let query = supabase.from("Products").select("*");
 
-      // Add filters here...
       if (filters?.brand) {
-        query = query.eq("brand", filters.brand);
+        query = query.eq("brand", filters?.brand);
       }
 
       if (filters?.year) {
-        query = query.eq("year", filters.year);
+        query = query.eq("year", filters?.year);
       }
       if (filters?.condition) {
-        query = query.eq("condition", filters.condition);
+        query = query.eq("condition", filters?.condition);
       }
       if (filters?.category) {
-        query = query.eq("category", filters.category);
+        query = query.eq("category", filters?.category);
       }
       if (filters?.model) {
-        query = query.eq("model", filters.model);
+        query = query.eq("model", filters?.model);
       }
 
-      if (filters?.search && filters.search.trim() !== "") {
-        const cleanSearch = filters.search.trim();
+      if (filters?.search && filters?.search.trim() !== "") {
+        const cleanSearch = filters?.search.trim();
         query = query.or(
           `name.ilike.%${cleanSearch}%,details.ilike.%${cleanSearch}%,brand.ilike.%${cleanSearch}%,model.ilike.%${cleanSearch}%,more.ilike.%${cleanSearch}%`,
         );
@@ -49,7 +40,6 @@ export function useGetAllProducts(filters, page) {
       const { data, error } = await query;
 
       if (error) {
-        console.log("error fetching product", error);
         throw error;
       }
 
@@ -57,13 +47,13 @@ export function useGetAllProducts(filters, page) {
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length < pageSize) {
+      if (lastPage?.length < pageSize) {
         return undefined;
       }
       return allPages.length;
     },
 
-    enabled: filters.shouldSearch,
+    enabled: !!filters?.shouldSearch,
   });
 }
 
@@ -75,15 +65,12 @@ export function useGetAllProductDeals() {
       const twentyFourHoursAgo = new Date(
         Date.now() - 24 * 60 * 60 * 1000,
       ).toISOString();
-
       let from = pageParam * 10;
       let to = from + pageSize - 1;
 
-      // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
         .from("Deals")
         .select("*")
-
         .gte("lastUpdatedAt", twentyFourHoursAgo)
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -96,11 +83,10 @@ export function useGetAllProductDeals() {
     },
     refetchInterval: 30 * 60 * 1000,
     getNextPageParam: (lastPage, allPages) => {
-      // If last fetched page had fewer items than pageSize, we hit the end
-      if (lastPage.length < pageSize) {
-        return undefined; // No more pages
+      if (lastPage?.length < pageSize) {
+        return undefined;
       }
-      return allPages.length; // Next page number (0, 1, 2...)
+      return allPages.length;
     },
     initialPageParam: 0,
   });
@@ -108,12 +94,11 @@ export function useGetAllProductDeals() {
 export function useGetAllMyProductDealsWithInvisible(id) {
   const pageSize = 10;
   return useInfiniteQuery({
-    queryKey: ["noFilterDeals"],
+    queryKey: ["noFilterDeals", id],
     queryFn: async ({ pageParam }) => {
       let from = pageParam * 10;
       let to = from + pageSize - 1;
 
-      // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
         .from("Deals")
         .select("*")
@@ -129,11 +114,10 @@ export function useGetAllMyProductDealsWithInvisible(id) {
     },
     refetchInterval: 30 * 60 * 1000,
     getNextPageParam: (lastPage, allPages) => {
-      // If last fetched page had fewer items than pageSize, we hit the end
-      if (lastPage.length < pageSize) {
-        return undefined; // No more pages
+      if (lastPage?.length < pageSize) {
+        return undefined;
       }
-      return allPages.length; // Next page number (0, 1, 2...)
+      return allPages.length;
     },
     initialPageParam: 0,
     enabled: !!id,
@@ -147,10 +131,10 @@ export function useGetNewProductsHome() {
       let from = pageParam * pageSize;
       let to = from + pageSize - 1;
 
-      // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
         .from("Products")
         .select("*")
+        .eq("reported", false)
 
         .order("createdAt", { ascending: false })
         .range(from, to);
@@ -158,15 +142,15 @@ export function useGetNewProductsHome() {
       if (error) {
         throw error;
       }
+
       return data || [];
     },
     refetchInterval: 20 * 60 * 1000,
     getNextPageParam: (lastPage, allPages) => {
-      // If last fetched page had fewer items than pageSize, we hit the end
       if (lastPage?.length < pageSize) {
-        return undefined; // No more pages
+        return undefined;
       }
-      return allPages?.length; // Next page number (0, 1, 2...)
+      return allPages?.length;
     },
     initialPageParam: 0,
   });
@@ -174,48 +158,63 @@ export function useGetNewProductsHome() {
 
 export function useGetSingleProduct(id) {
   return useQuery({
-    // 💡 1. Put 'id' in the key so query refetches when ID changes
     queryKey: ["getProduct", id],
     queryFn: async () => {
-      console.log("kigali house", id);
-      // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
         .from("Products")
         .select("*")
         .eq("id", id)
-        .single(); // Grab just the single object instead of an array
+        .single();
 
       if (error) {
-        console.error("Error fetching single product:", error.message);
         throw error;
       }
 
       return data;
     },
-    // 💡 3. Only run this network request if an actual ID is passed in
+
     enabled: !!id,
   });
 }
+export function useReportProduct() {
+  return useMutation({
+    mutationFn: async ({ id, reported }) => {
+      const { data, error } = await supabase
+        .from("Products")
+        .update({
+          reported: reported,
+          lastUpdatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    },
+  });
+}
+
 export function useGetSingleProductDeal(id) {
   return useQuery({
-    // 💡 1. Put 'id' in the key so query refetches when ID changes
     queryKey: ["getDeal", id],
     queryFn: async () => {
-      // 💡 2. Use .eq() to filter by the product ID column
       const { data, error } = await supabase
         .from("Deals")
         .select("*")
         .eq("id", id)
-        .single(); // Grab just the single object instead of an array
+        .single();
 
       if (error) {
-        console.error("Error fetching single product:", error.message);
         throw error;
       }
-      console.log("wetin", data);
+
       return data;
     },
-    // 💡 3. Only run this network request if an actual ID is passed in
+
     enabled: !!id,
   });
 }
@@ -237,13 +236,13 @@ export function useGetAllMyProducts(id) {
 
       if (error) throw error;
 
-      return data; // ✅ this line is the fix
+      return data;
     },
     getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length < pageSize) return undefined;
+      if (lastPage?.length < pageSize) return undefined;
       return allPages.length;
     },
-    initialPageParam: 0, // ✅ also needed
+    initialPageParam: 0,
     enabled: !!id,
   });
 }
@@ -251,37 +250,34 @@ export function useGetAllMyProducts(id) {
 export function useCreateProduct() {
   return useMutation({
     mutationFn: async (data) => {
-      console.log("Starting product creation with data:", data);
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       const imageUrls = [];
       const uploadedFilePaths = [];
 
-      // 1. UPLOAD IMAGES
       for (const [i, imageUri] of data.images.entries()) {
         try {
-          // Convert local Expo image URI to binary buffer
           const response = await fetch(imageUri);
           const arrayBuffer = await response.arrayBuffer();
 
-          // ⚠️ HARDCODED CLEAN PATH: Completely ignores raw imageUri extension quirks
           const fileName = `${data.userId}/${Date.now()}-${i}.jpg`;
 
-          // Upload to Supabase
           const { data: uploadData, error: storageError } =
             await supabase.storage
               .from("Images")
               .upload(fileName, arrayBuffer, {
                 contentType: "image/jpeg",
-                upsert: true,
+                upsert: false,
               });
 
           if (storageError) {
-            console.error("Storage upload error:", storageError);
             throw storageError;
           }
           uploadedFilePaths.push(uploadData.path);
 
-          // Get permanent public URL
           const { data: publicUrlData } = supabase.storage
             .from("Images")
             .getPublicUrl(uploadData.path);
@@ -290,9 +286,6 @@ export function useCreateProduct() {
             imageUrls.push(publicUrlData.publicUrl);
           }
         } catch (err) {
-          console.error(`Failed to process image ${i}:`, err);
-
-          // Rollback any images uploaded before this failure
           if (uploadedFilePaths.length > 0) {
             await supabase.storage.from("Images").remove(uploadedFilePaths);
           }
@@ -300,8 +293,8 @@ export function useCreateProduct() {
         }
       }
 
-      // 2. INSERT INTO DATABASE
       const { data: spData, error } = await supabase
+
         .from("Products")
         .insert([
           {
@@ -312,17 +305,16 @@ export function useCreateProduct() {
             details: data.details,
             year: data.year,
             condition: data.condition,
-            category: data.type,
+            category: data.category,
             more: data.more,
             currency: data.currency,
-            images: imageUrls, // Guaranteed clean URLs ending in .jpg
+            images: imageUrls,
             profileId: data.userId,
           },
         ])
         .select();
 
       if (error) {
-        console.log({ createProductError: error });
         if (uploadedFilePaths.length > 0) {
           const { data, error: removeError } = await supabase.storage
             .from("Images")
@@ -338,36 +330,29 @@ export function useCreateProduct() {
 export function useCreateProductDeal() {
   return useMutation({
     mutationFn: async (data) => {
-      console.log("kido", data);
       const imageUrls = [];
       const uploadedFilePaths = [];
 
-      // 1. UPLOAD IMAGES
       for (const [i, imageUri] of data.images.entries()) {
         try {
-          // Convert local Expo image URI to binary buffer
           const response = await fetch(imageUri);
           const arrayBuffer = await response.arrayBuffer();
 
-          // ⚠️ HARDCODED CLEAN PATH: Completely ignores raw imageUri extension quirks
           const fileName = `${data.userId}/${Date.now()}-${i}.jpg`;
 
-          // Upload to Supabase
           const { data: uploadData, error: storageError } =
             await supabase.storage
               .from("Images")
               .upload(fileName, arrayBuffer, {
                 contentType: "image/jpeg",
-                upsert: true,
+                upsert: false,
               });
 
           if (storageError) {
-            console.error("Storage upload error:", storageError);
             throw storageError;
           }
           uploadedFilePaths.push(uploadData.path);
 
-          // Get permanent public URL
           const { data: publicUrlData } = supabase.storage
             .from("Images")
             .getPublicUrl(uploadData.path);
@@ -376,9 +361,6 @@ export function useCreateProductDeal() {
             imageUrls.push(publicUrlData.publicUrl);
           }
         } catch (err) {
-          console.error(`Failed to process image ${i}:`, err);
-
-          // Rollback any images uploaded before this failure
           if (uploadedFilePaths.length > 0) {
             await supabase.storage.from("Images").remove(uploadedFilePaths);
           }
@@ -386,7 +368,6 @@ export function useCreateProductDeal() {
         }
       }
 
-      // 2. INSERT INTO DATABASE
       const { data: spData, error } = await supabase
         .from("Deals")
         .insert([
@@ -399,14 +380,13 @@ export function useCreateProductDeal() {
             description: data.description,
             currency: data.currency,
             year: data.year,
-            images: imageUrls, // Guaranteed clean URLs ending in .jpg
+            images: imageUrls,
             createdBy: data.userId,
           },
         ])
         .select();
 
       if (error) {
-        console.log("createProduct", error);
         if (uploadedFilePaths.length > 0) {
           const { data, error: removeError } = await supabase.storage
             .from("Images")
@@ -422,18 +402,15 @@ export function useCreateProductDeal() {
 export function useEditProduct() {
   return useMutation({
     mutationFn: async (productData) => {
-      console.log("trying to edit");
-
       const { id, ...updateFields } = productData;
 
       const { data, error } = await supabase
         .from("Products")
         .update(updateFields)
         .eq("id", id)
-        .select(); // optional but useful to return updated row
+        .select();
 
       if (error) {
-        console.log("DB error:", error);
         throw error;
       }
 
@@ -444,18 +421,15 @@ export function useEditProduct() {
 export function useEditProductDeal() {
   return useMutation({
     mutationFn: async (dealData) => {
-      console.log("trying to edit deal");
-
       const { id, ...updateFields } = dealData;
 
       const { data, error } = await supabase
         .from("Deals")
         .update(updateFields)
         .eq("id", id)
-        .select(); // optional but useful to return updated row
+        .select();
 
       if (error) {
-        console.log("DB error:", error);
         throw error;
       }
 
@@ -483,12 +457,11 @@ export function useActivateProductDeal() {
 export function useDeleteProduct() {
   return useMutation({
     mutationFn: async (id) => {
-      const { error, spData } = await supabase
+      const { error, data: spData } = await supabase
         .from("Products")
         .delete()
         .eq("id", id);
       if (error) {
-        console.log("DB error:", error);
         throw error;
       }
       return spData;
@@ -498,13 +471,11 @@ export function useDeleteProduct() {
 export function useDeleteProductDeal() {
   return useMutation({
     mutationFn: async (id) => {
-      console.log("imyeyo", id);
-      const { error, spData } = await supabase
+      const { error, data: spData } = await supabase
         .from("Deals")
         .delete()
         .eq("id", id);
       if (error) {
-        console.log("DB error:", error);
         throw error;
       }
       return spData;
@@ -516,8 +487,6 @@ export function useCountProducts(id) {
   return useQuery({
     queryKey: ["productsNumber", id],
     queryFn: async () => {
-      console.log("Fetching product count for profileId:", id);
-
       const { count, error } = await supabase
         .from("Products")
         .select("id", { count: "exact" })
@@ -529,7 +498,7 @@ export function useCountProducts(id) {
 
       return count ?? 0;
     },
-    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+
     enabled: !!id,
   });
 }
@@ -547,14 +516,12 @@ export function useCountProductsDeals(id) {
         .gte("lastUpdatedAt", twentyFourHoursAgo);
 
       if (error) {
-        // Log all error properties explicitly
-
         throw new Error(error.message);
       }
 
       return count ?? 0;
     },
-    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+
     enabled: !!id,
   });
 }

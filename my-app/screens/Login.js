@@ -15,10 +15,16 @@ import Button from "../Components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { useLogin } from "../_CustomHooks/Authentication";
 import { useForm, Controller } from "react-hook-form";
+import ErrorPage from "../Components/ErrorPage";
+import { StatusBar } from "expo-status-bar";
+import { Image } from "react-native";
+import { queryClient } from "../_lib/queryClient";
 
 export default function Login() {
   const Navigation = useNavigation();
   const [email, setEmail] = useState("");
+  const [loginError, setLoginError] = useState(null);
+
   const [password, setPassword] = useState("");
   const {
     control,
@@ -31,35 +37,42 @@ export default function Login() {
   function loginHandler(data) {
     mutate(data, {
       onSuccess: async () => {
-        // 🔥 check session after login
         const { data } = await supabase.auth.getSession();
 
-        if (data.session) {
-          Navigation.reset({
-            index: 0,
-            routes: [{ name: "Tabs" }],
-          });
+        if (data?.session) {
+          queryClient.invalidateQueries("currentUser");
         } else {
-          console.log("kigoye");
+          setLoginError(true);
         }
       },
     });
   }
-
+  if (loginError) {
+    return (
+      <ErrorPage
+        message={"!There was an Error we couldn't access you session"}
+      />
+    );
+  }
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <StatusBar />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.blackBg, styles.headerBranding]}>
-          <Ionicons
+        <View style={[styles.headerBranding]}>
+          {/* <Ionicons
             name="car-outline"
             size={60}
             color={GlobalStyles.Primary_Yellow}
+          /> */}
+          <Image
+            source={require("../assets/images/logotransp.ksm.jpg")}
+            style={{ height: 120, width: 120, borderRadius: 80 }}
           />
           <Text style={[styles.mainTitle, styles.whiteT]}>Welcome Back</Text>
           <Text style={[styles.paragraph, styles.greyT]}>
@@ -69,7 +82,7 @@ export default function Login() {
 
         <View style={styles.formContainer}>
           <View style={styles.inputWrapper}>
-            <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
+            <Text style={[styles.paragraph, styles.bold, { marginBottom: 6 }]}>
               EMAIL ADDRESS
             </Text>
             <View style={[styles.row, styles.bordeR, styles.inputFieldOuter]}>
@@ -104,7 +117,7 @@ export default function Login() {
           </View>
 
           <View style={styles.inputWrapper}>
-            <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
+            <Text style={[styles.paragraph, styles.bold, { marginBottom: 6 }]}>
               PASSWORD
             </Text>
             <View style={[styles.row, styles.bordeR, styles.inputFieldOuter]}>
@@ -125,6 +138,7 @@ export default function Login() {
                     onBlur={onBlur}
                     onChange={onChange}
                     value={value}
+                    secure={true}
                     styled={[{ width: "90%" }]}
                   />
                 )}
@@ -164,10 +178,23 @@ export default function Login() {
           <View
             style={[styles.row, { justifyContent: "center", marginTop: 20 }]}
           >
-            <Text style={styles.Roboto}>Don't have an account? </Text>
+            <View style={{ flexDirection: "column", flexDirection: "row" }}>
+              <Ionicons name="person-add-outline" size={16} />
+              <Text style={styles.Roboto}>New account? </Text>
+            </View>
             <Button
               content={
-                <Text style={[styles.bold, styles.yellow]}>Register</Text>
+                <Text
+                  style={[
+                    styles.yellow,
+
+                    styles.bold,
+                    styles.paragraph,
+                    { textDecorationLine: "underline" },
+                  ]}
+                >
+                  SIGN UP
+                </Text>
               }
               onPress={() => {
                 Navigation.navigate("signUp");
@@ -179,6 +206,39 @@ export default function Login() {
                   paddingHorizontal: 0,
                 },
               ]}
+            />
+          </View>
+          <View
+            style={[
+              {
+                flexDirection: "row",
+
+                marginTop: 20,
+              },
+            ]}
+          >
+            <Text style={styles?.Roboto}>Help</Text>
+            <Button
+              content={
+                <Text
+                  style={[
+                    styles.bold,
+                    styles,
+                    styles.Roboto,
+
+                    {
+                      color: GlobalStyles.gold,
+                      textDecorationLine: "underline",
+                    },
+                  ]}
+                >
+                  FORGOT PASSWORD
+                </Text>
+              }
+              onPress={() => {
+                Navigation.navigate("forgot");
+              }}
+              styles={[{}]}
             />
           </View>
         </View>
@@ -225,7 +285,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  // Explicitly copied style properties from your Home matrix
   mainTitle: {
     fontFamily: "Roboto-Extrabold",
     fontSize: 35,
@@ -240,12 +299,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   bold: {
-    fontFamily: "Roboto-semibold",
+    fontFamily: "Roboto-bold",
     fontWeight: "700",
   },
   Roboto: {
     fontFamily: "Roboto-Light",
+    fontWeight: 700,
     fontSize: 16,
+  },
+  explanation: {
+    fontFamily: "Roboto-Light",
+    fontWeight: 400,
+    fontSize: 13,
   },
   row: {
     flexDirection: "row",
@@ -258,7 +323,7 @@ const styles = StyleSheet.create({
     color: GlobalStyles.Primary_Grey,
   },
   yellow: {
-    color: GlobalStyles.Primary_Yellow,
+    color: GlobalStyles.gold,
   },
   bordeR: {
     borderRadius: 12,

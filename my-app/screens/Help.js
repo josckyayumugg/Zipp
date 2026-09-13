@@ -115,11 +115,6 @@ export default function HelpCenterPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 12,
-  },
-
   title: {
     fontSize: 26,
     fontWeight: "700",
@@ -164,12 +159,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
   question: {
     fontSize: 15,
     fontWeight: "600",
@@ -205,7 +194,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   image: {
-   
     height: 350,
     resizeMode: "cover",
   },
@@ -353,12 +341,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingBottom: 4,
   },
-  sectionTitle: {
-    fontFamily: "Roboto-Extrabold",
-    fontSize: 22,
-
-    marginBottom: 8,
-  },
 
   bigText: {
     fontSize: 20,
@@ -369,12 +351,6 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-Light",
     fontSize: 16,
     lineHeight: 16,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

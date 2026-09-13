@@ -10,7 +10,6 @@ export function useCreateRequest() {
         .insert([data])
         .select();
       if (error) {
-        console.error("Error creating  request:", error.message);
         throw error;
       }
       return spData;
@@ -37,22 +36,17 @@ export function useGetSingleRequest(id) {
   return useQuery({
     queryKey: ["request", id],
     queryFn: async () => {
-      try {
-        const { data: spData, error } = await supabase
-          .from("Requests")
-          .select("*")
-          .eq("id", id)
-          .single();
+      const { data: spData, error } = await supabase
+        .from("Requests")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-        if (error) {
-          throw error;
-        }
-
-        return spData;
-      } catch (error) {
-        console.error("Error fetching request:", error);
-        throw error; // Let React Query know the query failed.
+      if (error) {
+        throw error;
       }
+
+      return spData;
     },
     enabled: !!id,
   });
@@ -98,10 +92,11 @@ export function useGetAllMyRequests(id, query) {
     enabled: !!id,
   });
 }
-export function useGetAllRequests(filter, bool, search) {
+export function useGetAllRequests(filter, bool, search, profileId) {
   const pageSize = 10;
+
   return useInfiniteQuery({
-    queryKey: ["AllRequests", filter, bool, search],
+    queryKey: ["AllRequests", filter, bool, search, profileId],
     queryFn: async ({ pageParam }) => {
       const from = pageSize * pageParam;
       const to = from + pageSize - 1;
@@ -111,6 +106,9 @@ export function useGetAllRequests(filter, bool, search) {
         query = query.or(
           `name.ilike.%${search}%,brand.ilike.%${search}%,description.ilike.%${search}%,modal.ilike.%${search}%,more.ilike.%${search}%`,
         );
+      }
+      if (profileId) {
+        query = query.neq("createdBy", profileId);
       }
 
       query = query
@@ -127,15 +125,15 @@ export function useGetAllRequests(filter, bool, search) {
 
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // cache is fresh for 5 minutes
+    staleTime: 1000 * 60 * 5,
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      // If last fetched page had fewer items than pageSize, we hit the end
       if (lastPage.length < pageSize) {
-        return undefined; // No more pages
+        return undefined;
       }
-      return allPages.length; // Next page number (0, 1, 2...)
+      return allPages.length;
     },
+    enabled: !!profileId,
   });
 }
 export function useEditResponse() {
@@ -171,30 +169,12 @@ export function useEditRequest() {
 
         return data;
       } catch (error) {
-        console.error("Error updating request:", error);
         throw error;
       }
     },
   });
 }
 
-export function subscribeToRequests({ data }) {
-  return useQuery({
-    queryKey: ["subscribe"],
-    queryFn: async () => {
-      const Requests = supabase
-        .channel("custom-insert-channel")
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "Requests" },
-          (payload) => {
-            console.log("Change received!", payload);
-          },
-        )
-        .subscribe();
-    },
-  });
-}
 export function useGetAllResponses({ id }) {
   return useQuery({
     queryKey: ["response"],
@@ -203,28 +183,9 @@ export function useGetAllResponses({ id }) {
         .from("Responses")
         .select("*");
       if (error) {
-        console.error("Error fetching single product:", error.message);
         throw error;
       }
       return spData;
-    },
-  });
-}
-
-export function useSubscribeResponse({ id }) {
-  return useQuery({
-    queryKey: ["subscribeResponse"],
-    queryFn: async () => {
-      const Responses = supabase
-        .channel("custom-insert-channel")
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "Responses" },
-          (payload) => {
-            console.log("Change received!", payload);
-          },
-        )
-        .subscribe();
     },
   });
 }
@@ -233,8 +194,6 @@ export function useCountProducts(id) {
   return useQuery({
     queryKey: ["productsNumber", id],
     queryFn: async () => {
-      console.log("Fetching product count for profileId:", id);
-
       const { count, error } = await supabase
         .from("Products")
         .select("id", { count: "exact" })
@@ -246,7 +205,7 @@ export function useCountProducts(id) {
 
       return count ?? 0;
     },
-    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+
     enabled: !!id,
   });
 }
@@ -260,14 +219,12 @@ export function useCountMyRequests(id) {
         .eq("createdBy", id);
 
       if (error) {
-        // Log all error properties explicitly
-
         throw new Error(error.message);
       }
 
       return count ?? 0;
     },
-    // 🛑 CRITICAL: Do NOT run this query until a valid 'id' is passed
+
     enabled: !!id,
   });
 }
