@@ -258,7 +258,7 @@ function AppContent() {
       };
     }
   }, [user?.id]);
-  if (!loaded) {
+  if (!loaded || isCheckingSession) {
     return (
       <View
         style={{
@@ -272,6 +272,28 @@ function AppContent() {
       </View>
     );
   }
+
+  useEffect(() => {
+    if (error) {
+      console.error("Font loading error:", error);
+    }
+  }, [error]);
+
+  if (error) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "black",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ErrorPage message="Failed to load app assets. Please restart the app." />
+      </View>
+    );
+  }
+
   if (errorUser) {
     return (
       <NavigationContainer>

@@ -15,19 +15,19 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.josckyexpo.myapp",
+      "bundleIdentifier": "com.ksmarting",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "googleServicesFile": "k-smarting-auto-firebase-adminsdk-fbsvc-cd8b518137.json",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.josckyexpo.myapp"
+      "package": "com.ksmarting"
     },
     "web": {
       "favicon": "./assets/favicon.png"
