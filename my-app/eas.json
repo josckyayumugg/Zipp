@@ -21,7 +21,12 @@
       "ios": { "simulator": true }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "env": {
+           "GOOGLE_SERVICES_JSON": "@secret:GOOGLE_SERVICES_JSON"
+        }
+      }
     }
   },
   "submit": {
