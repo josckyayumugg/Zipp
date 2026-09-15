@@ -43,7 +43,7 @@ export default function ConfigureProfile({ route, navigation }) {
     return <ErrorPage message={errorUser?.message} />;
   }
   const userId = userParams || userData?.id;
-  console.log("gues me", userId);
+  
   const {
     control,
     handleSubmit,
