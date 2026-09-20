@@ -1,77 +1,73 @@
+import {
+  QueryClientProvider
+} from "@tanstack/react-query";
+import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Home from "./screens/Home";
-import Search from "./screens/Search";
-import Product from "./screens/Product";
-import AddProduct from "./screens/AddProduct";
-import EditAddress from "./screens/EditAddress";
-import TermsAndConditions from "./screens/TermsAnd";
-import PrivacyPolicy from "./screens/Privacy";
-import ChangePassword from "./screens/ChangePassword";
-import ConfigureProfile from "./screens/Configuration";
-import DealContacts from "./screens/ContactsDeals";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
-import Request from "./screens/Request";
-import SeeAllScreen from "./screens/SeeAllScreen";
-import SettingsPage from "./screens/Settings";
-import ReportScreen from "./screens/Report";
-import ContactUs from "./screens/ContactUs";
-import ContactsReply from "./screens/ContactsReplies";
 import LoadingPaging from "./Components/LoadingPaging";
 import {
   useGetCurrentProfile,
   useGetCurrentUser,
 } from "./_CustomHooks/Authentication";
-import { useState } from "react";
-import { useEffect } from "react";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
 import { queryClient } from "./_lib/queryClient";
-import { useFonts } from "expo-font";
+import AddProduct from "./screens/AddProduct";
+import ChangePassword from "./screens/ChangePassword";
+import ConfigureProfile from "./screens/Configuration";
+import ContactUs from "./screens/ContactUs";
+import DealContacts from "./screens/ContactsDeals";
+import ContactsReply from "./screens/ContactsReplies";
+import EditAddress from "./screens/EditAddress";
+import Home from "./screens/Home";
+import PrivacyPolicy from "./screens/Privacy";
+import Product from "./screens/Product";
+import ReportScreen from "./screens/Report";
+import Request from "./screens/Request";
+import Search from "./screens/Search";
+import SeeAllScreen from "./screens/SeeAllScreen";
+import SettingsPage from "./screens/Settings";
+import TermsAndConditions from "./screens/TermsAnd";
 
 import {
-  useNavigation,
-  createStaticNavigation,
   NavigationContainer,
+  useNavigation
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import Profile from "./screens/Profile";
-import ProfileSelling from "./Components/ProfileSelling";
-import { GlobalStyles } from "./Constants";
 import { Ionicons } from "@expo/vector-icons";
+import { GlobalStyles } from "./Constants";
+import HelpCenterPage from "./screens/Help";
+import NotificationsPage from "./screens/Notifications";
+import Profile from "./screens/Profile";
+import EditProfile from "./screens/ProfileEditint";
 import ViewReplies from "./screens/Replies";
 import RespondToRequest from "./screens/Replying";
-import NotificationsPage from "./screens/Notifications";
-import HelpCenterPage from "./screens/Help";
-import EditProfile from "./screens/ProfileEditint";
 
-import Login from "./screens/Login";
-import SignUp from "./screens/SignUpPage";
-import ProductContacts from "./screens/ProductContacts";
-import DealPage from "./screens/Deal";
-import ProfileRows from "./Components/ProfileRows";
+import * as Notifications from "expo-notifications";
+import * as SplashScreen from "expo-splash-screen";
 import DealsRow from "./Components/ProfileDeals";
 import ProformaRows from "./Components/ProfileProforma";
-import * as Notifications from "expo-notifications";
-import { registerAndSaveToken } from "./_lib/ProductsNotification";
-import { registerForPushNotificationsAsync } from "./_lib/ProductsNotification";
+import ProfileRows from "./Components/ProfileRows";
+import { registerAndSaveToken, registerForPushNotificationsAsync } from "./_lib/ProductsNotification";
+import DealPage from "./screens/Deal";
 import ForgotPassword from "./screens/ForgotPassword";
+import Login from "./screens/Login";
+import ProductContacts from "./screens/ProductContacts";
+import SignUp from "./screens/SignUpPage";
 
 import ConfirmEmail from "./screens/Confirmation";
 
-import PasswordTokenPage from "./screens/PasswordTokenPage";
-import ChangeForgottenPassword from "./screens/ChangePasswordForgot";
 import ErrorPage from "./Components/ErrorPage";
+import ChangeForgottenPassword from "./screens/ChangePasswordForgot";
+import PasswordTokenPage from "./screens/PasswordTokenPage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+SplashScreen.setOptions({ duration: 1000, fade: true });
 
 function Tabs() {
   const navigation = useNavigation();
@@ -221,7 +217,7 @@ function AppContent() {
   } = useGetCurrentProfile(user?.id);
   async function scheduleNotificationHandler() {
     try {
-      const id = await Notifications.scheduleNotificationAsync({
+      await Notifications.scheduleNotificationAsync({
         content: {
           title: "What's new",
           sound: "default",
@@ -272,12 +268,6 @@ function AppContent() {
       </View>
     );
   }
-
-  useEffect(() => {
-    if (error) {
-      console.error("Font loading error:", error);
-    }
-  }, [error]);
 
   if (error) {
     return (

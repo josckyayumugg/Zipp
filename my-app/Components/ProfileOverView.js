@@ -31,6 +31,11 @@ export default function ProfileOverView({ profileId }) {
       <Text>{errorProfile?.message}</Text>
     </View>;
   }
+  if (error) {
+    <View>
+      <Text>{error?.message}</Text>
+    </View>;
+  }
   function LogoutHandler() {
     mutate(undefined, {
       onSuccess: () => {

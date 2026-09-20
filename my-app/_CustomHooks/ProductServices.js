@@ -234,7 +234,9 @@ export function useGetAllMyProducts(id) {
         .range(from, to)
         .order("createdAt", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       return data;
     },

@@ -122,7 +122,6 @@ export function useUpdateProfile() {
 export function useCreateProfile() {
   return useMutation({
     mutationFn: async (data) => {
-      
       let { data: spData, error } = await supabase
         .from("Profiles")
         .insert([
@@ -158,12 +157,16 @@ export function useGetCurrentProfile(id) {
         .from("Profiles")
         .select("*")
         .eq("profileId", id)
-        .single();
-      if (error) throw error;
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
       return data;
     },
     enabled: !!id,
   });
+  w;
 }
 
 export function useConfirm() {
