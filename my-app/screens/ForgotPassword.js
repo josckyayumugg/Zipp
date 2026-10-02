@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,19 +14,37 @@ import { useNavigation } from "@react-navigation/native";
 import { supabase } from "../_lib/supabase";
 import { useRequireToken } from "../_CustomHooks/Authentication";
 import { GlobalStyles } from "../Constants";
+import ErrorMessage from "../Components/ErrorMessage";
+import NetInfo from "@react-native-community/netinfo";
 
 export default function ForgotPassword({ navigation }) {
   const [email, setEmail] = useState("");
+  const [isConnected, setIsConnected] = useState(true);
   const {
     control,
     handleSubmit,
     watch,
     setValue,
     formState: { errors },
+    setError,
   } = useForm({ defaultValues: { email: "" } });
   const { mutate, isPending, error } = useRequireToken();
   const Navigation = useNavigation();
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   async function handleForgotPassword(data) {
+    if (!isConnected) {
+      setError("email", { message: "You are nott connected" });
+      return;
+    }
+
     if (data?.email) {
       mutate(
         { email: data?.email?.trim() },
@@ -48,6 +66,7 @@ export default function ForgotPassword({ navigation }) {
       return;
     }
   }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Forgot Password?</Text>
@@ -73,7 +92,7 @@ export default function ForgotPassword({ navigation }) {
       />
       {errors?.email || error ? (
         <Text style={{ color: "red" }}>
-          {errors?.email.message || error?.message}
+          {errors?.email?.message || error?.message}
         </Text>
       ) : null}
       <TouchableOpacity

@@ -13,10 +13,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
 import { Controller, useForm } from "react-hook-form";
 import InputText from "../Components/TextInput";
-import ErrorPage from "../Components/ErrorPage";
+
 import LoadingPaging from "../Components/LoadingPaging";
 import Toast from "react-native-toast-message";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import ErrorMessage from "../Components/ErrorMessage";
 export default function ChangeForgottenPassword() {
   const [showCurrent, setShowCurrent] = useState(true);
   const [showNewP, setShowNewP] = useState(true);
@@ -53,7 +54,7 @@ export default function ChangeForgottenPassword() {
   } = useUpdateUser();
 
   if (isErrorUser) {
-    return <ErrorPage message={errorUser.message} />;
+    return <ErrorMessage message={errorUser?.message} />;
   }
   if (isPendingUser) {
     return <LoadingPaging />;

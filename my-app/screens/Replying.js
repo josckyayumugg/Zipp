@@ -31,7 +31,8 @@ import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import LoadingPaging from "../Components/LoadingPaging";
 import { useGetSingleResponse } from "../_CustomHooks/ResponseServices";
-import ErrorPage from "../Components/ErrorPage";
+
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function RespondToRequest() {
   const route = useRoute();
@@ -197,14 +198,14 @@ export default function RespondToRequest() {
   /////creaeting the response//
 
   if (isErrorAuth) {
-    return <ErrorPage message={error.message} />;
+    return <ErrorMessage message={error?.message} />;
   }
   if (errorUser) {
-    errorUser.message;
+    return <ErrorMessage message={errorUser?.message} />;
   }
 
   if (errorGetResponse) {
-    return <ErrorPage message={errorGetResponse?.message} />;
+    return <ErrorMessage message={errorGetResponse?.message} />;
   }
 
   return (

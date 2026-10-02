@@ -2,10 +2,13 @@ import { View, Text, StyleSheet } from "react-native";
 import { GlobalStyles } from "../Constants";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
-import { useNavigation } from "@react-navigation/native";
 
-export default function ErrorPage({ message, ButtonContent, onPress, style }) {
-  const navigator = useNavigation();
+export default function ErrorMessage({
+  message,
+  ButtonContent,
+  onPress,
+  style,
+}) {
   return (
     <View
       style={[
@@ -15,34 +18,29 @@ export default function ErrorPage({ message, ButtonContent, onPress, style }) {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          marginVertical: "auto",
+
+          alignContent: "center",
         },
         style,
       ]}
     >
       <Ionicons
         name="alert-circle-outline"
-        size={30}
-        color="red"
-        style={{ marginTop: 200 }}
+        size={16}
+        color={GlobalStyles.red}
       />
-      <Text style={[styles.smallT, { alignSelf: "center" }]}>
-        {message ? message : "Connection error!"}
-      </Text>
-
-      <Button
-        content={ButtonContent ? ButtonContent : "Try again"}
-        onPress={onPress}
-        styles={[
-          {
-            backgroundColor: GlobalStyles.Primary_Yellow,
-            alignSelf: "center",
-          },
-          styles.paddingLg,
-
-          styles.bordeR,
-        ]}
-      />
+      <Text style={styles.smallT}>{message}</Text>
+      {ButtonContent ? (
+        <Button
+          content={ButtonContent}
+          onPress={onPress}
+          styles={[
+            { backgroundColor: GlobalStyles.Primary_Yellow },
+            styles.paddingLg,
+            styles.bordeR,
+          ]}
+        />
+      ) : null}
     </View>
   );
 }
@@ -75,7 +73,6 @@ const styles = StyleSheet.create({
   smallT: {
     fontFamily: "Roboto-regular",
     fontSize: 12,
-    color: GlobalStyles.Black,
   },
   smallMVertical: {
     marginVertical: 8,
@@ -95,7 +92,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: "Roboto-semibold",
-    fontWeight: 700,
+    fontWeight: "700",
   },
   graph: {
     alignSelf: "center",
@@ -208,12 +205,6 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-Light",
     fontSize: 16,
     lineHeight: 16,
-  },
-  button: {
-    alignSelf: "start",
-    paddingHorizontal: 8,
-    marginVertical: 10,
-    borderRadius: 4,
   },
 
   bordeR: {

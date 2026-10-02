@@ -15,10 +15,11 @@ import Button from "../Components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { useLogin } from "../_CustomHooks/Authentication";
 import { useForm, Controller } from "react-hook-form";
-import ErrorPage from "../Components/ErrorPage";
+
 import { StatusBar } from "expo-status-bar";
 import { Image } from "react-native";
 import { queryClient } from "../_lib/queryClient";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function Login() {
   const Navigation = useNavigation();
@@ -47,13 +48,7 @@ export default function Login() {
       },
     });
   }
-  if (loginError) {
-    return (
-      <ErrorPage
-        message={"!There was an Error we couldn't access you session"}
-      />
-    );
-  }
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}
@@ -65,17 +60,12 @@ export default function Login() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={[styles.headerBranding]}>
-          {/* <Ionicons
-            name="car-outline"
-            size={60}
-            color={GlobalStyles.Primary_Yellow}
-          /> */}
           <Image
             source={require("../assets/images/logotransp.ksm.jpg")}
             style={{ height: 120, width: 120, borderRadius: 80 }}
           />
-          <Text style={[styles.mainTitle, styles.whiteT]}>Welcome Back</Text>
-          <Text style={[styles.paragraph, styles.greyT]}>
+
+          <Text style={[styles.smallText, styles.greyT]}>
             Sign in to continue exploring parts
           </Text>
         </View>
@@ -180,16 +170,27 @@ export default function Login() {
           >
             <View style={{ flexDirection: "column", flexDirection: "row" }}>
               <Ionicons name="person-add-outline" size={16} />
-              <Text style={styles.Roboto}>New account? </Text>
+              <Text
+                style={[
+                  styles.paragraph,
+                  styles.Roboto,
+                  styles.bold,
+                  { marginBottom: 6 },
+                ]}
+              >
+                New account?{" "}
+              </Text>
             </View>
             <Button
               content={
                 <Text
                   style={[
                     styles.yellow,
-
-                    styles.bold,
                     styles.paragraph,
+                    styles.Roboto,
+                    styles.bold,
+                    { marginBottom: 6 },
+
                     { textDecorationLine: "underline" },
                   ]}
                 >
@@ -217,14 +218,25 @@ export default function Login() {
               },
             ]}
           >
-            <Text style={styles?.Roboto}>Help</Text>
+            <Text
+              style={[
+                styles?.Roboto,
+                styles.paragraph,
+                styles.Roboto,
+                styles.bold,
+                { marginBottom: 6 },
+              ]}
+            >
+              Help
+            </Text>
             <Button
               content={
                 <Text
                   style={[
-                    styles.bold,
-                    styles,
+                    styles.paragraph,
                     styles.Roboto,
+                    styles.bold,
+                    { marginBottom: 6 },
 
                     {
                       color: GlobalStyles.gold,
@@ -258,7 +270,7 @@ const styles = StyleSheet.create({
   headerBranding: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 50,
+    marginTop: 50,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
@@ -298,6 +310,10 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-regular",
     fontSize: 12,
   },
+  smallText: {
+    fontFamily: "Roboto-Light",
+    fontSize: 14,
+  },
   bold: {
     fontFamily: "Roboto-bold",
     fontWeight: "700",
@@ -320,7 +336,7 @@ const styles = StyleSheet.create({
     color: "white",
   },
   greyT: {
-    color: GlobalStyles.Primary_Grey,
+    color: GlobalStyles.Primary_Grey2,
   },
   yellow: {
     color: GlobalStyles.gold,

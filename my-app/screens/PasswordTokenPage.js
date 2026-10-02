@@ -14,7 +14,7 @@ import InputText from "../Components/TextInput";
 import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../Constants";
 import { useRoute } from "@react-navigation/native";
-import ErrorPage from "../Components/ErrorPage";
+
 export default function PasswordTokenPage({ navigation }) {
   const route = useRoute();
   const Navigation = useNavigation();
@@ -45,6 +45,15 @@ export default function PasswordTokenPage({ navigation }) {
                 params: { type: "ForgotPassword", email: email },
               },
             ],
+          });
+        },
+        onError: (error) => {
+          Toast.show({
+            type: "error",
+            text1: "Couldn't Token",
+            text2: error?.message || "Something went wrong. Please try again.",
+            position: "top",
+            visibilityTime: 3000,
           });
         },
       },

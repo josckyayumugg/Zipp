@@ -16,9 +16,10 @@ import NoProductsProfile from "./NoProductsProfile";
 import DealProfileRow from "./DealProfileRow";
 import { useDeleteProductDeal } from "../_CustomHooks/ProductServices";
 import LoadingPaging from "./LoadingPaging";
-import ErrorPage from "./ErrorPage";
+
 import ProfileResponseRow from "./ResponseProfileRow";
 import ProfileFlatListHeader from "./ProfileFlatlistHeader";
+import ErrorMessage from "./ErrorMessage";
 
 export default function ProformaRows({ Data }) {
   const [isType, setIsType] = useState("");
@@ -51,10 +52,10 @@ export default function ProformaRows({ Data }) {
   const AllMyResponses = dataMyResponses?.pages?.flat() ?? [];
 
   if (isErrorResponses) {
-    return <ErrorPage message={errorResponses?.message} />;
+    return <ErrorMessage message={errorResponses?.message} />;
   }
   if (isErrorUser) {
-    return <ErrorPage message={errorUser?.message} />;
+    return <ErrorMessage message={errorUser?.message} />;
   }
 
   if (AllMyResponses.length <= 0) {

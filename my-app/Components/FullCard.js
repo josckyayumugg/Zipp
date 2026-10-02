@@ -22,7 +22,7 @@ import {
 import Span from "./Span";
 import { formatNumber, getTimeRemaining } from "../Helpers";
 import LoadingPaging from "./LoadingPaging";
-import ErrorPage from "./ErrorPage";
+
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function FullWidthStoryCard({
@@ -31,9 +31,10 @@ export default function FullWidthStoryCard({
   handlePrev,
   dataLength,
   setIsCreateDealOpen,
+  errorAll,
 }) {
   const navigator = useNavigation();
-  const { data: dataUser, isPending, isError, error } = useGetCurrentUser();
+  const { data: dataUser, isPending, error } = useGetCurrentUser();
   const {
     data: dataProfile,
     isPending: isPendingProfile,
@@ -44,16 +45,38 @@ export default function FullWidthStoryCard({
   const { hours, minutes } = getTimeRemaining(item?.lastUpdatedAt);
   const numericAmount = formatNumber(item?.price);
 
-  if (error) {
-    return <ErrorPage message={error.message} />;
-  }
-  if (errorProfile) {
+  if (errorAll) {
     return (
-      <View>
-        <Text>{errorProfile?.message}</Text>
+      <View
+        style={{
+          flexDirection: "column",
+          margin: "auto",
+          justifyContent: "center",
+          alignContent: "center",
+          backgroundColor: "black",
+          width: "100%",
+          borderBlockColor: GlobalStyles.gold,
+          borderWidth: 4,
+          borderRadius: 8,
+          overflow: "hidden",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignSelf: "center",
+            marginVertical: 40,
+          }}
+        >
+          <Ionicons name={"alert-circle-outline"} size={14} color={"red"} />
+          <Text style={[styles?.smallText, styles.whiteT]}>
+            {errorAll?.message}
+          </Text>
+        </View>
       </View>
     );
   }
+
   if (isPending || isPendingProfile) return <LoadingPaging />;
 
   return (
@@ -74,253 +97,279 @@ export default function FullWidthStoryCard({
           },
         ]}
       >
-        <LinearGradient
-          colors={["#8a5132", "#0c1322", "#0a0e1a"]}
-          locations={[0, 0.3, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.cardGradient]}
-        >
-          {/* 1. BRAND NAME & STORY INDEX (LEFT-ALIGNED) */}
-          <View style={styles.headerRow}>
+        {error || errorProfile ? (
+          <View
+            style={{
+              flexDirection: "column",
+              margin: "auto",
+              justifyContent: "center",
+              alignContent: "center",
+              backgroundColor: "black",
+              width: "100%",
+            }}
+          >
             <View
               style={{
                 flexDirection: "row",
-
-                left: 0,
-                top: 0,
+                alignSelf: "center",
+                marginVertical: 40,
               }}
             >
-              <Ionicons name="flash" color={"orange"} size={20} />
-              <Text style={styles.sectionT}>Deals</Text>
+              <Ionicons name={"alert-circle-outline"} size={14} color={"red"} />
+              <Text style={[styles?.smallText, styles.whiteT]}>
+                {error?.message || errorProfile?.message||"couldn't load your profile"}
+              </Text>
             </View>
-            {dataProfile?.type === "seller" ||
-            dataProfile?.type === "garage" ||
-            dataProfile?.type === "mechanic" ? (
-              <Button
-                onPress={() => {
-                  setIsCreateDealOpen(true);
-                }}
-                styles={{ alignSelf: "flex-end" }}
-                content={
-                  <Ionicons
-                    name={"add"}
-                    color={GlobalStyles.Primary_Yellow}
-                    size={30}
-                  />
-                }
-              />
-            ) : null}
           </View>
-
-          <View
-            style={{
-              width: "100%",
-              flexDirection: "row",
-            }}
+        ) : (
+          <LinearGradient
+            colors={["#8a5132", "#0c1322", "#0a0e1a"]}
+            locations={[0, 0.3, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.cardGradient]}
           >
-            <View style={styles.imageContainer}>
-              <Image
-                source={
-                  item?.images?.length > 0
-                    ? { uri: item?.images[0] }
-                    : require("../assets/images/noImage.jpg")
-                }
-                style={[styles.productImage]}
-              />
+            {/* 1. BRAND NAME & STORY INDEX (LEFT-ALIGNED) */}
+            <View style={styles.headerRow}>
+              <View
+                style={{
+                  flexDirection: "row",
+
+                  left: 0,
+                  top: 0,
+                }}
+              >
+                <Ionicons name="flash" color={"orange"} size={20} />
+                <Text style={styles.sectionT}>Deals</Text>
+              </View>
+              {dataProfile?.type === "seller" ||
+              dataProfile?.type === "garage" ||
+              dataProfile?.type === "mechanic" ? (
+                <Button
+                  onPress={() => {
+                    setIsCreateDealOpen(true);
+                  }}
+                  styles={{ alignSelf: "flex-end" }}
+                  content={
+                    <Ionicons
+                      name={"add"}
+                      color={GlobalStyles.Primary_Yellow}
+                      size={30}
+                    />
+                  }
+                />
+              ) : null}
             </View>
-            <View style={{ flexDirection: "column", width: "50%" }}>
-              {item?.description ? (
+
+            <View
+              style={{
+                width: "100%",
+                flexDirection: "row",
+              }}
+            >
+              <View style={styles.imageContainer}>
+                <Image
+                  source={
+                    item?.images?.length > 0
+                      ? { uri: item?.images[0] }
+                      : require("../assets/images/noImage.jpg")
+                  }
+                  style={[styles.productImage]}
+                />
+              </View>
+              <View style={{ flexDirection: "column", width: "50%" }}>
+                {item?.description ? (
+                  <Text
+                    style={[
+                      styles.productTitle,
+
+                      {
+                        width: "100%",
+                        alignSelf: "start",
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        textAlign: "center",
+                        fontFamily: "Roboto-italic",
+                        fontSize: 14,
+                      },
+                    ]}
+                  >
+                    "
+                    {`${item?.description}`.length > 200
+                      ? `${item?.description}`.slice(0, 200)
+                      : `${item?.description}`}
+                    "
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+
+            {/* 3. PRODUCT NAME */}
+            <View>
+              {item?.name ? (
                 <Text
                   style={[
-                    styles.productTitle,
-
+                    styles.bigText,
                     {
-                      width: "100%",
-                      alignSelf: "start",
-                      paddingHorizontal: 10,
-                      paddingVertical: 6,
-                      textAlign: "center",
-                      fontFamily: "Roboto-italic",
-                      fontSize: 14,
+                      color: GlobalStyles.Primary_Yellow,
+                      marginBottom: 4,
+                      fontWeight: 600,
+                      fontFamily: "Roboto-regular",
                     },
                   ]}
                 >
-                  "
-                  {`${item?.description}`.length > 200
-                    ? `${item?.description}`.slice(0, 200)
-                    : `${item?.description}`}
-                  "
+                  {`${item?.name}`.length > 25
+                    ? `${item?.name}`.slice(0, 25)
+                    : `${item?.name}`}
                 </Text>
               ) : null}
-            </View>
-          </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  marginBottom: 5,
+                  flexWrap: "wrap",
+                  flexDirection: "row",
 
-          {/* 3. PRODUCT NAME */}
-          <View>
-            {item?.name ? (
-              <Text
-                style={[
-                  styles.bigText,
-                  {
-                    color: GlobalStyles.Primary_Yellow,
-                    marginBottom: 4,
-                    fontWeight: 600,
-                    fontFamily: "Roboto-regular",
-                  },
-                ]}
+                  gap: 10,
+                }}
               >
-                {`${item?.name}`.length > 25
-                  ? `${item?.name}`.slice(0, 25)
-                  : `${item?.name}`}
+                {item?.brand ? (
+                  <Span
+                    styles={[
+                      {
+                        shadowColor: "grey",
+                        shadowOffset: 1,
+                        borderColor: GlobalStyles.Primary_Grey5,
+                        borderWidth: 1,
+                        paddingHorizontal: 2,
+                        borderRadius: 4,
+                        backgroundColor: "white",
+                      },
+                    ]}
+                    content={
+                      <Text
+                        style={{
+                          color: "black",
+                        }}
+                      >
+                        {item?.brand}
+                      </Text>
+                    }
+                  />
+                ) : null}
+                {item?.model ? (
+                  <Span
+                    styles={[
+                      {
+                        shadowColor: "grey",
+                        shadowOffset: 1,
+                        borderColor: GlobalStyles.Primary_Grey5,
+                        borderWidth: 1,
+                        paddingHorizontal: 2,
+                        borderRadius: 4,
+                        backgroundColor: "white",
+                      },
+                    ]}
+                    content={
+                      <Text
+                        style={{
+                          color: "black",
+                        }}
+                      >
+                        {item?.model}
+                      </Text>
+                    }
+                  />
+                ) : null}
+
+                {item?.year ? (
+                  <Span
+                    styles={[
+                      {
+                        shadowColor: "grey",
+                        shadowOffset: 1,
+                        borderColor: GlobalStyles.Primary_Grey5,
+                        borderWidth: 1,
+                        paddingHorizontal: 2,
+                        borderRadius: 4,
+                        backgroundColor: "white",
+                      },
+                    ]}
+                    content={
+                      <Text
+                        style={{
+                          color: "black",
+                        }}
+                      >
+                        {item?.year}
+                      </Text>
+                    }
+                  />
+                ) : null}
+                {item?.more ? (
+                  <Span
+                    styles={[
+                      {
+                        shadowColor: "grey",
+                        shadowOffset: 1,
+                        borderColor: GlobalStyles.Primary_Grey5,
+                        borderWidth: 1,
+                        paddingHorizontal: 2,
+                        borderRadius: 4,
+                        backgroundColor: "white",
+                      },
+                    ]}
+                    content={
+                      <Text
+                        style={{
+                          color: "black",
+                        }}
+                      >
+                        {item?.more}
+                      </Text>
+                    }
+                  />
+                ) : null}
+              </View>
+            </View>
+            {/* 4. HOURS REMAINING BADGE */}
+
+            <View style={styles.timeBadge}>
+              <Text style={styles.timeText}>
+                ⏱ {hours}:{minutes} hrs remaining
               </Text>
-            ) : null}
-            <View
-              style={{
-                flexDirection: "row",
-                width: "100%",
-                marginBottom: 5,
-                flexWrap: "wrap",
-                flexDirection: "row",
-
-                gap: 10,
-              }}
-            >
-              {item?.brand ? (
-                <Span
-                  styles={[
-                    {
-                      shadowColor: "grey",
-                      shadowOffset: 1,
-                      borderColor: GlobalStyles.Primary_Grey5,
-                      borderWidth: 1,
-                      paddingHorizontal: 2,
-                      borderRadius: 4,
-                      backgroundColor: "white",
-                    },
-                  ]}
-                  content={
-                    <Text
-                      style={{
-                        color: "black",
-                      }}
-                    >
-                      {item?.brand}
-                    </Text>
-                  }
-                />
-              ) : null}
-              {item?.model ? (
-                <Span
-                  styles={[
-                    {
-                      shadowColor: "grey",
-                      shadowOffset: 1,
-                      borderColor: GlobalStyles.Primary_Grey5,
-                      borderWidth: 1,
-                      paddingHorizontal: 2,
-                      borderRadius: 4,
-                      backgroundColor: "white",
-                    },
-                  ]}
-                  content={
-                    <Text
-                      style={{
-                        color: "black",
-                      }}
-                    >
-                      {item?.model}
-                    </Text>
-                  }
-                />
-              ) : null}
-
-              {item?.year ? (
-                <Span
-                  styles={[
-                    {
-                      shadowColor: "grey",
-                      shadowOffset: 1,
-                      borderColor: GlobalStyles.Primary_Grey5,
-                      borderWidth: 1,
-                      paddingHorizontal: 2,
-                      borderRadius: 4,
-                      backgroundColor: "white",
-                    },
-                  ]}
-                  content={
-                    <Text
-                      style={{
-                        color: "black",
-                      }}
-                    >
-                      {item?.year}
-                    </Text>
-                  }
-                />
-              ) : null}
-              {item?.more ? (
-                <Span
-                  styles={[
-                    {
-                      shadowColor: "grey",
-                      shadowOffset: 1,
-                      borderColor: GlobalStyles.Primary_Grey5,
-                      borderWidth: 1,
-                      paddingHorizontal: 2,
-                      borderRadius: 4,
-                      backgroundColor: "white",
-                    },
-                  ]}
-                  content={
-                    <Text
-                      style={{
-                        color: "black",
-                      }}
-                    >
-                      {item?.more}
-                    </Text>
-                  }
-                />
-              ) : null}
             </View>
-          </View>
-          {/* 4. HOURS REMAINING BADGE */}
 
-          <View style={styles.timeBadge}>
-            <Text style={styles.timeText}>
-              ⏱ {hours}:{minutes} hrs remaining
-            </Text>
-          </View>
+            {/* 5. PRICE & NAVIGATION BUTTONS ROW */}
+            <View style={styles.bottomRow}>
+              {item?.price ? (
+                <Text
+                  style={styles.priceText}
+                >{`${numericAmount} ${item?.currency}`}</Text>
+              ) : null}
 
-          {/* 5. PRICE & NAVIGATION BUTTONS ROW */}
-          <View style={styles.bottomRow}>
-            {item?.price ? (
-              <Text
-                style={styles.priceText}
-              >{`${numericAmount} ${item?.currency}`}</Text>
-            ) : null}
+              {/* Forward & Backward Buttons in the remaining space on the Right */}
+              <View style={[styles.navControls]}>
+                <TouchableOpacity
+                  style={styles.navButton}
+                  activeOpacity={0.7}
+                  onPress={handlePrev}
+                >
+                  <Text style={styles.navArrowText}>‹</Text>
+                </TouchableOpacity>
 
-            {/* Forward & Backward Buttons in the remaining space on the Right */}
-            <View style={[styles.navControls]}>
-              <TouchableOpacity
-                style={styles.navButton}
-                activeOpacity={0.7}
-                onPress={handlePrev}
-              >
-                <Text style={styles.navArrowText}>‹</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navButton}
-                activeOpacity={0.7}
-                onPress={handleNext}
-              >
-                <Text style={styles.navArrowText}>›</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.navButton}
+                  activeOpacity={0.7}
+                  onPress={handleNext}
+                >
+                  <Text style={styles.navArrowText}>›</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        )}
       </View>
     </Pressable>
   );
@@ -350,6 +399,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Roboto-Light",
     marginRight: 20,
+  },
+  smallText: {
+    fontSize: 14,
+    fontFamily: "Roboto-Regular",
+  },
+  whiteT: {
+    color: "white",
   },
   headerRow: {
     width: "100%",

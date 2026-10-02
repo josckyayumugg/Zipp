@@ -17,7 +17,8 @@ import {
 } from "react-native";
 import { GlobalStyles } from "../Constants";
 import LoadingPaging from "../Components/LoadingPaging";
-import ErrorPage from "../Components/ErrorPage";
+
+import ErrorMessage from "../Components/ErrorMessage";
 
 const { width } = Dimensions.get("window");
 const SLIDER_WIDTH = width - 24; // Width of the image container accounting for screen padding
@@ -50,7 +51,7 @@ export default function DealPage() {
 
   const images = dataDeal?.images || [];
   if (errorDeal) {
-    return <ErrorPage message={errorDeal.message} />;
+    return <ErrorMessage message={errorDeal?.message} />;
   }
   return (
     <View style={{ flex: 1, backgroundColor: "#f8f9fa" }}>

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
+import * as Notifications from "expo-notifications";
 
 export async function getCurrentUser() {
   const { data: session } = await supabase.auth.getSession();
@@ -77,7 +78,15 @@ export function useLogin() {
 export function useLogout() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (userId) => {
+      await Notifications.cancelScheduledNotificationAsync("dailyWhatsNew");
+      if (userId) {
+        const { error } = await supabase
+          .from("Profiles")
+          .update({ pushToken: null })
+          .eq("profileId", userId);
+       
+      }
       let { error } = await supabase.auth.signOut();
       if (error) {
         throw error;
@@ -157,16 +166,17 @@ export function useGetCurrentProfile(id) {
         .from("Profiles")
         .select("*")
         .eq("profileId", id)
+        .abortSignal(AbortSignal.timeout(5000))
         .maybeSingle();
 
       if (error) {
         throw error;
       }
+
       return data;
     },
     enabled: !!id,
   });
-  w;
 }
 
 export function useConfirm() {
@@ -202,11 +212,21 @@ export function useConfirmPassword() {
 export function useRequireToken() {
   return useMutation({
     mutationFn: async ({ email }) => {
-      const { error, data } = await supabase.auth.resetPasswordForEmail(email);
-      if (error) {
+      try {
+        console.log({ email });
+
+        const { error, data } =
+          await supabase.auth.resetPasswordForEmail(email);
+
+        if (error) {
+          throw error;
+        }
+        return data;
+      } catch (error) {
+        console.log({ error });
+
         throw error;
       }
-      return data;
     },
   });
 }

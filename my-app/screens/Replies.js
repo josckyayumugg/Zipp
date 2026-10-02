@@ -7,11 +7,12 @@ import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 
 import NoProductsProfile from "../Components/NoProductsProfile";
 import { useNavigation } from "@react-navigation/native";
-import ErrorPage from "../Components/ErrorPage";
+
 
 import { FlatList } from "react-native";
 import Reply from "../Components/Reply";
 import { useGetSingleRequest } from "../_CustomHooks/RequestServices";
+import ErrorMessage from "../Components/ErrorMessage";
 export default function ViewReplies({ route, navigation }) {
   // Fallback test variables f context route params aren't passed yet
   const navigator = useNavigation();
@@ -37,11 +38,11 @@ export default function ViewReplies({ route, navigation }) {
   } = useGetSingleRequest(relatedRequestId);
 
   if (isErrorResponse) {
-    return <ErrorPage message={errorResponse.message} />;
+    return <ErrorMessage message={errorResponse?.message} />;
   }
 
   if (isErrorTo) {
-    return <ErrorPage message={errorTo.message} />;
+    return <ErrorMessage message={errorTo?.message} />;
   }
 
   let dataResponses = Responses?.pages?.flat() ?? [];

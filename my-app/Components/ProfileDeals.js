@@ -14,7 +14,7 @@ import { View } from "react-native";
 import NoProductsProfile from "./NoProductsProfile";
 import DealProfileRow from "./DealProfileRow";
 
-import ErrorPage from "./ErrorPage";
+import ErrorMessage from "./ErrorMessage";
 import ProfileFlatListHeader from "./ProfileFlatlistHeader";
 import EditDealModal from "./EditDealModal";
 
@@ -49,14 +49,10 @@ export default function DealsRow({ Data }) {
   const AllMyDeals = dataDeals?.pages?.flat() ?? [];
 
   if (isErrorDeals) {
-    return <ErrorPage message={errorDeals?.message} />;
+    return <ErrorMessage message={errorDeals?.message} />;
   }
   if (errorUser) {
-    return (
-      <View>
-        <Text>{errorUser?.message}</Text>
-      </View>
-    );
+    return <ErrorMessage message={errorUser?.message} />;
   }
 
   if (AllMyDeals?.length <= 0) {

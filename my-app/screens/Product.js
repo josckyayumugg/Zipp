@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { GlobalStyles } from "../Constants";
 
-import ErrorPage from "../Components/ErrorPage";
+import ErrorMessage from "../Components/ErrorMessage";
 
 const { width } = Dimensions.get("window");
 const SLIDER_WIDTH = width - 24; // Width of the image container accounting for screen padding
@@ -45,7 +45,7 @@ export default function ProductPage() {
 
   let images = product?.images || [];
   if (error) {
-    return <ErrorPage message={error.message} />;
+    return <ErrorMessage message={error?.message} />;
   }
   return (
     <View style={{ flex: 1, backgroundColor: "#f8f9fa" }}>

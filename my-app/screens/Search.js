@@ -23,7 +23,8 @@ import {
 } from "../_CustomHooks/Authentication";
 import ProductFilterModal from "../Components/FilterModal";
 import LoadingPaging from "../Components/LoadingPaging";
-import ErrorPage from "../Components/ErrorPage";
+
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function Search() {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -99,13 +100,13 @@ export default function Search() {
   const searchedData = data?.pages.flat() ?? [];
 
   if (isErrorUser) {
-    return <ErrorPage message={errorUser.message} />;
+    return <ErrorMessage message={errorUser?.message} />;
   }
   if (isErrorProfile) {
-    return <ErrorPage message={errorProfile.message} />;
+    return <ErrorMessage message={errorProfile?.message} />;
   }
   if (isErrorProducts) {
-    return <ErrorPage message={errorProducts.message} />;
+    return <ErrorMessage message={errorProducts?.message} />;
   }
   return (
     <View style={{ paddingHorizontal: 8, paddingVertical: 4, flex: 1 }}>

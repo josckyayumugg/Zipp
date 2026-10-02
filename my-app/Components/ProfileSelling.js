@@ -15,11 +15,12 @@ import {
   useCountProductsDeals,
   useGetAllMyProducts,
 } from "../_CustomHooks/ProductServices";
-import ErrorPage from "./ErrorPage";
+
 import {
   NavigationRouteContext,
   useNavigation,
 } from "@react-navigation/native";
+import ErrorMessage from "./ErrorMessage";
 
 export default function ProfileSelling({ profileId, creationYear }) {
   const [isSellingFilter, setIsSellingFilter] = useState("yourProducts");
@@ -27,24 +28,15 @@ export default function ProfileSelling({ profileId, creationYear }) {
   const [page, setPage] = useState(1);
   const sinceYear = getYear(creationYear);
   const navigator = useNavigation();
-  const {
-    data: productsNumber,
-    isPending: isPendingPNumber,
-    isError: isErrorPNumber,
-    error: errorPNumber,
-  } = useCountProducts(profileId);
+  const { data: productsNumber, isPending: isPendingPNumber } =
+    useCountProducts(profileId);
   const {
     data: NumberDeals,
-    isError: isErrorDeals,
+
     error: errorDeals,
-    isPending,
   } = useCountProductsDeals(profileId);
-  const {
-    data: NumberReplies,
-    isPending: isPendingReplies,
-    isError: isErrorReplies,
-    error: errorReplies,
-  } = useCountMyResponses(profileId);
+  const { data: NumberReplies, isPending: isPendingReplies } =
+    useCountMyResponses(profileId);
 
   const {
     data: requestNumber,
@@ -52,17 +44,6 @@ export default function ProfileSelling({ profileId, creationYear }) {
 
     error: errorRNumber,
   } = useCountMyRequests(profileId);
-
-  if (errorPNumber) {
-    return <ErrorPage message={errorPNumber?.message} />;
-  }
-  if (errorDeals) {
-    return <ErrorPage message={errorDeals?.message} />;
-  }
-
-  if (errorRNumber) {
-    return <ErrorPage message={errorRNumber?.message} />;
-  }
 
   return (
     <View style={styles.paddingLg}>

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+usereimport { useMutation, useQuery } from "@tanstack/react-query";
 
 export function useGetAllPatients(id) {
   return useQuery({

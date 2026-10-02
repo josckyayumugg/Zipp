@@ -23,7 +23,8 @@ import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
 import Button from "../Components/Button";
 import ConfirmReportProduct from "../Components/ConfirmReport";
-import ErrorPage from "../Components/ErrorPage";
+
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function ProductContacts({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
@@ -94,17 +95,12 @@ export default function ProductContacts({ route, navigation }) {
       Alert.alert("Error", "Unable to open WhatsApp");
     });
   };
-  if (errorProducts) {
-    <ErrorPage message={errorProducts?.message} />;
-  }
-  if (errorReport) {
-    <ErrorPage message={errorReport?.message} />;
-  }
+
   if (errorSeller) {
-    <ErrorPage message={errorSeller?.message} />;
+    return <ErrorMessage message={errorSeller?.message} />;
   }
   if (error) {
-    <ErrorPage message={error?.message} />;
+    return <ErrorMessage message={error?.message} />;
   }
   return (
     <ScrollView

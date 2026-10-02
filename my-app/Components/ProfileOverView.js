@@ -5,16 +5,26 @@ import { Ionicons } from "@expo/vector-icons";
 import Button from "./Button";
 import VerificationRow from "./VerficaionRow";
 import { useNavigation } from "@react-navigation/native";
-import { useLogout } from "../_CustomHooks/Authentication";
+import { useGetCurrentUser, useLogout } from "../_CustomHooks/Authentication";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { openWebsite } from "../Helpers";
-import ErrorPage from "./ErrorPage";
+
 import Toast from "react-native-toast-message";
 import { queryClient } from "../_lib/queryClient";
+import LoadingPaging from "./LoadingPaging";
 
 export default function ProfileOverView({ profileId }) {
   const navigation = useNavigation();
-  const { mutate, isPending, error, isError } = useLogout();
+  const { mutate, isPending } = useLogout();
+  const {
+    isPending: isPendingUser,
+    data: user,
+    error: errorUser,
+  } = useGetCurrentUser();
+
+  if (isPendingUser) {
+    return <LoadingPaging />;
+  }
 
   const {
     isPending: isPendingProfile,
@@ -23,32 +33,54 @@ export default function ProfileOverView({ profileId }) {
     data: dataProfile,
   } = useGetCurrentProfile(profileId);
 
-  if (isError) {
-    return <ErrorPage message={errorProfile.message} />;
-  }
   if (errorProfile) {
-    <View>
-      <Text>{errorProfile?.message}</Text>
-    </View>;
+    return (
+      <View
+        style={{
+          flexDirection: "column",
+          justifyContent: "center",
+          alignContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={[{ color: "red" }, styles.smallText]}>
+          {errorProfile?.message}
+        </Text>
+      </View>
+    );
   }
-  if (error) {
-    <View>
-      <Text>{error?.message}</Text>
-    </View>;
+  if (errorUser) {
+    return (
+      <View
+        style={{
+          flexDirection: "column",
+          justifyContent: "center",
+          alignContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text style={[{ color: "red" }, styles.smallText]}>
+          {errorUser?.message}
+        </Text>
+      </View>
+    );
   }
+
   function LogoutHandler() {
-    mutate(undefined, {
-      onSuccess: () => {
-        queryClient.invalidateQueries("currentUser");
-      },
-      onError: (error) => {
-        Toast.show({
-          type: "error",
-          text1: "Logout failed",
-          text2: error.message,
-        });
-      },
-    });
+    if (user?.id) {
+      mutate(profileId, {
+        onSuccess: () => {
+          queryClient.invalidateQueries("currentUser");
+        },
+        onError: (error) => {
+          Toast.show({
+            type: "error",
+            text1: "Logout failed",
+            text2: error.message,
+          });
+        },
+      });
+    }
   }
 
   return (
@@ -195,7 +227,11 @@ export default function ProfileOverView({ profileId }) {
         <Button
           onPress={LogoutHandler}
           styles={[styles.smallMVertical]}
-          content={<Text style={{ color: "red" }}>Logout</Text>}
+          content={
+            <Text style={{ color: "red" }}>
+              {isPending ? "Logging out..." : "Logout"}
+            </Text>
+          }
         />
       </View>
     </View>

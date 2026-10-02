@@ -22,11 +22,7 @@
     },
     "production": {
       "autoIncrement": true,
-      "android": {
-        "env": {
-           "GOOGLE_SERVICES_JSON": "@secret:GOOGLE_SERVICES_JSON"
-        }
-      }
+      "environment": "production"
     }
   },
   "submit": {

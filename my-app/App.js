@@ -1,17 +1,17 @@
-import {
-  QueryClientProvider
-} from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 import LoadingPaging from "./Components/LoadingPaging";
+import { scheduleNotificationHandler } from "./_lib/ProductsNotification";
 import {
   useGetCurrentProfile,
   useGetCurrentUser,
 } from "./_CustomHooks/Authentication";
 import { queryClient } from "./_lib/queryClient";
+import { Text } from "react-native";
 import AddProduct from "./screens/AddProduct";
 import ChangePassword from "./screens/ChangePassword";
 import ConfigureProfile from "./screens/Configuration";
@@ -29,10 +29,7 @@ import SeeAllScreen from "./screens/SeeAllScreen";
 import SettingsPage from "./screens/Settings";
 import TermsAndConditions from "./screens/TermsAnd";
 
-import {
-  NavigationContainer,
-  useNavigation
-} from "@react-navigation/native";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -51,7 +48,7 @@ import * as SplashScreen from "expo-splash-screen";
 import DealsRow from "./Components/ProfileDeals";
 import ProformaRows from "./Components/ProfileProforma";
 import ProfileRows from "./Components/ProfileRows";
-import { registerAndSaveToken, registerForPushNotificationsAsync } from "./_lib/ProductsNotification";
+import { registerAndSaveToken } from "./_lib/ProductsNotification";
 import DealPage from "./screens/Deal";
 import ForgotPassword from "./screens/ForgotPassword";
 import Login from "./screens/Login";
@@ -60,17 +57,29 @@ import SignUp from "./screens/SignUpPage";
 
 import ConfirmEmail from "./screens/Confirmation";
 
+import ErrorMessage from "./Components/ErrorMessage";
 import ErrorPage from "./Components/ErrorPage";
 import ChangeForgottenPassword from "./screens/ChangePasswordForgot";
 import PasswordTokenPage from "./screens/PasswordTokenPage";
-
+import { createNavigationContainerRef } from "@react-navigation/native"; // for notifications pressing
+import { useCountMyUnreadNotifications } from "./_CustomHooks/NotificationServices";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 SplashScreen.setOptions({ duration: 1000, fade: true });
-
+const navigationRef = createNavigationContainerRef();
 function Tabs() {
   const navigation = useNavigation();
+  const {
+    data: userTabs,
+    isPending: isPendingUser,
+    error: errorUserTabs,
+  } = useGetCurrentUser();
+  const {
+    isPendingNotifications,
+    data: NotificationsNumber,
+    error: errorNotification,
+  } = useCountMyUnreadNotifications(userTabs?.id);
 
   return (
     <>
@@ -98,13 +107,23 @@ function Tabs() {
           // 5. Add universal icons or buttons to the right side of EVERY header screen
           headerRight: () => (
             <View style={{ flexDirection: "row", paddingRight: 16 }}>
-              <Ionicons
-                name="notifications-outline"
-                size={22}
-                color="white"
-                style={{ marginRight: 14 }}
-                onPress={() => navigation.navigate("Notifications")}
-              />
+              <View>
+                <Ionicons
+                  name="notifications-outline"
+                  size={22}
+                  color="white"
+                  style={{ marginRight: 14, position: "relative" }}
+                  onPress={() => navigation.navigate("Notifications")}
+                />
+                {NotificationsNumber > 0 ? (
+                  <Ionicons
+                    name={"radio-button-on-outline"}
+                    color={GlobalStyles.gold}
+                    size={12}
+                    style={{ position: "absolute", top: -2, right:7 }}
+                  />
+                ) : null}
+              </View>
 
               <Ionicons
                 name="settings-outline"
@@ -205,6 +224,7 @@ function AppContent() {
     "Roboto-italic": require("./assets/fonts/Roboto-Italic.ttf"),
   });
   const [notification, setNotification] = useState(undefined);
+
   const {
     data: user,
     isPending: isCheckingSession,
@@ -215,34 +235,18 @@ function AppContent() {
     isPending: isPendingProfile,
     error: errorProfile,
   } = useGetCurrentProfile(user?.id);
-  async function scheduleNotificationHandler() {
-    try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "What's new",
-          sound: "default",
-          body: "Check new Products,Deals,Requests and Responses from buyers and sellers today",
-          data: { userName: "KSmartingAuto" },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DAILY,
-          hour: 9,
-          // one-shot for testing; see note below on repeats+seconds
-        },
-      });
-    } catch (e) {
-      throw e;
-    }
-  }
+
   useEffect(() => {
     if (user?.id) {
-      registerForPushNotificationsAsync();
-      registerAndSaveToken(user?.id);
-
       scheduleNotificationHandler();
+      registerAndSaveToken(user.id);
 
       const responseListener =
-        Notifications.addNotificationResponseReceivedListener((response) => {});
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          if (navigationRef.isReady()) {
+            navigationRef.navigate("Notifications");
+          }
+        });
 
       const notificationListener =
         Notifications.addNotificationReceivedListener((notification) => {
@@ -269,41 +273,49 @@ function AppContent() {
     );
   }
 
-  if (error) {
+  if (error || errorProfile) {
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: "black",
+          backgroundColor: "white",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <ErrorPage message="Failed to load app assets. Please restart the app." />
+        {
+          <ErrorMessage
+            message={
+              error
+                ? "! Couldn't load the fonts try again"
+                : errorProfile?.message
+            }
+          />
+        }
       </View>
     );
   }
 
-  if (errorUser) {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="error"
-            component={ErrorPage}
-            options={{
-              headerShown: false,
-              headerTintColor: "#fff", // back button and title color
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
+  // if (errorUser) {
+  //   return (
+  //     <NavigationContainer>
+  //       <Stack.Navigator>
+  //         <Stack.Screen
+  //           name="error"
+  //           component={ErrorPage}
+  //           options={{
+  //             headerShown: false,
+  //             headerTintColor: "#fff", // back button and title color
+  //           }}
+  //         />
+  //       </Stack.Navigator>
+  //     </NavigationContainer>
+  //   );
+  // }
 
   if (!user) {
     return (
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen
             name="login"
@@ -358,9 +370,12 @@ function AppContent() {
       </NavigationContainer>
     );
   }
+  if (user && isPendingProfile) {
+    return <LoadingPaging />;
+  }
   if (!profile) {
     return (
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen
             name="Configuration"
@@ -374,8 +389,9 @@ function AppContent() {
       </NavigationContainer>
     );
   }
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator>
         <Stack.Screen
           name="Tabs"

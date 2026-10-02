@@ -20,8 +20,9 @@ import Toast from "react-native-toast-message";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import { useSafeAreaFrame } from "react-native-safe-area-context";
 import LoadingPaging from "../Components/LoadingPaging";
-import ErrorPage from "../Components/ErrorPage";
+
 import { queryClient } from "../_lib/queryClient";
+import ErrorMessage from "../Components/ErrorMessage";
 export default function ConfigureProfile({ route, navigation }) {
   const Navigation = useNavigation();
   const userParams = route?.params?.userId;
@@ -40,10 +41,10 @@ export default function ConfigureProfile({ route, navigation }) {
   } = useGetCurrentUser();
 
   if (errorUser) {
-    return <ErrorPage message={errorUser?.message} />;
+    return <ErrorMessage message={errorUser?.message} />;
   }
   const userId = userParams || userData?.id;
-  
+
   const {
     control,
     handleSubmit,

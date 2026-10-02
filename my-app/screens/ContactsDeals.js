@@ -21,7 +21,8 @@ import { openWebsite, toWhatsAppDigits } from "../Helpers";
 import { getInitials, formatPhone } from "../Helpers";
 import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
-import ErrorPage from "../Components/ErrorPage";
+
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function DealContacts({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
@@ -84,10 +85,10 @@ export default function DealContacts({ route, navigation }) {
   };
 
   if (errorDeal) {
-    return <ErrorPage message={error.message} />;
+    return <ErrorMessage message={error?.message} />;
   }
   if (errorSeller) {
-    return <ErrorPage message={errorSeller.message} />;
+    return <ErrorMessage message={errorSeller?.message} />;
   }
   return (
     <ScrollView

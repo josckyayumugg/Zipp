@@ -16,7 +16,6 @@ import { useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import { StatusBar } from "expo-status-bar";
-import ErrorPage from "../Components/ErrorPage";
 
 export default function SignUp() {
   const Navigation = useNavigation();

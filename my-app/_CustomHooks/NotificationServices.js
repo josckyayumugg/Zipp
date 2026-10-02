@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "../_lib/supabase";
-
+import { useQuery } from "@tanstack/react-query";
 export function useGetMyNotifications(profileId) {
   const pageSize = 20;
 
@@ -40,5 +40,26 @@ export function useMarkNotificationRead() {
 
       if (error) throw error;
     },
+  });
+}
+
+export function useCountMyUnreadNotifications(id) {
+  return useQuery({
+    queryKey: ["countedNotifications", id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("Notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("profileId", id)
+        .eq("isRead", false);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return count ?? 0;
+    },
+
+    enabled: !!id,
   });
 }

@@ -8,7 +8,6 @@ import { queryClient } from "../_lib/queryClient";
 import LoadingPaging from "./LoadingPaging";
 import { useReportProduct } from "../_CustomHooks/ProductServices";
 import Toast from "react-native-toast-message";
-import ErrorPage from "./ErrorPage";
 
 export default function ConfirmReportProduct({
   setIsDeleteVisible,

@@ -14,7 +14,7 @@ import InputText from "../Components/TextInput";
 import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../Constants";
 import { useRoute } from "@react-navigation/native";
-import ErrorPage from "../Components/ErrorPage";
+
 export default function ConfirmEmail({ navigation }) {
   const route = useRoute();
   const Navigation = useNavigation();

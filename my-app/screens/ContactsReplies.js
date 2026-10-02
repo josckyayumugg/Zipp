@@ -19,7 +19,8 @@ import { getInitials, formatPhone } from "../Helpers";
 import { useCountProducts } from "../_CustomHooks/ProductServices";
 import { getYear } from "../Helpers";
 import { useGetSingleResponse } from "../_CustomHooks/ResponseServices";
-import ErrorPage from "../Components/ErrorPage";
+
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function ContactsReply({ route, navigation }) {
   // Grab product data from route params or fallback to default seller details
@@ -45,13 +46,13 @@ export default function ContactsReply({ route, navigation }) {
   } = useCountProducts(seller?.profileId);
 
   if (isError) {
-    return <ErrorPage message={error?.message} />;
+    return <ErrorMessage message={error?.message} />;
   }
   if (errorPNumber) {
-    return <ErrorPage message={errorPNumber?.message} />;
+    return <ErrorMessage message={errorPNumber?.message} />;
   }
   if (errorSeller) {
-    return <ErrorPage message={errorSeller?.message} />;
+    return <ErrorMessage message={errorSeller?.message} />;
   }
 
   const handleEmail = () => {

@@ -20,7 +20,6 @@ import { ActivityIndicator } from "react-native";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
 import LoadingPaging from "./LoadingPaging";
-import ErrorPage from "./ErrorPage";
 
 export default function FullWidthNoData({
   item,
@@ -46,7 +45,22 @@ export default function FullWidthNoData({
     return <LoadingPaging />;
   }
   if (error || errorUser) {
-    return <ErrorPage message={error?.message || errorUser?.message} />;
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "center",
+        alignContent: "center",
+        backgroundColor: "black",
+        borderRadius: 8,
+        borderColor: GlobalStyles.gold,
+        borderWidth: 2,
+      }}
+    >
+      <Ionicons name={"alert-outline"} size={12} color={"red"} />
+      <Text style={[{ color: "white" }, styles.whiteT, styles.smallT]}>
+        {error?.message || errorUser?.message}
+      </Text>
+    </View>;
   }
   const { hours, minutes } = getTimeRemaining(item?.createdAt);
   const numericAmount = formatNumber(item?.price);
@@ -144,6 +158,11 @@ const styles = StyleSheet.create({
   cardGradient: {
     padding: 18,
     alignItems: "flex-start", // All items strictly aligned to the LEFT (start)
+  },
+  whiteT: {
+    color: "white",
+    fontFamily: "Roboto-Regular",
+    fontSize: 14,
   },
   headerRow: {
     width: "100%",

@@ -41,8 +41,8 @@ import {
   useGetCurrentUser,
 } from "../_CustomHooks/Authentication";
 
-import ErrorPage from "../Components/ErrorPage";
 import { queryClient } from "../_lib/queryClient";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function AddProduct({ route, navigation }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -108,12 +108,8 @@ export default function AddProduct({ route, navigation }) {
     }
   }, [productId, setValue]);
 
-  const {
-    data: editProduct,
-    isLoading: editPending,
-    isError: editIsError,
-    error: editError,
-  } = useGetSingleProduct(productId);
+  const { data: editProduct, isLoading: editPending } =
+    useGetSingleProduct(productId);
 
   useEffect(() => {
     if (!editProduct || !isEditing) return;
@@ -161,7 +157,7 @@ export default function AddProduct({ route, navigation }) {
   // Pull out the active array state in real time
   const capturedImages = watch("images") || [];
   const Navigation = useNavigation();
-  const { mutate, isError, isPending, error } = useCreateProduct();
+  const { mutate, isPending, error } = useCreateProduct();
 
   const [cameraPermissionInformation, requestPermission] =
     useCameraPermissions();
@@ -242,6 +238,16 @@ export default function AddProduct({ route, navigation }) {
             });
             setIsEditing(false);
           },
+          onError: (error) => {
+            Toast.show({
+              type: "error",
+              text1: "Edit failed Try again",
+              text2:
+                error?.message || "Something went wrong. Please try again.",
+              position: "top",
+              visibilityTime: 3000,
+            });
+          },
         },
       );
     }
@@ -259,24 +265,26 @@ export default function AddProduct({ route, navigation }) {
           queryClient.invalidateQueries("getallProductspagination");
           reset();
         },
+        onError: (error) => {
+          Toast.show({
+            type: "error",
+            text1: "Product not added",
+            text2: error?.message || "Something went wrong. Please try again.",
+            position: "top",
+            visibilityTime: 3000,
+          });
+        },
       },
     );
   }
 
   if (editPending || isWaitingEditing) return <LoadingPaging />;
 
-  if (isError) {
-    return <ErrorPage message={error.message} />;
-  }
   if (isErrorUser) {
-    return <ErrorPage message={errorUser.message} />;
+    return <ErrorMessage message={errorUser.message} />;
   }
   if (isErrorProfile) {
-    return <ErrorPage message={errorProfile.message} />;
-  }
-
-  if (isErrorEditing) {
-    return <ErrorPage message={EditingError.message} />;
+    return <ErrorMessage message={errorProfile.message} />;
   }
 
   return (
@@ -754,7 +762,7 @@ export default function AddProduct({ route, navigation }) {
           </View>
         </View>
         {/* Submission Actions Row */}
-        {profile?.type === "seller" ? (
+        {profile?.type === "seller" || isEditing ? (
           <View
             style={[
               styles.row,

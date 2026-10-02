@@ -111,7 +111,8 @@ export default function ContactUs() {
             color={GlobalStyles.Primary_Green}
           />
           <Text style={styles.ruleText}>
-            Only garages can add deals in the Deals section.
+            Only sellers,garages and mechanics can add deals in the Deals
+            section.
           </Text>
         </View>
 
@@ -146,8 +147,8 @@ export default function ContactUs() {
             color={GlobalStyles.Primary_Green}
           />
           <Text style={styles.ruleText}>
-            Amagaraji nabacuruzi ni bo bonyine bashobora kongeraho deals(diru)
-            mu gice cya Deals.
+            Abacuruzi,amagaraji n'abakanishi ni bo bonyine bashobora kongeraho
+            deals(diru) mu gice cya Deals.
           </Text>
         </View>
       </View>

@@ -1,0 +1,52 @@
+module.exports = {
+  expo: {
+    name: "Ksmarting",
+    scheme: "ksmartingauto",
+    slug: "my-app",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/icon.png",
+    userInterfaceStyle: "light",
+    ios: {
+      supportsTablet: true,
+      buildNumber: "1.0.0",
+      bundleIdentifier: "com.ksmarting",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
+      },
+    },
+    android: {
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+      versionCode: 1,
+      package: "com.ksmarting",
+    },
+    web: {
+      favicon: "./assets/favicon.png",
+    },
+    plugins: [
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icon.png",
+          color: "#ffffff",
+        },
+      ],
+      [
+        "expo-splash-screen",
+        {
+          backgroundColor: "#ffffff",
+          image: "./assets/splash-icon.png",
+          imageWidth: 200,
+        },
+      ],
+      "expo-font",
+      "expo-status-bar",
+    ],
+    extra: {
+      eas: {
+        projectId: "9bcee008-707f-4dc7-9b27-0f69d6148764",
+      },
+    },
+  },
+};

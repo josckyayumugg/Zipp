@@ -11,8 +11,9 @@ import InputText from "../Components/TextInput";
 import { formatDateTime } from "../Helpers";
 import Button from "../Components/Button";
 import { queryClient } from "../_lib/queryClient";
-import ErrorPage from "../Components/ErrorPage";
+
 import LoadingPaging from "../Components/LoadingPaging";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function EditAddress() {
   const {
@@ -78,9 +79,9 @@ export default function EditAddress() {
     }
   }, [profile]);
 
-  if (error) return <ErrorPage message={error.message} />;
-  if (errorProfile) return <ErrorPage message={errorProfile.message} />;
-  if (errorUser) return <ErrorPage message={errorUser.message} />;
+  if (error) return <ErrorMessage message={error?.message} />;
+  if (errorProfile) return <ErrorMessage message={errorProfile?.message} />;
+  if (errorUser) return <ErrorMessage message={errorUser?.message} />;
 
   if (isPendingUser) return <LoadingPaging />;
 

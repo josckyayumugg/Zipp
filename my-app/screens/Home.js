@@ -38,7 +38,7 @@ export default function Home({ route }) {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-    error,
+    error: errorAll,
     isPending: isPendingDeals,
   } = useGetAllProductDeals();
 
@@ -125,6 +125,7 @@ export default function Home({ route }) {
                 dataLength={dataDeals?.length}
                 handleNext={handleNext}
                 totalItems={dataDeals.length}
+                errorAll={errorAll ? errorAll : null}
                 currentIndex={isCurrentDeal}
                 handlePrev={handlePrev}
               />

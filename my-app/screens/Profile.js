@@ -15,12 +15,9 @@ import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
 
 import { getInitials } from "../Helpers";
 import { useGetCurrentUser } from "../_CustomHooks/Authentication";
-import {
-  useCountMyRequests,
+import { useCountMyRequests } from "../_CustomHooks/RequestServices";
 
-} from "../_CustomHooks/RequestServices";
-
-import ErrorPage from "../Components/ErrorPage";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function Profile() {
   const [isFilter, setIsFilter] = useState("overview");
@@ -52,17 +49,13 @@ export default function Profile() {
   if (isPending || isPendingProducts || isPendingProfile) {
     return <LoadingPaging />;
   }
-  if (errorProducts) {
-    return <ErrorPage message={errorProducts.message} />;
-  }
+
   if (error) {
-    return <ErrorPage message={error.message} />;
+    return <ErrorMessage message={error?.message} />;
   }
-  if (errorRequests) {
-    return <ErrorPage message={errorRequests.message} />;
-  }
+
   if (errorProfile) {
-    return <ErrorPage message={errorProfile.message} />;
+    return <ErrorMessage message={errorProfile?.message} />;
   }
   return (
     <ScrollView style={styles.paddingLg}>

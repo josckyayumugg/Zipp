@@ -12,8 +12,9 @@ import {
   useGetCurrentProfile,
   useGetCurrentUser,
 } from "../_CustomHooks/Authentication";
-import ErrorPage from "../Components/ErrorPage";
+
 import LoadingPaging from "../Components/LoadingPaging";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function EditProfile() {
   const {
@@ -82,8 +83,8 @@ export default function EditProfile() {
     }
   }, [profile]);
 
-  if (errorProfile) return <ErrorPage message={errorProfile?.message} />;
-  if (errorUser) return <ErrorPage message={errorUser?.message} />;
+  if (errorProfile) return <ErrorMessage message={errorProfile?.message} />;
+  if (errorUser) return <ErrorMessage message={errorUser?.message} />;
 
   if (isPendingUser || isPendingProfile) return <LoadingPaging />;
 

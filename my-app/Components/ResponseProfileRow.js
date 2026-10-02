@@ -9,7 +9,7 @@ import { ActivityIndicator } from "react-native";
 import ConfirmDeleteDeal from "./ConfirmDeleteDeal";
 import { useState } from "react";
 import { useDeleteProductDeal } from "../_CustomHooks/ProductServices";
-import ErrorPage from "./ErrorPage";
+
 import Toast from "react-native-toast-message";
 import SeeAllScreen from "../screens/SeeAllScreen";
 import { SceneStyleInterpolators } from "@react-navigation/bottom-tabs";

@@ -3,20 +3,34 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../Constants";
 import { useNavigation } from "@react-navigation/native";
-import { useLogout } from "../_CustomHooks/Authentication";
+import { useGetCurrentUser, useLogout } from "../_CustomHooks/Authentication";
 import Button from "../Components/Button";
 import { queryClient } from "../_lib/queryClient";
+import LoadingPaging from "../Components/LoadingPaging";
 
 export default function SettingsPage() {
   const navigation = useNavigation();
   const { mutate, error, isPending } = useLogout();
+  const {
+    data: user,
+    isPending: isPendingUser,
+    error: errorUser,
+  } = useGetCurrentUser();
+
+  if (isPendingUser) {
+    return <LoadingPaging />;
+  }
 
   function LogoutHandler() {
-    mutate(undefined, {
-      onSuccess: () => {
-        queryClient.invalidateQueries("currentUser");
-      },
-    });
+    
+    if (user?.id) {
+      
+      mutate(user?.id, {
+        onSuccess: () => {
+          queryClient.invalidateQueries("currentUser");
+        },
+      });
+    }
   }
 
   const SettingItem = ({ icon, title, subtitle, onPress }) => (
@@ -121,13 +135,16 @@ export default function SettingsPage() {
       {error ? <Text style={{ color: "red" }}>{error?.message}</Text> : null}
       <Button
         styles={styles.logout}
+        disable={isPending}
         onPress={() => {
           LogoutHandler();
         }}
         content={
           <View style={{ flexDirection: "row" }}>
             <Ionicons name="log-out-outline" size={22} />
-            <Text style={styles.logoutText}>Logout</Text>
+            <Text style={styles.logoutText}>
+              {isPending ? "Logging out..." : "Logout"}
+            </Text>
           </View>
         }
       />

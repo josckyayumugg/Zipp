@@ -27,9 +27,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import { queryClient } from "../_lib/queryClient";
 
-import ErrorPage from "../Components/ErrorPage";
 
 import ARequested from "../Components/ARequested";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function Request() {
   const route = useRoute();
@@ -103,10 +103,10 @@ export default function Request() {
   if (isPendingUser) {
     return <LoadingPaging />;
   }
-  if (isError) return <ErrorPage message={error.message} />;
-  if (isErrorProfile) return <ErrorPage message={errorProfile.message} />;
-  if (isErrorAll) return <ErrorPage message={errorAll.message} />;
-  if (isErrorUser) return <ErrorPage message={errorUser.message} />;
+
+  if (isErrorProfile) return <ErrorMessage message={errorProfile?.message} />;
+
+  if (isErrorUser) return <ErrorMessage message={errorUser.message} />;
 
   const myRequestedData = MyRequests?.pages.flat() ?? [];
   const AllRequestData = dataAll?.pages.flat() ?? [];

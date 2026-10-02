@@ -13,8 +13,9 @@ import { ActivityIndicator } from "react-native";
 import { View } from "react-native";
 import ProfileFlatListHeader from "./ProfileFlatlistHeader";
 import NoProductsProfile from "./NoProductsProfile";
-import ErrorPage from "./ErrorPage";
+
 import LoadingPaging from "./LoadingPaging";
+import ErrorMessage from "./ErrorMessage";
 
 export default function ProfileRows({ Data }) {
   const [isType, setIsType] = useState("");
@@ -45,16 +46,14 @@ export default function ProfileRows({ Data }) {
   const AllMyProducts = productsData?.pages.flat() ?? [];
 
   if (isPendingUser) {
-    <LoadingPaging />;
+    return <LoadingPaging />;
   }
   if (AllMyProducts?.length <= 0 && !isPendingProducts) {
     return <NoProductsProfile message={"You have no products yet "} />;
   }
-  if (errorUser) {
-    <ErrorPage message={error?.message} />;
-  }
+
   if (errorProducts) {
-    <ErrorPage message={errorProducts?.message} />;
+    return <ErrorMessage message={errorProducts?.message || "kigali ngali"} />;
   }
   return (
     <View style={{ padding: 8, flex: 1 }}>

@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Text, View, Button, Platform } from "react-native";
-import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 import { supabase } from "./supabase";
+import { getAllScheduledNotificationsAsync } from "expo-notifications";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -12,6 +12,41 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
+const dailyId = "dailyWhatsNew";
+export async function scheduleNotificationHandler() {
+  try {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      return;
+    }
+
+    await Notifications.cancelScheduledNotificationAsync(dailyId);
+
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "What's new",
+        sound: "default",
+        body: "Check new Products,Deals,Requests and Responses from buyers and sellers today",
+        data: { userName: "KSmartingAuto" },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: 10,
+        minute: 0,
+        channelId: "default",
+      },
+      identifier: dailyId,
+    });
+  } catch (e) {
+    throw e;
+  }
+}
 
 async function sendPushNotification(message) {
   await fetch("https://exp.host/--/api/v2/push/send", {
@@ -79,16 +114,12 @@ export async function registerForPushNotificationsAsync() {
     finalStatus = status;
   }
   if (finalStatus !== "granted") {
-    handleRegistrationError(
-      "Permission not granted to get push token for push notification!",
-    );
     return;
   }
   const projectId =
     Constants?.expoConfig?.extra?.eas?.projectId ??
     Constants?.easConfig?.projectId;
   if (!projectId) {
-    handleRegistrationError("Project ID not found delete-1");
     return;
   }
   try {
@@ -100,7 +131,7 @@ export async function registerForPushNotificationsAsync() {
 
     return pushTokenString;
   } catch (e) {
-    handleRegistrationError(`${e} delete-2`);
+    handleRegistrationError(`${e}`);
   }
 }
 
@@ -120,3 +151,5 @@ export async function registerAndSaveToken(userId) {
   } else {
   }
 }
+
+

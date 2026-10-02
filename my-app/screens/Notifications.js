@@ -8,9 +8,10 @@ import {
 } from "../_CustomHooks/NotificationServices";
 import { formatDateTime } from "../Helpers";
 import LoadingPaging from "../Components/LoadingPaging";
-import ErrorPage from "../Components/ErrorPage";
+
 import NoProductsProfile from "../Components/NoProductsProfile";
 import { useNavigation } from "@react-navigation/native";
+import ErrorMessage from "../Components/ErrorMessage";
 
 export default function NotificationsPage() {
   const navigator = useNavigation();
@@ -29,7 +30,7 @@ export default function NotificationsPage() {
   const { mutate: markRead } = useMarkNotificationRead();
 
   if (isPendingUser || isPending) return <LoadingPaging />;
-  if (isError) return <ErrorPage message={error?.message} />;
+  if (isError) return <ErrorMessage message={error?.message} />;
 
   const notifications = data?.pages?.flat() ?? [];
 
@@ -67,7 +68,7 @@ export default function NotificationsPage() {
         >
           <Text style={styles.title}>{item.title}</Text>
           <Text style={styles.body}>{item.body}</Text>
-          <Text style={styles.date}>{formatDateTime(item.createdAt)}</Text>
+          <Text style={styles.date}>{formatDateTime(item?.createdAt)}</Text>
         </Pressable>
       )}
       onEndReached={() => {
