@@ -119,7 +119,12 @@ export default function ProductContacts({ route, navigation }) {
         <View style={styles.productBannerTextContainer}>
           <Text style={styles.productBannerLabel}>Inquiring about</Text>
           <Text style={styles.productBannerTitle}>{product?.name}</Text>
-          <Text style={styles.productBannerPrice}>{product?.price}</Text>
+          <View style={{ flexDirection: "row", gap: 5 }}>
+            <Text style={styles.productBannerPrice}>
+              {product?.price.toLocaleString()}
+            </Text>
+            <Text style={styles.productBannerPrice}>{product?.currency}</Text>
+          </View>
         </View>
       </View>
 

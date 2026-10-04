@@ -1,26 +1,17 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { GlobalStyles } from "../Constants";
-import Button from "./Button";
 import { Ionicons } from "@expo/vector-icons";
-import NoProductsProfile from "./NoProductsProfile";
-import ProductProfileRow from "./ProfileProductRow";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { GlobalStyles } from "../Constants";
 
-import { useCountMyResponses } from "../_CustomHooks/ResponseServices";
-import { FlatList } from "react-native";
 import { getYear } from "../Helpers";
-import { useCountMyRequests } from "../_CustomHooks/RequestServices";
 import {
   useCountProducts,
   useCountProductsDeals,
-  useGetAllMyProducts,
 } from "../_CustomHooks/ProductServices";
+import { useCountMyRequests } from "../_CustomHooks/RequestServices";
+import { useCountMyResponses } from "../_CustomHooks/ResponseServices";
 
-import {
-  NavigationRouteContext,
-  useNavigation,
-} from "@react-navigation/native";
-import ErrorMessage from "./ErrorMessage";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileSelling({ profileId, creationYear }) {
   const [isSellingFilter, setIsSellingFilter] = useState("yourProducts");
@@ -67,6 +58,8 @@ export default function ProfileSelling({ profileId, creationYear }) {
               },
               shadowOpacity: 0.3,
               shadowRadius: 6,
+
+              backgroundColor: "white",
 
               // Android shadow
               elevation: 8,
@@ -119,6 +112,7 @@ export default function ProfileSelling({ profileId, creationYear }) {
 
               // Android shadow
               elevation: 8,
+              backgroundColor: "white",
 
               height: 100,
               borderWidth: 1,
@@ -170,6 +164,7 @@ export default function ProfileSelling({ profileId, creationYear }) {
 
               // Android shadow
               elevation: 8,
+              backgroundColor: "white",
 
               height: 100,
               borderWidth: 1,
@@ -224,6 +219,7 @@ export default function ProfileSelling({ profileId, creationYear }) {
 
               // Android shadow
               elevation: 8,
+              backgroundColor: "white",
 
               height: 100,
               borderWidth: 1,
@@ -233,7 +229,7 @@ export default function ProfileSelling({ profileId, creationYear }) {
         >
           <Ionicons
             name="git-pull-request-outline"
-            size={"12"}
+            size={12}
             style={[
               styles.bordeR,
               {

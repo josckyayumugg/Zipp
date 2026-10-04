@@ -5,13 +5,12 @@ import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 import LoadingPaging from "./Components/LoadingPaging";
-import { scheduleNotificationHandler } from "./_lib/ProductsNotification";
 import {
   useGetCurrentProfile,
   useGetCurrentUser,
 } from "./_CustomHooks/Authentication";
+import { scheduleNotificationHandler } from "./_lib/ProductsNotification";
 import { queryClient } from "./_lib/queryClient";
-import { Text } from "react-native";
 import AddProduct from "./screens/AddProduct";
 import ChangePassword from "./screens/ChangePassword";
 import ConfigureProfile from "./screens/Configuration";
@@ -57,12 +56,11 @@ import SignUp from "./screens/SignUpPage";
 
 import ConfirmEmail from "./screens/Confirmation";
 
+import { createNavigationContainerRef } from "@react-navigation/native"; // for notifications pressing
 import ErrorMessage from "./Components/ErrorMessage";
-import ErrorPage from "./Components/ErrorPage";
+import { useCountMyUnreadNotifications } from "./_CustomHooks/NotificationServices";
 import ChangeForgottenPassword from "./screens/ChangePasswordForgot";
 import PasswordTokenPage from "./screens/PasswordTokenPage";
-import { createNavigationContainerRef } from "@react-navigation/native"; // for notifications pressing
-import { useCountMyUnreadNotifications } from "./_CustomHooks/NotificationServices";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 

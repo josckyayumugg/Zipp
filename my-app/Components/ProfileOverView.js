@@ -96,6 +96,8 @@ export default function ProfileOverView({ profileId }) {
             shadowOpacity: 0.3,
             shadowRadius: 6,
 
+            backgroundColor: "white",
+
             // Android shadow
             elevation: 8,
           },
@@ -133,6 +135,8 @@ export default function ProfileOverView({ profileId }) {
             },
             shadowOpacity: 0.3,
             shadowRadius: 6,
+
+            backgroundColor: "white",
 
             // Android shadow
             elevation: 8,
@@ -199,12 +203,13 @@ export default function ProfileOverView({ profileId }) {
 
             // Android shadow
             elevation: 8,
+            backgroundColor: "white",
 
             paddingVertical: 8,
-            backgroundColor: GlobalStyles.Primary_Grey3,
             borderRadius: 8,
             flexDirection: "column",
             gap: 4,
+            marginBottom: 15,
           },
         ]}
       >

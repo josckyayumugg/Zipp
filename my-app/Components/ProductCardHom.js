@@ -1,13 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import Button from "./Button";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "react-native";
-import { GlobalStyles } from "../Constants";
-import { ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 import { useGetCurrentProfile } from "../_CustomHooks/Authentication";
+import { GlobalStyles } from "../Constants";
 import { formatNumber } from "../Helpers";
+import Button from "./Button";
 
 export default function ProductCardHome({
   Stylesy,

@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: "#e9ecef",
+    marginBottom: 15,
   },
   yellowContactBtn: {
     backgroundColor: GlobalStyles.Primary_Yellow || "#ffc107",

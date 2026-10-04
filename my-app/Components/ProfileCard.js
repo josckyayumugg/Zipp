@@ -15,7 +15,6 @@ export default function ProfileCard({ data, label }) {
           textAlign: "center",
           flexDirection: "column",
           alignContent: "center",
-          height: 50,
         },
       ]}
     >

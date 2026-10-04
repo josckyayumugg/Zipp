@@ -57,6 +57,7 @@ export default function ARequest({ profileType, stylee, user, Data }) {
           paddingVertical: 20,
           // Android shadow
           elevation: 8,
+          backgroundColor: "white",
         },
         stylee,
       ]}

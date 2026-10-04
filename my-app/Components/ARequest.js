@@ -41,6 +41,7 @@ export default function ARequest({
           // Android shadow
           elevation: 8,
           flexDirection: "column",
+          backgroundColor: "white",
         },
         stylee,
       ]}
