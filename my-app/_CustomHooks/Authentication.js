@@ -85,7 +85,6 @@ export function useLogout() {
           .from("Profiles")
           .update({ pushToken: null })
           .eq("profileId", userId);
-       
       }
       let { error } = await supabase.auth.signOut();
       if (error) {
@@ -213,8 +212,6 @@ export function useRequireToken() {
   return useMutation({
     mutationFn: async ({ email }) => {
       try {
-        console.log({ email });
-
         const { error, data } =
           await supabase.auth.resetPasswordForEmail(email);
 
@@ -227,6 +224,20 @@ export function useRequireToken() {
 
         throw error;
       }
+    },
+  });
+}
+export function useResendToken() {
+  return useMutation({
+    mutationFn: async ({ email, type = "signup" }) => {
+      if (!email) throw new Error("Email is missing. Please sign up again.");
+
+      const { error } = await supabase.auth.resend({
+        type, // "signup" for a new account
+        email: email.trim().toLowerCase(),
+      });
+      if (error) throw error;
+      return true;
     },
   });
 }

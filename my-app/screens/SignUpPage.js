@@ -28,7 +28,7 @@ export default function SignUp() {
   } = useForm({
     defaultValues: { name: "", email: "", password: "" },
   });
-  const { mutate, isError, isPending, error, isSuccess } = useSignUp();
+  const { mutate,  isPending, error } = useSignUp();
 
   function signUpHandler(data) {
     mutate(data, {
@@ -40,7 +40,7 @@ export default function SignUp() {
       },
     });
   }
-
+ 
   return (
     <KeyboardAvoidingView
       style={styles.keyboardContainer}

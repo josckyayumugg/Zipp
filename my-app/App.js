@@ -120,7 +120,7 @@ function Tabs() {
                     name={"radio-button-on-outline"}
                     color={GlobalStyles.gold}
                     size={12}
-                    style={{ position: "absolute", top: -2, right:7 }}
+                    style={{ position: "absolute", top: -2, right: 7 }}
                   />
                 ) : null}
               </View>
@@ -339,21 +339,27 @@ function AppContent() {
             name="signUp"
             component={SignUp}
             options={{
-              headerShown: false,
+              headerShown: true,
+              title: "Sign up",
+              headerTintColor: "white",
+              headerStyle: { backgroundColor: "black" },
             }}
           />
           <Stack.Screen
             name="Confirm"
             component={ConfirmEmail}
             options={{
-              headerShown: false,
+              headerShown: true,
+              title: "Confirm Email",
+              headerTintColor: "white",
+              headerStyle: { backgroundColor: "black" },
             }}
           />
           <Stack.Screen
             name="PasswordTokenPage"
             component={PasswordTokenPage}
             options={{
-              headerShown: false,
+              headerShown: true,
             }}
           />
           <Stack.Screen

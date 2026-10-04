@@ -112,7 +112,8 @@ export default function FullWidthNoData({
             }}
           />
           {currentProfile?.type === "seller" ||
-          currentProfile?.type === "garage" ? (
+          currentProfile?.type === "garage" ||
+          currentProfile?.type === "mechanic" ? (
             <Button
               content={
                 isLoading ? <ActivityIndicator size={"small"} /> : "+Add deal"

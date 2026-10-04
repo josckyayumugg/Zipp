@@ -51,6 +51,7 @@ export default function ProductCard({
           position: "relative",
           // Android shadow
           elevation: 8,
+          backgroundColor:"white"
         },
         styles.bordeR,
         styles.smallMVertical,

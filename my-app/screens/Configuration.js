@@ -194,7 +194,7 @@ export default function ConfigureProfile({ route, navigation }) {
           </View>
           <View style={[styles.inputWrapper, { height: "3.5%" }]}>
             <Text style={[styles.smallT, styles.bold, { marginBottom: 6 }]}>
-              TYPE*
+              TYPE*(kuba umucuruzi bikorerwa muri app )
             </Text>
 
             <Controller

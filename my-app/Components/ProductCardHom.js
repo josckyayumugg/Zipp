@@ -51,6 +51,7 @@ export default function ProductCardHome({
           shadowOpacity: 0.3,
           shadowRadius: 6,
           position: "relative",
+          backgroundColor: "white",
           // Android shadow
           elevation: 8,
         },

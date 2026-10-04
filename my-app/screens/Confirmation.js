@@ -6,14 +6,20 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
+  Pressable,
 } from "react-native";
-import { useConfirm } from "../_CustomHooks/Authentication";
+import {
+  useConfirm,
+  useResendToken,
+  useSignUp,
+} from "../_CustomHooks/Authentication";
 import { supabase } from "../_lib/supabase";
 import { useForm, Controller } from "react-hook-form";
 import InputText from "../Components/TextInput";
 import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../Constants";
 import { useRoute } from "@react-navigation/native";
+import { queryClient } from "../_lib/queryClient";
 
 export default function ConfirmEmail({ navigation }) {
   const route = useRoute();
@@ -29,19 +35,18 @@ export default function ConfirmEmail({ navigation }) {
     formState: { errors },
   } = useForm({ defaultValues: { token: "" } });
   const { mutate, isPending, error } = useConfirm();
-
+  const {
+    mutate: mutateResend,
+    isPending: isPendingResend,
+    error: errorResend,
+  } = useResendToken();
   function submitHandler(data) {
     mutate(
       { email: email, token: data?.token },
       {
         onSuccess: async () => {
           // 🔥 check session after login
-          const { data } = await supabase.auth.getSession();
-
-          Navigation.reset({
-            index: 0,
-            routes: [{ name: "Configuration" }],
-          });
+          queryClient.invalidateQueries();
         },
       },
     );
@@ -77,7 +82,7 @@ export default function ConfirmEmail({ navigation }) {
           name="token"
         />
         {errors.token ? (
-          <Text style={{ color: "red" }}>{errors.token.message}</Text>
+          <Text style={{ color: "red" }}>{errors?.token?.message}</Text>
         ) : null}
       </View>
       {error ? (
@@ -87,15 +92,60 @@ export default function ConfirmEmail({ navigation }) {
           {error?.message}
         </Text>
       ) : null}
+      {errorResend ? (
+        <Text
+          style={{
+            color: "red",
+            fontSize: 14,
+            fontFamily: "Roboto-regular",
+            marginBottom: 6,
+          }}
+        >
+          {errorResend?.message}
+        </Text>
+      ) : null}
       <TouchableOpacity
         onPress={handleSubmit(submitHandler)}
         disabled={isPending}
         style={styles.button}
       >
-        <Text style={styles.buttonText}>
-          {isPending ? "Sending..." : "Send Reset Link"}
+        <Text style={[styles.buttonText]}>
+          {isPending ? "Sending..." : "Submit"}
         </Text>
       </TouchableOpacity>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginTop: 20,
+        }}
+      >
+        <Text>Nta email wabonye? </Text>
+        <Pressable
+          onPress={() => {
+            mutateResend({ email });
+          }}
+          style={[
+            {
+              color: GlobalStyles.gold,
+              fontWeight: 800,
+              textDecorationLine: "underline",
+            },
+          ]}
+        >
+          <Text
+            style={{
+              color: GlobalStyles.gold,
+              fontWeight: 800,
+
+              textDecorationLine: "underline",
+            }}
+          >
+            {!isPendingResend ? "Resend" : "...sending"}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -110,10 +160,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 10,
+    fontFamily: "Roboto-regular",
   },
   description: {
     marginVertical: 4,
+    fontFamily: "Roboto-regular",
   },
+
   input: {
     borderWidth: 1,
     borderColor: "#ccc",

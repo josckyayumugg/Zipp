@@ -38,7 +38,7 @@ module.exports = {
           backgroundColor: "#ffffff",
           image: "./assets/splash-icon.png",
           imageWidth: 200,
-        },
+        }, 
       ],
       "expo-font",
       "expo-status-bar",
